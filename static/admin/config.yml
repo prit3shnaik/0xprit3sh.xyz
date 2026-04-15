@@ -1,0 +1,57 @@
+backend:
+  name: github
+  repo: YOUR_GITHUB_USERNAME/0xprit3sh.xyz
+  branch: main
+  base_url: https://your-worker.YOUR_SUBDOMAIN.workers.dev
+  auth_endpoint: /callback
+
+media_folder: "static/images/uploads"
+public_folder: "/images/uploads"
+
+collections:
+  - name: "blog"
+    label: "Blog"
+    folder: "content/blog"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "Title", name: "title", widget: "string" }
+      - { label: "Date", name: "date", widget: "datetime" }
+      - { label: "Tags", name: "tags", widget: "list", allow_add: true }
+      - { label: "TL;DR", name: "tldr", widget: "string", required: false }
+      - { label: "Body", name: "body", widget: "markdown" }
+
+  - name: "osint"
+    label: "OSINT Investigations"
+    folder: "content/osint"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "Title", name: "title", widget: "string" }
+      - { label: "Date", name: "date", widget: "datetime" }
+      - { label: "Tags", name: "tags", widget: "list", allow_add: true }
+      - { label: "Enable Leaflet Maps", name: "leaflet", widget: "boolean", default: false }
+      - { label: "TL;DR", name: "tldr", widget: "string", required: false }
+      - { label: "Body", name: "body", widget: "markdown" }
+
+  - name: "writeups"
+    label: "Writeups"
+    folder: "content/writeups"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "Title", name: "title", widget: "string" }
+      - { label: "Date", name: "date", widget: "datetime" }
+      - { label: "Tags", name: "tags", widget: "list", allow_add: true }
+      - { label: "TL;DR", name: "tldr", widget: "string", required: false }
+      - { label: "Body", name: "body", widget: "markdown" }
+
+  - name: "pages"
+    label: "Pages"
+    files:
+      - label: "About"
+        name: "about"
+        file: "content/about.md"
+        fields:
+          - { label: "Title", name: "title", widget: "string" }
+          - { label: "Body", name: "body", widget: "markdown" }
