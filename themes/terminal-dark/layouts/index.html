@@ -1,0 +1,48 @@
+{{ define "main" }}
+<section class="hero">
+  <div class="terminal-window">
+    <div class="terminal-header">
+      <span class="dot red"></span>
+      <span class="dot yellow"></span>
+      <span class="dot green"></span>
+      <span class="terminal-title">bash — 80×24</span>
+    </div>
+    <div class="terminal-body">
+      <p><span class="prompt-line">root@0xprit3sh:~$</span> <span class="typed" id="typed"></span></p>
+      <div class="boot-sequence" id="boot">
+        <p class="dim">Loading profile...</p>
+        <p>Name    : <span class="accent">Pritesh S Naik</span></p>
+        <p>Role    : <span class="accent">Red Team | VAPT | OSINT | Web3 Security</span></p>
+        <p>Location: <span class="accent">Goa, India</span></p>
+        <p>Status  : <span class="green-text">[ACTIVE]</span></p>
+        <p class="dim">---</p>
+        <p>Skills  : Smart Contract Auditing · DeFi Exploits · DarkWeb OSINT</p>
+        <p>         Manual VAPT · SOCMINT · Threat Actor Profiling</p>
+        <p class="dim">---</p>
+        <p><span class="prompt-line">root@0xprit3sh:~$</span> ls ./sections/</p>
+        <div class="ls-output">
+          <a href="/blog/" class="dir">blog/</a>
+          <a href="/osint/" class="dir">osint/</a>
+          <a href="/writeups/" class="dir">writeups/</a>
+          <a href="/about/" class="dir">about/</a>
+        </div>
+        <p class="cursor-line"><span class="prompt-line">root@0xprit3sh:~$</span> <span class="cursor-blink">█</span></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="recent-posts">
+  <h2 class="section-title">// recent_activity</h2>
+  <div class="post-grid">
+    {{ range first 6 (where .Site.RegularPages "Section" "ne" "") }}
+    <article class="post-card">
+      <span class="post-type">[{{ .Section }}]</span>
+      <a href="{{ .Permalink }}" class="post-title">{{ .Title }}</a>
+      <time class="post-date">{{ .Date.Format "2006-01-02" }}</time>
+      {{ with .Params.tags }}<div class="post-tags">{{ range . }}<span class="tag">{{ . }}</span>{{ end }}</div>{{ end }}
+    </article>
+    {{ end }}
+  </div>
+</section>
+{{ end }}
