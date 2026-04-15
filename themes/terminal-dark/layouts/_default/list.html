@@ -1,0 +1,18 @@
+{{ define "main" }}
+<div class="list-page">
+  <div class="page-header">
+    <span class="dim">root@0xprit3sh:~$</span> ls -la <span class="accent">./{{ .Section }}/</span>
+  </div>
+  <div class="post-list">
+    {{ range .Pages }}
+    <div class="list-item">
+      <time class="list-date">{{ .Date.Format "2006-01-02" }}</time>
+      <a href="{{ .Permalink }}" class="list-title">{{ .Title }}</a>
+      {{ with .Params.tags }}
+      <div class="list-tags">{{ range . }}<span class="tag">{{ . }}</span>{{ end }}</div>
+      {{ end }}
+    </div>
+    {{ end }}
+  </div>
+</div>
+{{ end }}
