@@ -1,0 +1,30 @@
+{{ define "main" }}
+<div class="page-header">
+  <span class="page-title"><span class="dim">~/</span>blog</span>
+  <span class="page-count">{{ len .Pages }} posts</span>
+  <a href="/admin/#/collections/blog/new" class="edit-btn">+ new post</a>
+</div>
+ 
+<div class="blog-cmd">
+  <span class="c">root@0xprit3sh:~$</span> ls -lt ./blog/ | head -{{ len .Pages }}
+</div>
+ 
+{{ if .Pages }}
+<div class="blog-list">
+  {{ range .Pages }}
+  <a href="{{ .Permalink }}" class="blog-item">
+    <span class="blog-date">{{ .Date.Format "2006-01-02" }}</span>
+    <span class="blog-item-title">{{ .Title }}</span>
+    <div class="blog-item-tags">
+      {{ with .Params.tags }}{{ range . }}<span class="tag">{{ . }}</span>{{ end }}{{ end }}
+    </div>
+  </a>
+  {{ end }}
+</div>
+{{ else }}
+<div style="padding: 3rem 0; color: var(--dim); font-size: 0.82rem;">
+  <span style="color: var(--accent)">root@0xprit3sh:~$</span> ls ./blog/<br>
+  <span>// No posts yet. <a href="/admin/#/collections/blog/new" style="color: var(--accent2)">Write your first post →</a></span>
+</div>
+{{ end }}
+{{ end }}
