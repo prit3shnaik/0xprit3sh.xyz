@@ -1,36 +1,105 @@
 {{ define "main" }}
-<article class="post-single">
-  <header class="post-header">
-    <div class="breadcrumb">
-      <span class="dim">~/{{ .Section }}/</span>{{ .File.BaseFileName }}
+<div class="post-layout">
+
+  {{/* ── Main content ── */}}
+  <div class="post-main">
+    <div class="post-eyebrow">
+      <a href="/">~/home</a>
+      <span class="sep">/</span>
+      <a href="/{{ .Section }}/">{{ .Section }}</a>
+      <span class="sep">/</span>
+      <span>{{ .File.BaseFileName }}</span>
     </div>
+
     <h1 class="post-title">{{ .Title }}</h1>
-    <div class="post-meta">
-      <time>{{ .Date.Format "2006-01-02" }}</time>
-      {{ with .Params.tags }}
-      <div class="post-tags">{{ range . }}<span class="tag">{{ . }}</span>{{ end }}</div>
+
+    <div class="post-meta-row">
+      <span>{{ .Date.Format "2006-01-02" }}</span>
+      {{ with .ReadingTime }}<span>{{ . }} min read</span>{{ end }}
+      {{ with .Params.tags }}{{ range . }}<span class="tag">{{ . }}</span>{{ end }}{{ end }}
+      <a href="/admin/#/collections/{{ .Section }}/entries/{{ .File.BaseFileName }}" class="edit-btn" style="margin-left: auto; font-size: 0.68rem;">edit post</a>
+    </div>
+
+    {{ with .Params.tldr }}
+    <div class="tldr-box">
+      <strong>// TL;DR</strong>
+      <p>{{ . }}</p>
+    </div>
+    {{ end }}
+
+    <div class="post-content">
+      {{ .Content }}
+    </div>
+
+    <nav class="post-nav">
+      {{ with .PrevInSection }}<a href="{{ .Permalink }}">← {{ .Title }}</a>{{ else }}<span></span>{{ end }}
+      {{ with .NextInSection }}<a href="{{ .Permalink }}">{{ .Title }} →</a>{{ end }}
+    </nav>
+  </div>
+
+  {{/* ── Sidebar ── */}}
+  <div class="post-sidebar">
+
+    {{/* Share box */}}
+    <div class="sidebar-box">
+      <div class="sidebar-box-title">// share</div>
+      <div class="share-row">
+        <a class="share-btn" href="https://twitter.com/intent/tweet?text={{ .Title | urlize }}&url={{ .Permalink }}" target="_blank" rel="noopener">
+          <span class="share-icon">𝕏</span> post on X / Twitter
+        </a>
+        <a class="share-btn" href="https://www.linkedin.com/sharing/share-offsite/?url={{ .Permalink }}" target="_blank" rel="noopener">
+          <span class="share-icon">in</span> share on LinkedIn
+        </a>
+        <a class="share-btn" href="https://t.me/share/url?url={{ .Permalink }}&text={{ .Title | urlize }}" target="_blank" rel="noopener">
+          <span class="share-icon">✈</span> share on Telegram
+        </a>
+        <button class="share-btn" onclick="copyLink('{{ .Permalink }}')">
+          <span class="share-icon">#</span> <span id="copy-label">copy link</span>
+        </button>
+      </div>
+
+      {{/* OG Preview */}}
+      <div class="og-preview" style="margin-top: 10px;">
+        <div class="og-preview-bar">preview — how it looks when shared</div>
+        <div class="og-preview-body">
+          <div class="og-preview-title">{{ .Title }}</div>
+          <div class="og-preview-desc">{{ with .Description }}{{ . }}{{ else }}{{ .Summary | truncate 80 }}{{ end }}</div>
+          <div class="og-preview-url">0xprit3sh.xyz · {{ .Section }}</div>
+        </div>
+      </div>
+    </div>
+
+    {{/* Tags */}}
+    {{ with .Params.tags }}
+    <div class="sidebar-box">
+      <div class="sidebar-box-title">// tags</div>
+      <div>{{ range . }}<span class="tag" style="margin: 2px; display: inline-block;">{{ . }}</span>{{ end }}</div>
+    </div>
+    {{ end }}
+
+    {{/* Related posts */}}
+    {{ $related := .Site.RegularPages.Related . | first 4 }}
+    {{ with $related }}
+    <div class="sidebar-box">
+      <div class="sidebar-box-title">// related</div>
+      {{ range . }}
+      <div style="padding: 5px 0; border-bottom: 1px solid var(--border);">
+        <a href="{{ .Permalink }}" style="font-size: 0.78rem; color: var(--text2);">{{ .Title }}</a>
+      </div>
       {{ end }}
     </div>
-  </header>
-
-  <div class="post-content">
-    {{ .Content }}
-  </div>
-
-  {{ with .Params.tldr }}
-  <div class="tldr-box">
-    <strong>// TL;DR</strong>
-    <p>{{ . }}</p>
-  </div>
-  {{ end }}
-
-  <nav class="post-nav">
-    {{ with .PrevInSection }}
-    <a href="{{ .Permalink }}" class="prev">← {{ .Title }}</a>
     {{ end }}
-    {{ with .NextInSection }}
-    <a href="{{ .Permalink }}" class="next">{{ .Title }} →</a>
-    {{ end }}
-  </nav>
-</article>
+
+  </div>
+</div>
+
+<script>
+function copyLink(url) {
+  navigator.clipboard.writeText(url).then(() => {
+    const el = document.getElementById('copy-label');
+    el.textContent = 'copied!';
+    setTimeout(() => el.textContent = 'copy link', 2000);
+  });
+}
+</script>
 {{ end }}
