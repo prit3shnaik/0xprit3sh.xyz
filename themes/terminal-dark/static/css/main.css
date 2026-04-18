@@ -759,3 +759,54 @@ h1.post-title {
   .wu-num { display: none; }
   .main-nav { display: none; }
 }
+
+/* ── Dark mode glow effects ───────────────────────────────── */
+body:not(.light-mode) .prompt {
+  text-shadow: 0 0 10px rgba(0,255,65,0.5);
+}
+body:not(.light-mode) .cursor-blink {
+  text-shadow: 0 0 10px rgba(0,255,65,0.5);
+}
+body:not(.light-mode) .hero-value {
+  color: var(--text);
+  text-shadow: 0 0 6px rgba(200,210,220,0.15);
+}
+body:not(.light-mode) .section-label {
+  text-shadow: 0 0 8px rgba(0,255,65,0.3);
+}
+body:not(.light-mode) .page-title {
+  text-shadow: 0 0 8px rgba(0,255,65,0.3);
+}
+body:not(.light-mode) .post-content h2 {
+  text-shadow: 0 0 8px rgba(0,255,65,0.25);
+}
+body:not(.light-mode) .post-content h3 {
+  text-shadow: 0 0 6px rgba(0,212,255,0.25);
+}
+body:not(.light-mode) .about-content h2 {
+  text-shadow: 0 0 8px rgba(0,255,65,0.25);
+}
+body:not(.light-mode) .node-panel-title {
+  text-shadow: 0 0 6px rgba(0,255,65,0.3);
+}
+body:not(.light-mode) .inv-title:hover {
+  color: var(--accent);
+  text-shadow: 0 0 6px rgba(0,255,65,0.3);
+}
+body:not(.light-mode) .osint-count {
+  box-shadow: 0 0 8px rgba(0,255,65,0.3);
+}
+body:not(.light-mode) .edit-btn {
+  box-shadow: 0 0 8px rgba(0,255,65,0.15);
+}
+body:not(.light-mode) .wu-num {
+  color: var(--border2);
+  text-shadow: none;
+}
+body:not(.light-mode) .blog-item:hover .blog-item-title {
+  text-shadow: 0 0 6px rgba(0,255,65,0.2);
+}
+
+/* ── Fix: remove duplicate about edit button ──────────────── */
+.about-grid .edit-btn { display: none; }
+.page-header .edit-btn { display: inline-block; }
