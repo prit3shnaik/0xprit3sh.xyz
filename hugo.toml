@@ -10,6 +10,7 @@ theme = "terminal-dark"
   linkedin     = "pritesh-naik-1y022"
   twitter      = "Pritesh1908"
   email        = "prit3shnaik19@gmail.com"
+  pgp          = "https://openpgp.org"
   keywords     = ["OSINT", "VAPT", "Red Team", "Web3 Security", "Penetration Testing", "DeFi"]
 
 [markup]
