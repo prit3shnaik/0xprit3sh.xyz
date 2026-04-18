@@ -1,29 +1,57 @@
-// Typewriter effect on home page
-const typedEl = document.getElementById('typed');
-if (typedEl) {
-  const text = 'whoami';
-  let i = 0;
-  const type = () => {
-    if (i < text.length) {
-      typedEl.textContent += text[i++];
-      setTimeout(type, 100);
-    }
-  };
-  setTimeout(type, 500);
+// ── Theme toggle ──────────────────────────────────────────
+function toggleTheme() {
+  const isLight = document.body.classList.toggle('light-mode');
+  const btn = document.getElementById('theme-btn');
+  if (btn) btn.textContent = isLight ? '[ dark ]' : '[ light ]';
+  localStorage.setItem('0xp-theme', isLight ? 'light' : 'dark');
 }
-
-// Copy code blocks on click
+ 
+(function applyStoredTheme() {
+  const t = localStorage.getItem('0xp-theme');
+  if (t === 'light') {
+    document.body.classList.add('light-mode');
+    const btn = document.getElementById('theme-btn');
+    if (btn) btn.textContent = '[ dark ]';
+  }
+})();
+ 
+// ── Typewriter on home ────────────────────────────────────
+const typed = document.getElementById('typed-out');
+if (typed) {
+  const words = ['whoami', 'cat skills.txt', 'ls ./investigations/', 'nmap -sV target'];
+  let wi = 0, ci = 0, deleting = false;
+  function tick() {
+    const word = words[wi];
+    typed.textContent = deleting ? word.slice(0, ci--) : word.slice(0, ci++);
+    if (!deleting && ci > word.length)  { deleting = true; setTimeout(tick, 1200); return; }
+    if (deleting && ci < 0)             { deleting = false; wi = (wi+1) % words.length; ci = 0; }
+    setTimeout(tick, deleting ? 60 : 100);
+  }
+  setTimeout(tick, 800);
+}
+ 
+// ── Copy code buttons ─────────────────────────────────────
 document.querySelectorAll('pre').forEach(pre => {
   const btn = document.createElement('button');
   btn.textContent = 'copy';
   btn.className = 'copy-btn';
-  btn.style.cssText = 'position:absolute;top:8px;right:8px;background:#1a1a1a;color:#484f58;border:1px solid #2a2a2a;padding:2px 8px;font:0.75rem monospace;cursor:pointer;border-radius:3px;';
   pre.style.position = 'relative';
   pre.appendChild(btn);
   btn.addEventListener('click', () => {
-    navigator.clipboard.writeText(pre.querySelector('code')?.textContent || pre.textContent);
+    const code = pre.querySelector('code');
+    navigator.clipboard.writeText(code ? code.textContent : pre.textContent);
     btn.textContent = 'copied!';
-    btn.style.color = '#00ff41';
-    setTimeout(() => { btn.textContent = 'copy'; btn.style.color = '#484f58'; }, 2000);
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.textContent = 'copy'; btn.style.color = ''; }, 2000);
   });
 });
+ 
+// ── Active nav link ───────────────────────────────────────
+const path = window.location.pathname;
+document.querySelectorAll('.main-nav a').forEach(a => {
+  if (path.startsWith(a.getAttribute('href')) && a.getAttribute('href') !== '/') {
+    a.classList.add('active');
+  }
+});
+ 
+ 
