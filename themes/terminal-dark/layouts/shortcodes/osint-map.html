@@ -1,57 +1,37 @@
 {{ $id := .Get "id" | default "map" }}
-{{ $lat := .Get "lat" | default "15.2993" }}
-{{ $lng := .Get "lng" | default "74.1240" }}
-{{ $zoom := .Get "zoom" | default "10" }}
+{{ $lat := .Get "lat" | default "20" }}
+{{ $lng := .Get "lng" | default "0" }}
+{{ $zoom := .Get "zoom" | default "2" }}
 {{ $height := .Get "height" | default "450px" }}
-
+ 
 <div class="map-container">
-  <div id="map-{{ $id }}" class="leaflet-map" style="height: {{ $height }};"></div>
+  <div id="map-{{ $id }}" style="height: {{ $height }};"></div>
   {{ with .Inner }}
   <script type="application/json" id="markers-{{ $id }}">{{ . }}</script>
   {{ end }}
 </div>
-
+ 
 <script>
 (function() {
-  const mapEl = document.getElementById('map-{{ $id }}');
-  if (!mapEl || typeof L === 'undefined') return;
-
-  const map = L.map('map-{{ $id }}', {
-    center: [{{ $lat }}, {{ $lng }}],
-    zoom: {{ $zoom }},
-    zoomControl: true
-  });
-
+  const el = document.getElementById('map-{{ $id }}');
+  if (!el || typeof L === 'undefined') return;
+  const map = L.map('map-{{ $id }}').setView([{{ $lat }}, {{ $lng }}], {{ $zoom }});
   L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; OpenStreetMap &copy; CARTO',
-    subdomains: 'abcd',
-    maxZoom: 19
+    attribution: '&copy; OpenStreetMap &copy; CARTO', subdomains: 'abcd', maxZoom: 19
   }).addTo(map);
-
-  const markerData = document.getElementById('markers-{{ $id }}');
-  if (markerData) {
+  const raw = document.getElementById('markers-{{ $id }}');
+  if (raw) {
     try {
-      const markers = JSON.parse(markerData.textContent);
-      markers.forEach(function(m) {
+      JSON.parse(raw.textContent).forEach(m => {
         const icon = L.divIcon({
           className: 'custom-marker',
-          html: `<div class="marker-dot" style="background:${m.color||'#00ff41'}"></div>`,
-          iconSize: [12, 12],
-          iconAnchor: [6, 6]
+          html: `<div class="marker-dot" style="background:${m.color||'#00ff41'};box-shadow:0 0 6px ${m.color||'#00ff41'}"></div>`,
+          iconSize: [10,10], iconAnchor: [5,5]
         });
-        const marker = L.marker([m.lat, m.lng], { icon: icon }).addTo(map);
-        if (m.label) {
-          marker.bindPopup(`
-            <div class="map-popup">
-              <strong>${m.label}</strong>
-              ${m.type ? `<span class="popup-type">[${m.type}]</span>` : ''}
-              ${m.desc ? `<p>${m.desc}</p>` : ''}
-              ${m.ip ? `<code>IP: ${m.ip}</code>` : ''}
-            </div>
-          `);
-        }
+        const mk = L.marker([m.lat, m.lng], { icon }).addTo(map);
+        if (m.label) mk.bindPopup(`<div class="map-popup"><strong>${m.label}</strong>${m.type?`<span class="popup-type"> [${m.type}]</span>`:''}${m.desc?`<p>${m.desc}</p>`:''}${m.ip?`<code>${m.ip}</code>`:''}</div>`);
       });
-    } catch(e) { console.warn('Map marker parse error:', e); }
+    } catch(e) { console.warn('map parse error', e); }
   }
 })();
 </script>
