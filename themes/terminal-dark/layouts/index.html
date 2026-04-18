@@ -1,48 +1,61 @@
 {{ define "main" }}
-<section class="hero">
-  <div class="terminal-window">
-    <div class="terminal-header">
-      <span class="dot red"></span>
-      <span class="dot yellow"></span>
-      <span class="dot green"></span>
-      <span class="terminal-title">bash — 80×24</span>
-    </div>
-    <div class="terminal-body">
-      <p><span class="prompt-line">root@0xprit3sh:~$</span> <span class="typed" id="typed"></span></p>
-      <div class="boot-sequence" id="boot">
-        <p class="dim">Loading profile...</p>
-        <p>Name    : <span class="accent">Pritesh S Naik</span></p>
-        <p>Role    : <span class="accent">Red Team | VAPT | OSINT | Web3 Security</span></p>
-        <p>Location: <span class="accent">Goa, India</span></p>
-        <p>Status  : <span class="green-text">[ACTIVE]</span></p>
-        <p class="dim">---</p>
-        <p>Skills  : Smart Contract Auditing · DeFi Exploits · DarkWeb OSINT</p>
-        <p>         Manual VAPT · SOCMINT · Threat Actor Profiling</p>
-        <p class="dim">---</p>
-        <p><span class="prompt-line">root@0xprit3sh:~$</span> ls ./sections/</p>
-        <div class="ls-output">
-          <a href="/blog/" class="dir">blog/</a>
-          <a href="/osint/" class="dir">osint/</a>
-          <a href="/writeups/" class="dir">writeups/</a>
-          <a href="/about/" class="dir">about/</a>
-        </div>
-        <p class="cursor-line"><span class="prompt-line">root@0xprit3sh:~$</span> <span class="cursor-blink">█</span></p>
-      </div>
-    </div>
-  </div>
-</section>
 
-<section class="recent-posts">
-  <h2 class="section-title">// recent_activity</h2>
-  <div class="post-grid">
-    {{ range first 6 (where .Site.RegularPages "Section" "ne" "") }}
-    <article class="post-card">
-      <span class="post-type">[{{ .Section }}]</span>
-      <a href="{{ .Permalink }}" class="post-title">{{ .Title }}</a>
-      <time class="post-date">{{ .Date.Format "2006-01-02" }}</time>
-      {{ with .Params.tags }}<div class="post-tags">{{ range . }}<span class="tag">{{ . }}</span>{{ end }}</div>{{ end }}
-    </article>
-    {{ end }}
+{{/* Hero stat grid */}}
+<div class="home-hero">
+  <div class="hero-cell c-green">
+    <div class="hero-label">operator</div>
+    <div class="hero-value">Pritesh S Naik</div>
+    <div class="hero-sub">Red Team · VAPT · OSINT · Web3 Security</div>
   </div>
-</section>
+  <div class="hero-cell c-blue">
+    <div class="hero-label">location / status</div>
+    <div class="hero-value">Goa, India</div>
+    <div class="hero-sub">UTC+5:30 · Available for engagements</div>
+  </div>
+  <div class="hero-cell c-red">
+    <div class="hero-label">specialization</div>
+    <div class="hero-value">Smart Contracts · DeFi · DarkWeb</div>
+    <div class="hero-sub">Solidity auditing · Stealer log analysis · SOCMINT</div>
+  </div>
+  <div class="hero-cell c-purple">
+    <div class="hero-label">tools / frameworks</div>
+    <div class="hero-value">Pinaka · Sentinel-Web3 · SocMint-X</div>
+    <div class="hero-sub">Custom-built offensive security tooling</div>
+  </div>
+</div>
+
+{{/* Recent posts — only real ones */}}
+{{ $allPages := where .Site.RegularPages "Section" "ne" "" }}
+{{ if $allPages }}
+<div class="section-label">// recent_activity</div>
+<div style="margin-bottom: 2rem;">
+  {{ range first 8 $allPages }}
+  <div class="post-row">
+    <span class="post-section-badge badge-{{ .Section }}">{{ .Section }}</span>
+    <a href="{{ .Permalink }}" class="post-row-title">{{ .Title }}</a>
+    {{ with index .Params.tags 0 }}<span class="post-row-tag">{{ . }}</span>{{ end }}
+    <span class="post-row-date">{{ .Date.Format "2006-01-02" }}</span>
+  </div>
+  {{ end }}
+</div>
+{{ else }}
+<div class="section-label">// recent_activity</div>
+<div style="padding: 2rem 0; color: var(--dim); font-size: 0.82rem;">
+  <span style="color: var(--accent)">root@0xprit3sh:~$</span> ls ./posts/<br>
+  <span style="color: var(--dim)">// No posts yet. Go to <a href="/admin/" style="color: var(--accent2)">/admin</a> to create your first post.</span>
+</div>
+{{ end }}
+
+{{/* Skills terminal block */}}
+<div class="section-label">// skill_matrix</div>
+<div style="background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; padding: 1.25rem; margin-bottom: 2rem; font-size: 0.8rem;">
+  <div style="color: var(--dim); margin-bottom: 0.75rem;">root@0xprit3sh:~$ cat skills.txt</div>
+  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.5rem;">
+    <div><span style="color: var(--accent2)">web3       </span><span style="color: var(--text2)">Solidity · DeFi · EVM · dApps</span></div>
+    <div><span style="color: var(--accent2)">offensive  </span><span style="color: var(--text2)">VAPT · Red Team · API · Network</span></div>
+    <div><span style="color: var(--accent2)">intel      </span><span style="color: var(--text2)">DarkWeb · OSINT · SOCMINT · TI</span></div>
+    <div><span style="color: var(--accent2)">tools      </span><span style="color: var(--text2)">Python · Bash · JS · Solidity</span></div>
+  </div>
+</div>
+
 {{ end }}
