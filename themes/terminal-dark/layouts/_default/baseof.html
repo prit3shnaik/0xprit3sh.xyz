@@ -40,8 +40,9 @@
 
 <header class="site-header">
   <div class="container">
-    <a href="{{ "/" | relURL }}" class="site-logo">
-      <span class="prompt">root@0xprit3sh</span><span class="cursor-blink">:~$</span>
+    <a href="{{ "/" | relURL }}" class="site-logo" style="display:flex;align-items:center;gap:8px;">
+  <img src="{{ "images/logo.svg" | relURL }}" width="28" height="28" alt="0xprit3sh logo">
+  <span class="prompt">0xprit3sh</span>
     </a>
     <nav class="main-nav">
       {{ range .Site.Menus.main }}
