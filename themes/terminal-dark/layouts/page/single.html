@@ -1,0 +1,37 @@
+{{ define "main" }}
+<div class="about-grid">
+  <div class="about-content">
+    <div class="page-header">
+      <span class="page-title"><span class="dim">~/</span>about</span>
+      <a href="/admin/#/collections/pages/entries/about" class="edit-btn">edit</a>
+    </div>
+    {{ .Content }}
+  </div>
+  <div class="about-sidebar">
+    <div class="sidebar-box">
+      <div class="sidebar-box-title">// contact</div>
+      <div class="contact-item"><span class="k">email</span><a href="mailto:{{ .Site.Params.email }}">{{ .Site.Params.email }}</a></div>
+      <div class="contact-item"><span class="k">github</span><a href="https://github.com/{{ .Site.Params.github }}" target="_blank">@{{ .Site.Params.github }}</a></div>
+      <div class="contact-item"><span class="k">linkedin</span><a href="https://linkedin.com/in/{{ .Site.Params.linkedin }}" target="_blank">{{ .Site.Params.linkedin }}</a></div>
+      <div class="contact-item"><span class="k">twitter</span><a href="https://x.com/{{ .Site.Params.twitter }}" target="_blank">@{{ .Site.Params.twitter }}</a></div>
+    </div>
+    <div class="sidebar-box">
+      <div class="sidebar-box-title">// pgp / verify</div>
+      <div style="font-size: 0.7rem; color: var(--dim); word-break: break-all;">
+        {{ with .Site.Params.pgp }}{{ . }}{{ else }}// add pgp key in hugo.toml{{ end }}
+      </div>
+    </div>
+    <div class="sidebar-box">
+      <div class="sidebar-box-title">// share profile</div>
+      <div class="share-row">
+        <a class="share-btn" href="https://twitter.com/intent/tweet?text=Check out @{{ .Site.Params.twitter }}'s security research portfolio&url={{ .Site.BaseURL }}" target="_blank">
+          <span class="share-icon">𝕏</span> share on Twitter
+        </a>
+        <a class="share-btn" href="https://www.linkedin.com/sharing/share-offsite/?url={{ .Site.BaseURL }}" target="_blank">
+          <span class="share-icon">in</span> share on LinkedIn
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{{ end }}
