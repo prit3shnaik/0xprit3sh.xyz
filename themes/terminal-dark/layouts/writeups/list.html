@@ -1,0 +1,32 @@
+{{ define "main" }}
+<div class="page-header">
+  <span class="page-title"><span class="dim">~/</span>writeups</span>
+  <span class="page-count">{{ len .Pages }} entries</span>
+  <a href="/admin/#/collections/writeups/new" class="edit-btn">+ new writeup</a>
+</div>
+ 
+{{ if .Pages }}
+<div class="writeup-grid">
+  {{ range $i, $p := .Pages }}
+  <a href="{{ $p.Permalink }}" class="writeup-card">
+    <div class="wu-num">{{ printf "%02d" (add $i 1) }}</div>
+    <div>
+      <div class="wu-title">{{ $p.Title }}</div>
+      <div class="wu-meta">{{ $p.Date.Format "2006-01-02" }}{{ with $p.Params.platform }} · {{ . }}{{ end }}</div>
+      <div class="wu-tags">
+        {{ with $p.Params.tags }}{{ range . }}<span class="tag">{{ . }}</span>{{ end }}{{ end }}
+      </div>
+    </div>
+    {{ with .Params.severity }}
+    <span class="severity sev-{{ . | lower }}">{{ . | upper }}</span>
+    {{ end }}
+  </a>
+  {{ end }}
+</div>
+{{ else }}
+<div style="padding: 3rem 0; color: var(--dim); font-size: 0.82rem;">
+  <span style="color: var(--accent)">root@0xprit3sh:~$</span> ls ./writeups/<br>
+  <span style="color: var(--dim)">// No writeups yet. <a href="/admin/#/collections/writeups/new" style="color: var(--accent2)">Create your first →</a></span>
+</div>
+{{ end }}
+{{ end }}
