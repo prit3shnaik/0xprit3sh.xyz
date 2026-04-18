@@ -1,0 +1,201 @@
+{{ define "main" }}
+<div class="osint-shell">
+
+  {{/* ── Sidebar ── */}}
+  <div class="osint-sidebar">
+    <div class="osint-sidebar-top">
+      <span class="osint-sidebar-title">investigations</span>
+      <span class="osint-count">{{ len .Pages }}</span>
+      <a href="/admin/#/collections/osint/new" class="osint-new-btn">+ new</a>
+    </div>
+
+    <div class="osint-search">
+      <input type="text" id="inv-search" placeholder="search investigations..." oninput="filterInv(this.value)">
+    </div>
+
+    <div class="filter-row">
+      <button class="filter-chip on" onclick="toggleChip(this,'GEOINT')">GEOINT</button>
+      <button class="filter-chip on" onclick="toggleChip(this,'SOCMINT')">SOCMINT</button>
+      <button class="filter-chip on" onclick="toggleChip(this,'HUMINT')">HUMINT</button>
+      <button class="filter-chip on" onclick="toggleChip(this,'C2')">C2</button>
+      <button class="filter-chip on" onclick="toggleChip(this,'ACTOR')">ACTOR</button>
+    </div>
+
+    <div class="investigation-list" id="inv-list">
+      {{ if .Pages }}
+        {{ range .Pages }}
+        <a href="{{ .Permalink }}" class="inv-item" data-tags="{{ with .Params.tags }}{{ delimit . "," }}{{ end }}" data-title="{{ .Title | lower }}">
+          <div class="inv-dot" style="background: {{ with .Params.color }}{{ . }}{{ else }}#00d4ff{{ end }}"></div>
+          <div class="inv-info">
+            <div class="inv-title">{{ .Title }}</div>
+            <div class="inv-meta">
+              {{ .Date.Format "2006-01-02" }}
+              {{ with index .Params.tags 0 }} · <span class="inv-tag">{{ . }}</span>{{ end }}
+            </div>
+          </div>
+        </a>
+        {{ end }}
+      {{ else }}
+        <div style="padding: 2rem 1rem; color: var(--dim); font-size: 0.78rem; text-align: center;">
+          No investigations yet.<br>
+          <a href="/admin/#/collections/osint/new" style="color: var(--accent)">Create your first →</a>
+        </div>
+      {{ end }}
+    </div>
+  </div>
+
+  {{/* ── Canvas ── */}}
+  <div class="osint-canvas">
+    <div class="canvas-toolbar">
+      <span>// graph view</span>
+      <button class="toolbar-btn active" onclick="setView('graph',this)">graph</button>
+      <button class="toolbar-btn" onclick="setView('list',this)">list</button>
+      <div style="margin-left:auto; display:flex; gap:4px;">
+        <button class="toolbar-btn" onclick="zoomIn()">+</button>
+        <button class="toolbar-btn" onclick="zoomOut()">−</button>
+        <button class="toolbar-btn" onclick="resetZoom()">fit</button>
+      </div>
+    </div>
+    <div class="canvas-area" id="canvas-area">
+      <div class="canvas-grid"></div>
+      <svg id="osint-svg"></svg>
+      {{ if not .Pages }}
+      <div class="osint-empty">
+        <div class="osint-empty-icon">◎</div>
+        <div>No investigations to map</div>
+        <a href="/admin/#/collections/osint/new" style="color: var(--accent); font-size: 0.78rem;">+ create investigation</a>
+      </div>
+      {{ end }}
+      <div class="node-panel" id="node-panel">
+        <div class="node-panel-title" id="np-title">—</div>
+        <div class="node-row"><span class="k">type</span><span class="v" id="np-type">—</span></div>
+        <div class="node-row"><span class="k">date</span><span class="v" id="np-date">—</span></div>
+        <div class="node-row"><span class="k">tags</span><span class="v" id="np-tags">—</span></div>
+        <div class="node-panel-actions">
+          <a class="node-action" id="np-view" href="#">view</a>
+          <a class="node-action" id="np-edit" href="#">edit</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const investigations = [
+  {{ range .Pages }}
+  {
+    title: {{ .Title | jsonify }},
+    url: {{ .Permalink | jsonify }},
+    editUrl: "/admin/#/collections/osint/entries/{{ .File.BaseFileName }}",
+    date: {{ .Date.Format "2006-01-02" | jsonify }},
+    tags: {{ with .Params.tags }}{{ . | jsonify }}{{ else }}[]{{ end }},
+    color: {{ with .Params.color }}{{ . | jsonify }}{{ else }}"#00d4ff"{{ end }}
+  },
+  {{ end }}
+];
+
+// Build graph
+function buildGraph() {
+  const svg = document.getElementById('osint-svg');
+  const area = document.getElementById('canvas-area');
+  if (!svg || !area || investigations.length === 0) return;
+  const W = area.clientWidth || 600;
+  const H = area.clientHeight || 400;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+  const cx = W/2, cy = H/2;
+  const R = Math.min(W, H) * 0.35;
+
+  let html = '';
+  // Central hub
+  html += `<circle cx="${cx}" cy="${cy}" r="16" fill="#00ff41" opacity="0.9"/>`;
+  html += `<text x="${cx}" y="${cy+4}" text-anchor="middle" fill="#000" font-size="9" font-family="monospace" font-weight="bold">HUB</text>`;
+
+  investigations.forEach((inv, i) => {
+    const angle = (i / investigations.length) * Math.PI * 2 - Math.PI/2;
+    const x = cx + R * Math.cos(angle);
+    const y = cy + R * Math.sin(angle);
+    const r = 10;
+
+    // Edge
+    html += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#1e1e1e" stroke-width="1"/>`;
+    // Node
+    html += `<circle cx="${x}" cy="${y}" r="${r}" fill="${inv.color}" opacity="0.8" class="graph-node" data-i="${i}" style="cursor:pointer"/>`;
+    // Label
+    const labelX = x + (x > cx ? r+4 : -r-4);
+    const anchor = x > cx ? 'start' : 'end';
+    const shortTitle = inv.title.length > 18 ? inv.title.slice(0,18)+'…' : inv.title;
+    html += `<text x="${labelX}" y="${y+4}" text-anchor="${anchor}" fill="#8b949e" font-size="9" font-family="monospace" pointer-events="none">${shortTitle}</text>`;
+  });
+
+  svg.innerHTML = html;
+
+  // Click handlers
+  svg.querySelectorAll('.graph-node').forEach(node => {
+    node.addEventListener('click', () => {
+      const i = parseInt(node.dataset.i);
+      const inv = investigations[i];
+      const panel = document.getElementById('node-panel');
+      document.getElementById('np-title').textContent = inv.title;
+      document.getElementById('np-type').textContent = inv.tags[0] || '—';
+      document.getElementById('np-date').textContent = inv.date;
+      document.getElementById('np-tags').textContent = inv.tags.join(', ') || '—';
+      document.getElementById('np-view').href = inv.url;
+      document.getElementById('np-edit').href = inv.editUrl;
+      panel.classList.add('visible');
+      svg.querySelectorAll('.graph-node').forEach(n => n.setAttribute('opacity','0.4'));
+      node.setAttribute('opacity','1');
+    });
+  });
+
+  svg.addEventListener('click', e => {
+    if (!e.target.classList.contains('graph-node')) {
+      document.getElementById('node-panel').classList.remove('visible');
+      svg.querySelectorAll('.graph-node').forEach(n => n.setAttribute('opacity','0.8'));
+    }
+  });
+}
+
+window.addEventListener('load', buildGraph);
+window.addEventListener('resize', buildGraph);
+
+// Filter
+function filterInv(q) {
+  q = q.toLowerCase();
+  document.querySelectorAll('.inv-item').forEach(el => {
+    const match = el.dataset.title.includes(q) || el.dataset.tags.toLowerCase().includes(q);
+    el.style.display = match ? '' : 'none';
+  });
+}
+
+// Chip filter
+function toggleChip(el, tag) {
+  el.classList.toggle('on');
+  filterByChips();
+}
+function filterByChips() {
+  const active = Array.from(document.querySelectorAll('.filter-chip.on')).map(c => c.textContent);
+  document.querySelectorAll('.inv-item').forEach(el => {
+    const tags = el.dataset.tags.split(',');
+    const show = active.length === 0 || tags.some(t => active.includes(t.trim().toUpperCase()));
+    el.style.display = show ? '' : 'none';
+  });
+}
+
+// View toggle
+function setView(v, btn) {
+  document.querySelectorAll('.toolbar-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// Zoom stubs
+let zoom = 1;
+function zoomIn()  { zoom = Math.min(zoom + 0.2, 3); applyZoom(); }
+function zoomOut() { zoom = Math.max(zoom - 0.2, 0.4); applyZoom(); }
+function resetZoom(){ zoom = 1; applyZoom(); }
+function applyZoom() {
+  document.getElementById('osint-svg').style.transform = `scale(${zoom})`;
+  document.getElementById('osint-svg').style.transformOrigin = 'center center';
+}
+</script>
+{{ end }}
