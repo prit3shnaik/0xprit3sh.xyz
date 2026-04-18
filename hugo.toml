@@ -47,6 +47,6 @@ theme = "terminal-dark"
   weight = 3
 
 [[menus.main]]
-  name   = "~/blogs"
-  url    = "/blogs/"
+  name   = "~/blog"
+  url    = "/blog/"
   weight = 4
