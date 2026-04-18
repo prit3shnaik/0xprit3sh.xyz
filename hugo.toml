@@ -4,11 +4,11 @@ title = "0xprit3sh"
 theme = "terminal-dark"
 
 [params]
-  description  = "Red Team | VAPT | OSINT | Web3 Security — Pritesh S Naik"
+  description  = "Red Team | VAPT | OSINT | Web3 Security — Pritesh Naik"
   author       = "Pritesh S Naik"
   github       = "prit3shnaik"
   linkedin     = "pritesh-naik-1y022"
-  twitter      = "Pritesh1908"
+  twitter      = "_prit3sh_naik"
   email        = "prit3shnaik19@gmail.com"
   pgp          = "https://openpgp.org"
   keywords     = ["OSINT", "VAPT", "Red Team", "Web3 Security", "Penetration Testing", "DeFi"]
@@ -47,6 +47,6 @@ theme = "terminal-dark"
   weight = 3
 
 [[menus.main]]
-  name   = "~/blog"
-  url    = "/blog/"
+  name   = "~/blogs"
+  url    = "/blogs/"
   weight = 4
