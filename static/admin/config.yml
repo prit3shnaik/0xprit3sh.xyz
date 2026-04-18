@@ -1,25 +1,26 @@
 backend:
   name: github
-  repo: YOUR_GITHUB_USERNAME/0xprit3sh.xyz
+  repo: prit3shnaik/0xprit3sh.xyz
   branch: main
-  base_url: https://sveltia-cms-auth.prit3shnaik19.workers.dev/
+  base_url: https://sveltia-cms-auth.prit3shnaik19.workers.dev
   auth_endpoint: /callback
 
 media_folder: "static/images/uploads"
 public_folder: "/images/uploads"
 
 collections:
+
   - name: "blog"
-    label: "Blog"
+    label: "Blog Posts"
     folder: "content/blog"
     create: true
-    slug: "{{slug}}"
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
     fields:
-      - { label: "Title", name: "title", widget: "string" }
-      - { label: "Date", name: "date", widget: "datetime" }
-      - { label: "Tags", name: "tags", widget: "list", allow_add: true }
-      - { label: "TL;DR", name: "tldr", widget: "string", required: false }
-      - { label: "Body", name: "body", widget: "markdown" }
+      - { label: "Title",  name: "title", widget: "string" }
+      - { label: "Date",   name: "date",  widget: "datetime" }
+      - { label: "Tags",   name: "tags",  widget: "list", allow_add: true }
+      - { label: "TL;DR", name: "tldr",  widget: "string", required: false }
+      - { label: "Body",   name: "body",  widget: "markdown" }
 
   - name: "osint"
     label: "OSINT Investigations"
@@ -27,12 +28,17 @@ collections:
     create: true
     slug: "{{slug}}"
     fields:
-      - { label: "Title", name: "title", widget: "string" }
-      - { label: "Date", name: "date", widget: "datetime" }
-      - { label: "Tags", name: "tags", widget: "list", allow_add: true }
-      - { label: "Enable Leaflet Maps", name: "leaflet", widget: "boolean", default: false }
-      - { label: "TL;DR", name: "tldr", widget: "string", required: false }
-      - { label: "Body", name: "body", widget: "markdown" }
+      - { label: "Title",      name: "title",   widget: "string" }
+      - { label: "Date",       name: "date",    widget: "datetime" }
+      - { label: "Tags",       name: "tags",    widget: "list", allow_add: true,
+          hint: "Use: GEOINT, SOCMINT, HUMINT, C2, ACTOR" }
+      - { label: "Node Color", name: "color",   widget: "color",
+          default: "#00d4ff",  hint: "Color of this node in graph view" }
+      - { label: "Enable Map", name: "leaflet", widget: "boolean", default: false }
+      - { label: "TL;DR",     name: "tldr",    widget: "string", required: false }
+      - { label: "Status",     name: "status",  widget: "select",
+          options: ["active", "closed", "ongoing"], default: "active" }
+      - { label: "Body",       name: "body",    widget: "markdown" }
 
   - name: "writeups"
     label: "Writeups"
@@ -40,18 +46,22 @@ collections:
     create: true
     slug: "{{slug}}"
     fields:
-      - { label: "Title", name: "title", widget: "string" }
-      - { label: "Date", name: "date", widget: "datetime" }
-      - { label: "Tags", name: "tags", widget: "list", allow_add: true }
-      - { label: "TL;DR", name: "tldr", widget: "string", required: false }
-      - { label: "Body", name: "body", widget: "markdown" }
+      - { label: "Title",    name: "title",    widget: "string" }
+      - { label: "Date",     name: "date",     widget: "datetime" }
+      - { label: "Tags",     name: "tags",     widget: "list", allow_add: true }
+      - { label: "Severity", name: "severity", widget: "select",
+          options: ["critical", "high", "medium", "low"], required: false }
+      - { label: "Platform", name: "platform", widget: "string", required: false,
+          hint: "e.g. HackTheBox, Immunefi, Private bug bounty" }
+      - { label: "TL;DR",   name: "tldr",     widget: "string", required: false }
+      - { label: "Body",     name: "body",     widget: "markdown" }
 
   - name: "pages"
     label: "Pages"
     files:
       - label: "About"
-        name: "about"
-        file: "content/about.md"
+        name:  "about"
+        file:  "content/about.md"
         fields:
           - { label: "Title", name: "title", widget: "string" }
-          - { label: "Body", name: "body", widget: "markdown" }
+          - { label: "Body",  name: "body",  widget: "markdown" }
