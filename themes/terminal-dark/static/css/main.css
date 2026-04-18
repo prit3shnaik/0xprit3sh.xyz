@@ -810,3 +810,53 @@ body:not(.light-mode) .blog-item:hover .blog-item-title {
 /* ── Fix: remove duplicate about edit button ──────────────── */
 .about-grid .edit-btn { display: none; }
 .page-header .edit-btn { display: inline-block; }
+
+/* ── Dark mode readability fix ────────────────────────────── */
+body:not(.light-mode) {
+  --text:  #d0d8e0;
+  --text2: #9aa3ad;
+}
+body:not(.light-mode) .about-content p,
+body:not(.light-mode) .about-content li {
+  color: #9aa3ad;
+}
+body:not(.light-mode) .about-content strong {
+  color: #d0d8e0;
+}
+
+/* ── About sidebar — remove box style, use flat rows ─────── */
+.about-sidebar .sidebar-box {
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  padding: 0.75rem 0;
+}
+.about-sidebar .sidebar-box:last-child { border-bottom: none; }
+.about-sidebar .sidebar-box-title {
+  font-size: 0.68rem;
+  color: var(--dim);
+  margin-bottom: 0.5rem;
+}
+
+/* ── Contact rows — interactive ───────────────────────────── */
+.contact-item {
+  padding: 7px 8px;
+  border-radius: 4px;
+  transition: background 0.15s;
+  border-bottom: 1px solid var(--border) !important;
+}
+.contact-item:hover { background: var(--bg3); }
+.contact-item:last-child { border-bottom: none !important; }
+
+/* ── Share buttons — inline not boxed ────────────────────── */
+.about-sidebar .share-row { flex-direction: row; flex-wrap: wrap; gap: 6px; }
+.about-sidebar .share-btn {
+  flex: none;
+  width: auto;
+  font-size: 0.68rem;
+  padding: 4px 10px;
+}
+
+/* ── PGP box — hide if empty ──────────────────────────────── */
+.sidebar-box:has(.sidebar-box-title + div:empty) { display: none; }
