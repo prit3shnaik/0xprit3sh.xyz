@@ -1447,3 +1447,8 @@ select.ct-input option { background: var(--bg3); }
   .ow-canvas { min-height: 400px; }
   .owt-center { display: none; }
 }
+
+/* Logo invert for light mode */
+body.light-mode .site-logo img {
+  filter: invert(1);
+}
