@@ -13,8 +13,8 @@
   --bg4:       #1c1c1c;
   --border:    #1e1e1e;
   --border2:   #2a2a2a;
-  --text:      #c9d1d9;
-  --text2:     #8b949e;
+  --text:      #e6edf3;
+  --text2:     #b0bac5;
   --dim:       #484f58;
   --accent:    #00ff41;
   --accent-dim:#00441a;
@@ -860,3 +860,14 @@ body:not(.light-mode) .about-content strong {
 
 /* ── PGP box — hide if empty ──────────────────────────────── */
 .sidebar-box:has(.sidebar-box-title + div:empty) { display: none; }
+
+/* ── Dark mode contrast boost ─────────────────────────────── */
+body:not(.light-mode) .about-content p,
+body:not(.light-mode) .about-content li { color: #b0bac5; }
+body:not(.light-mode) .about-content strong { color: #e6edf3; }
+body:not(.light-mode) .post-content p { color: #cdd5de; }
+body:not(.light-mode) .hero-sub { color: #b0bac5; }
+body:not(.light-mode) .post-row-title { color: #e6edf3; }
+body:not(.light-mode) .wu-title { color: #e6edf3; }
+body:not(.light-mode) .blog-item-title { color: #e6edf3; }
+body:not(.light-mode) .inv-title { color: #e6edf3; }
