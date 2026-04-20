@@ -47,12 +47,12 @@
 <header class="site-header">
   <div class="container">
     <a href="{{ "/" | relURL }}" class="site-logo" style="display:flex;align-items:center;gap:10px;text-decoration:none;">
-    <img src="{{ "images/logo.png" | relURL }}" 
+  <img src="{{ "images/logo.png" | relURL }}" 
        width="36" height="36" 
        alt="0xprit3sh"
        style="display:block;flex-shrink:0;border-radius:4px;">
-     <span class="prompt">0xprit3sh</span><span class="cursor-blink">:~$</span>
-     </a>
+   <span class="prompt">0xprit3sh</span><span class="cursor-blink">:~$</span>
+   </a>
     <nav class="main-nav">
       {{ range .Site.Menus.main }}
       <a href="{{ .URL }}" class="{{ if $.IsMenuCurrent "main" . }}active{{ end }}">{{ .Name }}</a>
