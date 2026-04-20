@@ -757,7 +757,24 @@ h1.post-title {
   .about-grid { grid-template-columns: 1fr; }
   .writeup-card { grid-template-columns: 1fr; }
   .wu-num { display: none; }
-  .main-nav { display: none; }
+  .main-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  display: flex !important;
+  justify-content: space-around;
+  padding: 8px 0 12px;
+  z-index: 300;
+}
+.main-nav a {
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.65rem;
+  padding: 4px 8px;
+  gap: 2px;
+}
+.site-main { padding-bottom: 5rem; }
 }
 
 /* ── Dark mode glow effects ───────────────────────────────── */
@@ -871,3 +888,11 @@ body:not(.light-mode) .post-row-title { color: #e6edf3; }
 body:not(.light-mode) .wu-title { color: #e6edf3; }
 body:not(.light-mode) .blog-item-title { color: #e6edf3; }
 body:not(.light-mode) .inv-title { color: #e6edf3; }
+
+/* Add at bottom of main.css */
+.post-content p  { font-size: 0.95rem; }
+.about-content p,
+.about-content li { font-size: 0.93rem; }
+.hero-value { font-size: 1.15rem; }
+.wu-title   { font-size: 0.95rem; }
+.blog-item-title { font-size: 0.93rem; }
