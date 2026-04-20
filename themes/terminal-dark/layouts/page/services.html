@@ -1,0 +1,182 @@
+{{ define "main" }}
+<div class="services-layout">
+ 
+  <div class="page-header">
+    <span class="page-title"><span class="dim">~/</span>services</span>
+    <span style="font-size:0.72rem;color:var(--accent);background:var(--accent-dim);border:1px solid var(--accent);padding:2px 10px;border-radius:2px;">taking clients</span>
+  </div>
+ 
+  <div class="services-grid">
+ 
+    <div class="service-card" id="svc-vapt">
+      <div class="svc-header">
+        <div class="svc-icon">[ $ ]</div>
+        <div>
+          <div class="svc-name">VAPT</div>
+          <div class="svc-sub">Web · API · Network</div>
+        </div>
+        <span class="svc-badge available">available</span>
+      </div>
+      <div class="svc-desc">Manual penetration testing. Logic flaws, business-layer vulnerabilities, authentication bypasses. Not a scanner report — actual findings with reproduction steps.</div>
+      <div class="svc-tags">
+        <span class="tag">Web App</span><span class="tag">API</span><span class="tag">Network</span><span class="tag">Auth</span>
+      </div>
+      <div class="svc-meta">5–15 days · scope-based pricing</div>
+    </div>
+ 
+    <div class="service-card" id="svc-web3">
+      <div class="svc-header">
+        <div class="svc-icon">[ ⬡ ]</div>
+        <div>
+          <div class="svc-name">Web3 Security</div>
+          <div class="svc-sub">Smart Contract Audit</div>
+        </div>
+        <span class="svc-badge available">available</span>
+      </div>
+      <div class="svc-desc">Manual Solidity review. Reentrancy, flash loans, oracle manipulation, access control, EVM logic. Contracts handling real liquidity reviewed with full exploit PoC where applicable.</div>
+      <div class="svc-tags">
+        <span class="tag">Solidity</span><span class="tag">DeFi</span><span class="tag">EVM</span><span class="tag">dApps</span>
+      </div>
+      <div class="svc-meta">3–10 days · contract complexity based</div>
+    </div>
+ 
+    <div class="service-card" id="svc-cti">
+      <div class="svc-header">
+        <div class="svc-icon">[ ◈ ]</div>
+        <div>
+          <div class="svc-name">CTI</div>
+          <div class="svc-sub">Cyber Threat Intelligence</div>
+        </div>
+        <span class="svc-badge available">available</span>
+      </div>
+      <div class="svc-desc">DarkWeb monitoring, stealer log analysis, threat actor tracking and profiling. Understanding if you're being targeted before the damage happens. LEA-grade reporting.</div>
+      <div class="svc-tags">
+        <span class="tag">DarkWeb</span><span class="tag">Stealer Logs</span><span class="tag">Actor Profiling</span>
+      </div>
+      <div class="svc-meta">retainer or one-time · timeline varies</div>
+    </div>
+ 
+    <div class="service-card" id="svc-osint">
+      <div class="svc-header">
+        <div class="svc-icon">[ ◎ ]</div>
+        <div>
+          <div class="svc-name">OSINT Investigation</div>
+          <div class="svc-sub">Open Source Intelligence</div>
+        </div>
+        <span class="svc-badge available">available</span>
+      </div>
+      <div class="svc-desc">Targeted intelligence gathering. Person of interest profiling, corporate due diligence, infrastructure mapping, geolocation correlation. Everything sourced and documented — no guesswork.</div>
+      <div class="svc-tags">
+        <span class="tag">GEOINT</span><span class="tag">SOCMINT</span><span class="tag">HUMINT</span><span class="tag">Footprinting</span>
+      </div>
+      <div class="svc-meta">3–7 days · standard investigations</div>
+    </div>
+ 
+    <div class="service-card referral-card">
+      <div class="svc-header">
+        <div class="svc-icon" style="color:var(--blue)">[ → ]</div>
+        <div>
+          <div class="svc-name" style="color:var(--blue)">Dev Work?</div>
+          <div class="svc-sub">I'll refer you</div>
+        </div>
+      </div>
+      <div class="svc-desc" style="color:var(--text2)">Need a web app, mobile app, or backend system? That's not my lane — but I know developers I've worked with directly. Tell me what you need and I'll make the right introduction.</div>
+      <div class="svc-meta" style="color:var(--blue)">referral · no charge</div>
+    </div>
+ 
+  </div>
+ 
+  {{/* Contact section */}}
+  <div class="contact-section">
+    <div class="section-label" style="margin-bottom:1.25rem">// get_in_touch</div>
+ 
+    <div class="contact-terminal">
+      <div class="ct-header">
+        <span class="ct-prompt">root@0xprit3sh:~$</span>
+        <span class="ct-cmd">initiate_engagement --secure</span>
+      </div>
+      <div class="ct-body">
+        <div class="ct-field-row">
+          <label class="ct-label">name</label>
+          <input type="text" class="ct-input" id="c-name" placeholder="your name or handle">
+        </div>
+        <div class="ct-field-row">
+          <label class="ct-label">email</label>
+          <input type="email" class="ct-input" id="c-email" placeholder="your@email.com">
+        </div>
+        <div class="ct-field-row">
+          <label class="ct-label">service</label>
+          <select class="ct-input" id="c-service">
+            <option value="">-- select service --</option>
+            <option value="vapt">VAPT — Web / API / Network</option>
+            <option value="web3">Web3 Security — Smart Contract Audit</option>
+            <option value="cti">CTI — Cyber Threat Intelligence</option>
+            <option value="osint">OSINT Investigation</option>
+            <option value="dev">Dev Referral</option>
+            <option value="other">Other / Not sure</option>
+          </select>
+        </div>
+        <div class="ct-field-row">
+          <label class="ct-label">scope</label>
+          <textarea class="ct-input ct-textarea" id="c-scope" placeholder="describe what you need — scope, timeline, any context..."></textarea>
+        </div>
+        <div class="ct-field-row">
+          <label class="ct-label">budget</label>
+          <select class="ct-input" id="c-budget">
+            <option value="">-- approximate budget --</option>
+            <option value="<500">under $500</option>
+            <option value="500-1500">$500 – $1,500</option>
+            <option value="1500-5000">$1,500 – $5,000</option>
+            <option value="5000+">$5,000+</option>
+            <option value="discuss">prefer to discuss</option>
+          </select>
+        </div>
+        <div class="ct-actions">
+          <a href="mailto:prit3shnaik19@gmail.com?subject=Engagement Inquiry&body=Name:%0AService:%0AScope:%0ABudget:" class="ct-submit" id="ct-send">
+            send_message --encrypted
+          </a>
+          <span class="ct-note">or email directly: <a href="mailto:prit3shnaik19@gmail.com" style="color:var(--accent2)">prit3shnaik19@gmail.com</a></span>
+        </div>
+        <div class="ct-footer">
+          <span>// NDA standard · 24h response · all engagements confidential</span>
+        </div>
+      </div>
+    </div>
+  </div>
+ 
+</div>
+ 
+<script>
+document.getElementById('ct-send').addEventListener('click', function(e) {
+  const name = document.getElementById('c-name').value;
+  const email = document.getElementById('c-email').value;
+  const service = document.getElementById('c-service').value;
+  const scope = document.getElementById('c-scope').value;
+  const budget = document.getElementById('c-budget').value;
+  if (!email) { e.preventDefault(); document.getElementById('c-email').focus(); return; }
+  const subject = encodeURIComponent('Engagement Inquiry — ' + (service || 'General'));
+  const body = encodeURIComponent(
+    'Name: ' + name + '\n' +
+    'Service: ' + service + '\n' +
+    'Budget: ' + budget + '\n\n' +
+    'Scope / Details:\n' + scope
+  );
+  this.href = 'mailto:prit3shnaik19@gmail.com?subject=' + subject + '&body=' + body;
+});
+ 
+document.querySelectorAll('.service-card:not(.referral-card)').forEach(card => {
+  card.addEventListener('click', function() {
+    const map = {
+      'svc-vapt':'vapt','svc-web3':'web3','svc-cti':'cti','svc-osint':'osint'
+    };
+    const sel = document.getElementById('c-service');
+    if (sel && map[this.id]) {
+      sel.value = map[this.id];
+      document.getElementById('contact-section') &&
+        document.getElementById('contact-section').scrollIntoView({behavior:'smooth'});
+      document.querySelector('.contact-terminal').scrollIntoView({behavior:'smooth', block:'center'});
+    }
+  });
+});
+</script>
+{{ end }}
