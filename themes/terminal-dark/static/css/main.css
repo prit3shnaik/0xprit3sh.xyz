@@ -1452,3 +1452,80 @@ select.ct-input option { background: var(--bg3); }
 body.light-mode .site-logo img {
   filter: invert(1);
 }
+
+/* ═══════════════════════════════════════════════════════════
+   OSINT TOOLBAR FIX + FULL WIDTH — append to main.css
+   ═══════════════════════════════════════════════════════════ */
+
+/* Two-row toolbar */
+.ow-toolbar {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+  flex-shrink: 0;
+}
+.ow-toolbar-row1 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border);
+  gap: 8px;
+  min-height: 0;
+}
+.ow-toolbar-row2 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 10px;
+  gap: 6px;
+}
+.owt-views  { display: flex; gap: 3px; }
+.owt-actions{ display: flex; gap: 3px; }
+.owt-stats  { display: flex; gap: 6px; flex-shrink: 0; }
+.owt-label  { font-size: 0.7rem; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+
+/* Graph SVG fix — explicit height */
+#view-graph-area {
+  position: relative;
+  overflow: hidden;
+}
+#view-graph-area #main-svg {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Full-width OSINT page override */
+body:has(.osint-workspace) .site-main > .container {
+  max-width: 100% !important;
+  padding: 0 !important;
+}
+body:has(.osint-workspace) .site-main {
+  padding: 0 !important;
+}
+.osint-workspace {
+  border-radius: 0 !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+  margin: 0 !important;
+  height: calc(100vh - var(--header-h)) !important;
+}
+
+/* Mobile: stack vertically */
+@media (max-width: 700px) {
+  .osint-workspace {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: 260px 1fr !important;
+    height: auto !important;
+    min-height: 640px;
+  }
+  .ow-left { border-right: none; border-bottom: 1px solid var(--border); }
+  .ow-toolbar-row2 { flex-wrap: wrap; }
+  .owt-actions .owtb:nth-child(n+3) { display: none; }
+}
