@@ -50,3 +50,8 @@ theme = "terminal-dark"
   name   = "~/blog"
   url    = "/blog/"
   weight = 4
+
+[[menus.main]]
+  name   = "~/services"
+  url    = "/services/"
+  weight = 5
