@@ -1,10 +1,14 @@
 {{ define "main" }}
+{{/* Full-bleed override — break out of container */}}
+<style>
+.site-main > .container { max-width: 100% !important; padding: 0 !important; }
+.osint-workspace { margin: 0; border-radius: 0; border-left: none; border-right: none; border-bottom: none; height: calc(100vh - var(--header-h)); }
+</style>
+
 <div class="osint-workspace" id="osint-ws">
 
   {{/* ══ LEFT PANEL ══ */}}
   <div class="ow-left">
-
-    {{/* Header */}}
     <div class="ow-left-top">
       <div class="ow-title-row">
         <span class="ow-title">investigations</span>
@@ -12,7 +16,7 @@
         <a href="/admin/#/collections/osint/new" class="ow-new-btn">+ new</a>
       </div>
       <div class="ow-search-row">
-        <input type="text" class="ow-search" id="ow-search" placeholder="search entities, tags, titles..." oninput="filterInvestigations(this.value)">
+        <input type="text" class="ow-search" id="ow-search" placeholder="search..." oninput="filterInv(this.value)">
       </div>
       <div class="ow-tabs-row">
         <button class="owt on" onclick="owTab(this,'tab-inv')">investigations</button>
@@ -21,15 +25,14 @@
       </div>
     </div>
 
-    {{/* Tab: Investigations */}}
     <div class="ow-tab-panel on" id="tab-inv">
       <div class="ow-filter-row">
-        <button class="owf on" onclick="toggleFilter(this,'ALL')">all</button>
-        <button class="owf" onclick="toggleFilter(this,'GEOINT')">GEOINT</button>
-        <button class="owf" onclick="toggleFilter(this,'SOCMINT')">SOCMINT</button>
-        <button class="owf" onclick="toggleFilter(this,'HUMINT')">HUMINT</button>
-        <button class="owf" onclick="toggleFilter(this,'C2')">C2</button>
-        <button class="owf" onclick="toggleFilter(this,'CTI')">CTI</button>
+        <button class="owf on" onclick="setFilter(this,'ALL')">all</button>
+        <button class="owf" onclick="setFilter(this,'GEOINT')">GEOINT</button>
+        <button class="owf" onclick="setFilter(this,'SOCMINT')">SOCMINT</button>
+        <button class="owf" onclick="setFilter(this,'HUMINT')">HUMINT</button>
+        <button class="owf" onclick="setFilter(this,'C2')">C2</button>
+        <button class="owf" onclick="setFilter(this,'CTI')">CTI</button>
       </div>
       <div class="ow-inv-list" id="ow-inv-list">
         {{ if .Pages }}
@@ -42,16 +45,16 @@
              data-date="{{ .Date.Format "2006-01-02" }}"
              data-tag="{{ with index .Params.tags 0 }}{{ . }}{{ end }}"
              data-status="{{ with .Params.status }}{{ . }}{{ else }}active{{ end }}"
-             onclick="selectInvestigation(event, this)">
+             data-tldr="{{ with .Params.tldr }}{{ . }}{{ end }}"
+             data-slug="{{ .File.BaseFileName }}"
+             onclick="selectInv(event,this)">
             <div class="owi-dot" style="background:{{ with .Params.color }}{{ . }}{{ else }}#00d4ff{{ end }}"></div>
             <div class="owi-body">
               <div class="owi-title">{{ .Title }}</div>
               <div class="owi-meta">
                 {{ .Date.Format "2006-01-02" }}
                 {{ with index .Params.tags 0 }} · <span class="owi-tag">{{ . }}</span>{{ end }}
-                {{ with .Params.status }}
-                  · <span class="owi-status owi-status-{{ . }}">{{ . }}</span>
-                {{ end }}
+                {{ with .Params.status }}<span class="owi-status owi-status-{{ . }}">{{ . }}</span>{{ end }}
               </div>
             </div>
           </a>
@@ -66,88 +69,78 @@
       </div>
     </div>
 
-    {{/* Tab: Entities (static demo — populated by JS from investigation data) */}}
     <div class="ow-tab-panel" id="tab-entities">
       <div class="ow-entities" id="ow-entities">
-        <div class="ow-entity-group">
-          <div class="oweg-label">select an investigation</div>
+        <div style="padding:1rem;color:var(--dim);font-size:0.72rem">// select an investigation</div>
+      </div>
+    </div>
+
+    <div class="ow-tab-panel" id="tab-notes">
+      <div class="ow-notes" id="ow-notes">
+        <div class="ow-notes-placeholder">// select an investigation</div>
+      </div>
+    </div>
+  </div>
+
+  {{/* ══ RIGHT CANVAS ══ */}}
+  <div class="ow-canvas" id="ow-canvas">
+
+    {{/* Toolbar — TWO ROWS to prevent overflow */}}
+    <div class="ow-toolbar">
+      <div class="ow-toolbar-row1">
+        <span class="owt-label" id="owt-inv-name">// select an investigation from the sidebar</span>
+        <div class="owt-stats">
+          <span class="owt-stat" id="owt-nodes">—</span>
+          <span class="owt-stat" id="owt-edges">—</span>
+        </div>
+      </div>
+      <div class="ow-toolbar-row2">
+        <div class="owt-views">
+          <button class="owtb on" onclick="setView('graph',this)">graph</button>
+          <button class="owtb" onclick="setView('timeline',this)">timeline</button>
+          <button class="owtb" onclick="setView('map',this)">map</button>
+        </div>
+        <div class="owt-actions">
+          <button class="owtb" onclick="zoomIn()">zoom +</button>
+          <button class="owtb" onclick="zoomOut()">zoom −</button>
+          <button class="owtb" onclick="resetZoom()">fit</button>
+          <button class="owtb" onclick="exportInv()">export</button>
         </div>
       </div>
     </div>
 
-    {{/* Tab: Notes */}}
-    <div class="ow-tab-panel" id="tab-notes">
-      <div class="ow-notes" id="ow-notes">
-        <div class="ow-notes-placeholder">// select an investigation to view notes</div>
-      </div>
-    </div>
-
-  </div>
-
-  {{/* ══ RIGHT CANVAS ══ */}}
-  <div class="ow-canvas">
-
-    {{/* Top toolbar */}}
-    <div class="ow-toolbar">
-      <div class="owt-left">
-        <span class="owt-label" id="owt-inv-name">// select an investigation</span>
-      </div>
-      <div class="owt-center">
-        <button class="owtb on" id="view-graph" onclick="setView('graph',this)">graph</button>
-        <button class="owtb" id="view-timeline" onclick="setView('timeline',this)">timeline</button>
-        <button class="owtb" id="view-map" onclick="setView('map',this)">map</button>
-      </div>
-      <div class="owt-right">
-        <span class="owt-stat" id="owt-nodes">0 nodes</span>
-        <span class="owt-stat" id="owt-edges">0 edges</span>
-        <button class="owtb" onclick="zoomIn()">+</button>
-        <button class="owtb" onclick="zoomOut()">−</button>
-        <button class="owtb" onclick="resetZoom()">fit</button>
-        <button class="owtb" id="export-btn" onclick="exportGraph()">export</button>
-      </div>
-    </div>
-
-    {{/* Graph view */}}
+    {{/* GRAPH VIEW */}}
     <div class="ow-view on" id="view-graph-area">
       <div class="ow-grid"></div>
-      <svg id="main-svg" style="position:absolute;inset:0;width:100%;height:100%"></svg>
+      <svg id="main-svg" style="position:absolute;top:0;left:0;width:100%;height:100%"></svg>
 
-      {{/* Node detail panel */}}
       <div class="ow-node-panel" id="node-panel">
-        <div class="onp-close" onclick="closeNodePanel()">×</div>
+        <div class="onp-close" onclick="closePanel()">×</div>
         <div class="onp-title" id="np-title">—</div>
-        <div class="onp-rows" id="np-rows"></div>
+        <div id="np-rows"></div>
         <div class="onp-actions">
           <a class="onp-btn" id="np-view" href="#">open post</a>
           <a class="onp-btn" id="np-edit" href="#">edit</a>
         </div>
       </div>
 
-      {{/* Minimap */}}
-      <div class="ow-minimap" id="minimap">
+      <div class="ow-minimap">
         <svg id="mm-svg" width="110" height="75"></svg>
       </div>
 
-      {{/* Empty state */}}
       <div class="ow-canvas-empty" id="canvas-empty">
-        <div style="font-size:2rem;opacity:.2;margin-bottom:8px">◎</div>
-        <div>select an investigation from the sidebar</div>
-        <div style="font-size:0.7rem;color:var(--dim);margin-top:4px">or click any node in the graph to explore</div>
+        <div style="font-size:2rem;opacity:.15;margin-bottom:8px">◎</div>
+        <div style="font-size:0.78rem;color:var(--dim)">select an investigation to render the graph</div>
       </div>
     </div>
 
-    {{/* Timeline view */}}
+    {{/* TIMELINE VIEW */}}
     <div class="ow-view" id="view-timeline-area">
       <div class="ow-timeline-wrap">
-        <div class="ow-timeline-header">// investigation timeline</div>
-        <div class="ow-timeline" id="tl-content">
+        <div class="ow-timeline-header">// investigation timeline · all entries</div>
+        <div class="ow-timeline">
           {{ range .Pages }}
-          <div class="tl-node"
-               data-color="{{ with .Params.color }}{{ . }}{{ else }}#00d4ff{{ end }}"
-               data-date="{{ .Date.Format "2006-01-02" }}"
-               data-title="{{ .Title }}"
-               data-tag="{{ with index .Params.tags 0 }}{{ . }}{{ end }}"
-               data-url="{{ .Permalink }}">
+          <div class="tl-node">
             <div class="tl-date">{{ .Date.Format "Jan 2006" }}</div>
             <div class="tl-marker">
               <div class="tl-dot" style="background:{{ with .Params.color }}{{ . }}{{ else }}#00d4ff{{ end }}"></div>
@@ -155,25 +148,18 @@
             </div>
             <div class="tl-card">
               <div class="tl-card-title">{{ .Title }}</div>
-              <div class="tl-card-meta">
-                {{ .Date.Format "2006-01-02" }}
-                {{ with index .Params.tags 0 }} · <span class="tl-tag" style="color:{{ with $.Params.color }}{{ . }}{{ else }}#00d4ff{{ end }}">{{ . }}</span>{{ end }}
-              </div>
+              <div class="tl-card-meta">{{ .Date.Format "2006-01-02" }}{{ with index .Params.tags 0 }} · <span class="tl-tag">{{ . }}</span>{{ end }}{{ with .Params.status }} · <span class="owi-status owi-status-{{ . }}">{{ . }}</span>{{ end }}</div>
               {{ with .Params.tldr }}<div class="tl-card-desc">{{ . }}</div>{{ end }}
               <a href="{{ .Permalink }}" class="tl-card-link">view investigation →</a>
             </div>
           </div>
           {{ end }}
-          {{ if not .Pages }}
-          <div class="ow-canvas-empty" style="position:static;background:none;border:none">
-            <div>no investigations yet</div>
-          </div>
-          {{ end }}
+          {{ if not .Pages }}<div style="padding:2rem;color:var(--dim);font-size:0.78rem">// no investigations yet</div>{{ end }}
         </div>
       </div>
     </div>
 
-    {{/* Map view */}}
+    {{/* MAP VIEW */}}
     <div class="ow-view" id="view-map-area">
       <div id="osint-leaflet-map" style="width:100%;height:100%"></div>
       <div class="ow-map-legend">
@@ -184,7 +170,7 @@
       </div>
     </div>
 
-    {{/* Status bar */}}
+    {{/* STATUS BAR */}}
     <div class="ow-statusbar">
       <div class="owsb-left">
         <div class="owsb-dot" id="sb-dot"></div>
@@ -193,265 +179,220 @@
       <div class="owsb-right">
         <span id="sb-zoom">zoom: 100%</span>
         <span>·</span>
-        <span id="sb-time">{{ now.Format "2006-01-02" }}</span>
+        <span>{{ now.Format "2006-01-02" }}</span>
       </div>
     </div>
-
   </div>
 </div>
 
-{{/* ══ JS DATA from Hugo ══ */}}
 <script>
-const INVESTIGATIONS = [
-  {{ range .Pages }}{
-    title: {{ .Title | jsonify }},
-    url: {{ .Permalink | jsonify }},
-    editUrl: "/admin/#/collections/osint/entries/{{ .File.BaseFileName }}",
-    date: {{ .Date.Format "2006-01-02" | jsonify }},
-    tags: {{ with .Params.tags }}{{ . | jsonify }}{{ else }}[]{{ end }},
-    color: {{ with .Params.color }}{{ . | jsonify }}{{ else }}"#00d4ff"{{ end }},
-    status: {{ with .Params.status }}{{ . | jsonify }}{{ else }}"active"{{ end }},
-    tldr: {{ with .Params.tldr }}{{ . | jsonify }}{{ else }}""{{ end }},
-  },{{ end }}
-];
+const INV = [{{ range .Pages }}{
+  title:{{ .Title | jsonify }},
+  url:{{ .Permalink | jsonify }},
+  edit:"/admin/#/collections/osint/entries/{{ .File.BaseFileName }}",
+  date:{{ .Date.Format "2006-01-02" | jsonify }},
+  tags:{{ with .Params.tags }}{{ . | jsonify }}{{ else }}[]{{ end }},
+  color:{{ with .Params.color }}{{ . | jsonify }}{{ else }}"#00d4ff"{{ end }},
+  status:{{ with .Params.status }}{{ . | jsonify }}{{ else }}"active"{{ end }},
+  tldr:{{ with .Params.tldr }}{{ . | jsonify }}{{ else }}""{{ end }},
+},{{ end }}];
 
-// ── State ──────────────────────────────────────────────────
-let currentInv = null;
-let zoom = 1;
-let currentView = 'graph';
-let activeFilter = 'ALL';
-let leafletMap = null;
+let current = null, zoom = 1, view = 'graph', filter = 'ALL', leafMap = null;
 
-// ── Tab switching ──────────────────────────────────────────
-function owTab(btn, panelId) {
+/* ── Tabs ── */
+function owTab(btn, id) {
   document.querySelectorAll('.owt').forEach(b => b.classList.remove('on'));
   document.querySelectorAll('.ow-tab-panel').forEach(p => p.classList.remove('on'));
   btn.classList.add('on');
-  document.getElementById(panelId).classList.add('on');
+  document.getElementById(id).classList.add('on');
 }
 
-// ── View switching ─────────────────────────────────────────
+/* ── View ── */
 function setView(v, btn) {
-  currentView = v;
+  view = v;
   document.querySelectorAll('.owtb').forEach(b => b.classList.remove('on'));
   btn.classList.add('on');
   document.querySelectorAll('.ow-view').forEach(el => el.classList.remove('on'));
   document.getElementById('view-' + v + '-area').classList.add('on');
   if (v === 'map') initMap();
-  if (v === 'graph' && currentInv !== null) buildGraph(currentInv);
+  if (v === 'graph' && current !== null) buildGraph(current);
 }
 
-// ── Filter ─────────────────────────────────────────────────
-function toggleFilter(btn, tag) {
+/* ── Filter ── */
+function setFilter(btn, tag) {
   document.querySelectorAll('.owf').forEach(b => b.classList.remove('on'));
   btn.classList.add('on');
-  activeFilter = tag;
-  filterInvestigations(document.getElementById('ow-search').value);
+  filter = tag;
+  filterInv(document.getElementById('ow-search').value);
 }
 
-function filterInvestigations(q) {
+function filterInv(q) {
   q = (q || '').toLowerCase();
-  const items = document.querySelectorAll('.ow-inv-item');
-  let visible = 0;
-  items.forEach(el => {
-    const matchQ = !q || el.dataset.title.includes(q) || el.dataset.tags.includes(q);
-    const matchF = activeFilter === 'ALL' || el.dataset.tags.toUpperCase().includes(activeFilter);
-    el.style.display = (matchQ && matchF) ? '' : 'none';
-    if (matchQ && matchF) visible++;
+  let vis = 0;
+  document.querySelectorAll('.ow-inv-item').forEach(el => {
+    const mq = !q || el.dataset.title.includes(q) || el.dataset.tags.includes(q);
+    const mf = filter === 'ALL' || el.dataset.tags.toUpperCase().includes(filter);
+    el.style.display = (mq && mf) ? '' : 'none';
+    if (mq && mf) vis++;
   });
-  document.getElementById('ow-count').textContent = visible;
+  document.getElementById('ow-count').textContent = vis;
 }
 
-// ── Select investigation ───────────────────────────────────
-function selectInvestigation(e, el) {
+/* ── Select investigation ── */
+function selectInv(e, el) {
   e.preventDefault();
   document.querySelectorAll('.ow-inv-item').forEach(i => i.classList.remove('sel'));
   el.classList.add('sel');
-
   const idx = Array.from(document.querySelectorAll('.ow-inv-item')).indexOf(el);
-  currentInv = idx < INVESTIGATIONS.length ? INVESTIGATIONS[idx] : null;
-  if (!currentInv) return;
+  current = INV[idx] || null;
+  if (!current) return;
 
   document.getElementById('canvas-empty').style.display = 'none';
-  document.getElementById('owt-inv-name').textContent = '// ' + currentInv.title;
-  document.getElementById('sb-dot').style.background = currentInv.color;
-  document.getElementById('sb-text').textContent = currentInv.title + ' · ' + currentInv.status;
-  document.getElementById('np-view').href = currentInv.url;
-  document.getElementById('np-edit').href = currentInv.editUrl;
+  document.getElementById('owt-inv-name').textContent = '// ' + current.title;
+  document.getElementById('sb-dot').style.background = current.color;
+  document.getElementById('sb-text').textContent = '"' + current.title + '" · ' + current.status;
+  document.getElementById('np-view').href = current.url;
+  document.getElementById('np-edit').href = current.edit;
 
-  populateEntities(currentInv);
-  populateNotes(currentInv);
-  if (currentView === 'graph') buildGraph(currentInv);
+  fillEntities(current);
+  fillNotes(current);
+  if (view === 'graph') buildGraph(current);
 }
 
-// ── Populate entities tab ──────────────────────────────────
-function populateEntities(inv) {
-  const el = document.getElementById('ow-entities');
-  el.innerHTML = `
-    <div class="ow-entity-group">
-      <div class="oweg-label">investigation</div>
+/* ── Entities tab ── */
+function fillEntities(inv) {
+  document.getElementById('ow-entities').innerHTML = `
+    <div class="ow-entity-group"><div class="oweg-label">investigation</div>
       <div class="ow-entity-row"><div class="owe-dot" style="background:${inv.color}"></div><span class="owe-name">${inv.title}</span><span class="owe-badge">inv</span></div>
     </div>
-    <div class="ow-entity-group">
-      <div class="oweg-label">tags / categories</div>
-      ${inv.tags.map(t => `<div class="ow-entity-row"><div class="owe-dot" style="background:#484f58"></div><span class="owe-name">${t}</span><span class="owe-badge">tag</span></div>`).join('')}
+    <div class="ow-entity-group"><div class="oweg-label">tags</div>
+      ${inv.tags.map(t=>`<div class="ow-entity-row"><div class="owe-dot" style="background:#484f58"></div><span class="owe-name">${t}</span><span class="owe-badge">tag</span></div>`).join('')}
     </div>
-    <div class="ow-entity-group">
-      <div class="oweg-label">metadata</div>
+    <div class="ow-entity-group"><div class="oweg-label">metadata</div>
       <div class="ow-entity-row"><div class="owe-dot" style="background:#484f58"></div><span class="owe-name">${inv.date}</span><span class="owe-badge">date</span></div>
       <div class="ow-entity-row"><div class="owe-dot" style="background:${inv.status==='active'?'#00ff41':'#484f58'}"></div><span class="owe-name">${inv.status}</span><span class="owe-badge">status</span></div>
-    </div>
-  `;
+    </div>`;
 }
 
-// ── Populate notes tab ─────────────────────────────────────
-function populateNotes(inv) {
-  const el = document.getElementById('ow-notes');
-  el.innerHTML = `
+/* ── Notes tab ── */
+function fillNotes(inv) {
+  document.getElementById('ow-notes').innerHTML = `
     <div class="ow-notes-inv">
       <div class="oni-title">${inv.title}</div>
-      ${inv.tldr ? `<div class="oni-tldr">// TL;DR<br>${inv.tldr}</div>` : ''}
-      <div class="oni-links">
-        <a href="${inv.url}" class="oni-link">open full investigation →</a>
+      ${inv.tldr ? `<div class="oni-tldr">// TL;DR<br>${inv.tldr}</div>` : '<div style="color:var(--dim);font-size:0.72rem">// no TL;DR set — add one in /admin</div>'}
+      <div class="oni-links" style="margin-top:10px">
+        <a href="${inv.url}" class="oni-link">open full investigation →</a><br>
+        <a href="${inv.edit}" class="oni-link" style="color:var(--dim)">edit in CMS →</a>
       </div>
-    </div>
-  `;
+    </div>`;
 }
 
-// ── Build graph ────────────────────────────────────────────
+/* ── Build graph ── */
 function buildGraph(inv) {
   const svg = document.getElementById('main-svg');
-  const wrap = svg.parentElement;
+  const wrap = document.getElementById('view-graph-area');
   if (!svg || !wrap) return;
-  const W = wrap.clientWidth || 600;
-  const H = wrap.clientHeight || 400;
+
+  const W = wrap.clientWidth || 800;
+  const H = wrap.clientHeight || 500;
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.setAttribute('width', W);
+  svg.setAttribute('height', H);
 
   const cx = W / 2, cy = H / 2;
-  const R1 = Math.min(W, H) * 0.22;
-  const R2 = Math.min(W, H) * 0.4;
+  const R1 = Math.min(W, H) * 0.2;
+  const R2 = Math.min(W, H) * 0.38;
 
-  // Generate deterministic pseudo-nodes from investigation data
-  const seed = inv.title.length + inv.tags.length;
-  const ring1Count = Math.min(6, 3 + (seed % 4));
-  const ring2Count = Math.min(10, 5 + (seed % 6));
+  const tagColors = { GEOINT:'#ff4444',SOCMINT:'#bc8cff',C2:'#ff4444',HUMINT:'#58a6ff',CTI:'#e8c547',ACTOR:'#f0883e' };
+  const nc = inv.tags[0] ? (tagColors[inv.tags[0].toUpperCase()] || '#00d4ff') : inv.color;
 
-  const typeColors = { GEOINT:'#ff4444', SOCMINT:'#bc8cff', C2:'#ff4444', HUMINT:'#58a6ff', CTI:'#e8c547', default:'#00d4ff' };
-  const nodeColor = inv.tags[0] ? (typeColors[inv.tags[0].toUpperCase()] || typeColors.default) : inv.color;
+  const seed = inv.title.length;
+  const r1c = Math.min(6, 3 + (seed % 4));
+  const r2c = Math.min(12, 6 + (seed % 6));
 
-  const nodes = [{ x: cx, y: cy, r: 16, c: inv.color, label: 'HUB', main: true }];
+  const nodes = [{ x:cx, y:cy, r:18, c:inv.color, label:'HUB', main:true }];
   const edges = [];
 
-  for (let i = 0; i < ring1Count; i++) {
-    const a = (i / ring1Count) * Math.PI * 2 - Math.PI / 2;
-    nodes.push({ x: cx + R1 * Math.cos(a), y: cy + R1 * Math.sin(a), r: 9, c: nodeColor, label: inv.tags[i % inv.tags.length] || '?' });
+  for (let i = 0; i < r1c; i++) {
+    const a = (i / r1c) * Math.PI * 2 - Math.PI / 2;
+    nodes.push({ x: cx + R1 * Math.cos(a), y: cy + R1 * Math.sin(a), r:10, c:nc, label: inv.tags[i % Math.max(1, inv.tags.length)] || 'node' });
     edges.push([0, i + 1]);
   }
-  for (let i = 0; i < ring2Count; i++) {
-    const a = (i / ring2Count) * Math.PI * 2 - Math.PI / 2 + 0.3;
-    nodes.push({ x: cx + R2 * Math.cos(a), y: cy + R2 * Math.sin(a), r: 6, c: '#484f58' });
-    edges.push([1 + (i % ring1Count), ring1Count + 1 + i]);
+  for (let i = 0; i < r2c; i++) {
+    const a = (i / r2c) * Math.PI * 2 - Math.PI / 2 + 0.25;
+    nodes.push({ x: cx + R2 * Math.cos(a), y: cy + R2 * Math.sin(a), r:6, c:'#2a2a2a' });
+    edges.push([1 + (i % r1c), r1c + 1 + i]);
   }
 
-  // Update stats
   document.getElementById('owt-nodes').textContent = nodes.length + ' nodes';
   document.getElementById('owt-edges').textContent = edges.length + ' edges';
 
-  // Draw
-  let h = '';
+  let h = `<defs><filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
   edges.forEach(([a, b]) => {
     const na = nodes[a], nb = nodes[b];
     if (na && nb) h += `<line x1="${na.x}" y1="${na.y}" x2="${nb.x}" y2="${nb.y}" stroke="#1e1e1e" stroke-width="1"/>`;
   });
   nodes.forEach((n, i) => {
-    const glow = n.main ? `filter:drop-shadow(0 0 8px ${n.c})` : '';
-    h += `<circle cx="${n.x}" cy="${n.y}" r="${n.r}" fill="${n.c}" opacity="${n.main ? 1 : 0.75}" style="cursor:pointer;${glow}" class="gnode" data-i="${i}" onclick="nodeClick(${i})"/>`;
-    if (n.label) h += `<text x="${n.x}" y="${n.y + n.r + 11}" text-anchor="middle" fill="#484f58" font-size="8" font-family="monospace" pointer-events="none">${n.label}</text>`;
+    const gf = n.main ? 'filter="url(#glow)"' : '';
+    h += `<circle cx="${n.x}" cy="${n.y}" r="${n.r}" fill="${n.c}" opacity="${n.main?1:0.8}" style="cursor:pointer" ${gf} onclick="nodeClick(${i})"/>`;
+    if (n.label) h += `<text x="${n.x}" y="${n.y + n.r + 12}" text-anchor="middle" fill="#484f58" font-size="9" font-family="monospace" pointer-events="none">${n.label}</text>`;
   });
   svg.innerHTML = h;
 
-  // Minimap
-  buildMinimap(nodes, W, H);
-}
-
-function buildMinimap(nodes, W, H) {
+  // minimap
   const mm = document.getElementById('mm-svg');
-  if (!mm) return;
-  let h = '';
-  nodes.forEach(n => {
-    h += `<circle cx="${(n.x / W) * 100 + 5}" cy="${(n.y / H) * 65 + 5}" r="${Math.max(2, n.r * 0.4)}" fill="${n.c}" opacity="0.7"/>`;
-  });
-  mm.innerHTML = h;
+  let mh = `<rect width="110" height="75" fill="#0a0a0a"/>`;
+  nodes.forEach(n => { mh += `<circle cx="${(n.x/W)*100+5}" cy="${(n.y/H)*65+5}" r="${Math.max(1.5,n.r*0.35)}" fill="${n.c}" opacity="0.7"/>`; });
+  mm.innerHTML = mh;
 }
 
 function nodeClick(i) {
-  if (!currentInv) return;
-  const panel = document.getElementById('node-panel');
-  document.getElementById('np-title').textContent = i === 0 ? currentInv.title : (currentInv.tags[i - 1] || 'entity_' + i);
-  const rows = i === 0 ? [
-    ['type', 'investigation hub'],
-    ['status', currentInv.status],
-    ['date', currentInv.date],
-    ['tags', currentInv.tags.join(', ') || '—'],
-  ] : [
-    ['type', 'related entity'],
-    ['index', 'node_' + i],
-    ['parent', currentInv.title.slice(0, 20) + '...'],
-  ];
-  document.getElementById('np-rows').innerHTML = rows.map(([k, v]) =>
-    `<div class="onp-row"><span class="onp-k">${k}</span><span class="onp-v">${v}</span></div>`
-  ).join('');
-  panel.classList.add('visible');
+  if (!current) return;
+  const n = i === 0 ? { title: current.title, type: 'hub', tags: current.tags.join(', ') || '—', date: current.date }
+                    : { title: 'entity_' + i, type: current.tags[i % Math.max(1,current.tags.length)] || 'node', tags: '—', date: '—' };
+  document.getElementById('np-title').textContent = n.title;
+  document.getElementById('np-rows').innerHTML = Object.entries(n).slice(1).map(([k,v]) =>
+    `<div class="onp-row"><span class="onp-k">${k}</span><span class="onp-v">${v}</span></div>`).join('');
+  document.getElementById('node-panel').classList.add('visible');
 }
+function closePanel() { document.getElementById('node-panel').classList.remove('visible'); }
 
-function closeNodePanel() {
-  document.getElementById('node-panel').classList.remove('visible');
-}
-
-// ── Map init ───────────────────────────────────────────────
+/* ── Map ── */
 function initMap() {
-  if (leafletMap || typeof L === 'undefined') return;
-  leafletMap = L.map('osint-leaflet-map').setView([20, 0], 2);
+  if (leafMap || typeof L === 'undefined') return;
+  leafMap = L.map('osint-leaflet-map').setView([20, 0], 2);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; OpenStreetMap &copy; CARTO', subdomains: 'abcd', maxZoom: 19
-  }).addTo(leafletMap);
+    attribution:'&copy; OpenStreetMap &copy; CARTO', subdomains:'abcd', maxZoom:19
+  }).addTo(leafMap);
 }
 
-// ── Zoom ───────────────────────────────────────────────────
-function zoomIn()   { zoom = Math.min(zoom + 0.2, 3); applyZoom(); }
-function zoomOut()  { zoom = Math.max(zoom - 0.2, 0.3); applyZoom(); }
-function resetZoom(){ zoom = 1; applyZoom(); }
+/* ── Zoom ── */
+function zoomIn()    { zoom = Math.min(zoom + 0.2, 3); applyZoom(); }
+function zoomOut()   { zoom = Math.max(zoom - 0.2, 0.3); applyZoom(); }
+function resetZoom() { zoom = 1; applyZoom(); }
 function applyZoom() {
   document.getElementById('main-svg').style.transform = `scale(${zoom})`;
   document.getElementById('main-svg').style.transformOrigin = 'center center';
-  document.getElementById('sb-zoom').textContent = 'zoom: ' + Math.round(zoom * 100) + '%';
+  document.getElementById('sb-zoom').textContent = 'zoom: ' + Math.round(zoom*100) + '%';
 }
 
-// ── Export ─────────────────────────────────────────────────
-function exportGraph() {
-  if (!currentInv) return;
-  const data = { investigation: currentInv.title, date: currentInv.date, tags: currentInv.tags, url: currentInv.url };
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+/* ── Export ── */
+function exportInv() {
+  if (!current) return;
+  const blob = new Blob([JSON.stringify(current, null, 2)], {type:'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = currentInv.title.replace(/\s+/g, '-').toLowerCase() + '.json';
+  a.download = current.title.replace(/\s+/g,'-').toLowerCase() + '.json';
   a.click();
 }
 
-// ── Auto-select first investigation ───────────────────────
+/* ── Auto-select first ── */
 window.addEventListener('load', () => {
   const first = document.querySelector('.ow-inv-item');
   if (first) first.click();
+  setTimeout(() => { if (current) buildGraph(current); }, 200);
 });
+
+window.addEventListener('resize', () => { if (current && view === 'graph') buildGraph(current); });
 </script>
-
-{{ if .Pages }}
-{{ range first 1 .Pages }}
-{{ if .Params.leaflet }}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-{{ end }}
-{{ end }}
-{{ end }}
-
 {{ end }}
