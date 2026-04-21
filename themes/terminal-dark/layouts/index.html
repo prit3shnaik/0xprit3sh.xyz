@@ -1,30 +1,29 @@
 {{ define "main" }}
+{{ $home := . }}
 
-{{/* Hero stat grid */}}
 <div class="home-hero">
   <div class="hero-cell c-green">
     <div class="hero-label">operator</div>
-    <div class="hero-value">Pritesh S Naik</div>
-    <div class="hero-sub">Red Team · VAPT · OSINT · Web3 Security</div>
+    <div class="hero-value">{{ $home.Params.operator | default "Pritesh S Naik" }}</div>
+    <div class="hero-sub">{{ $home.Params.tagline | default "Red Team · VAPT · OSINT · Web3 Security" }}</div>
   </div>
   <div class="hero-cell c-blue">
     <div class="hero-label">location / status</div>
-    <div class="hero-value">Goa, India</div>
-    <div class="hero-sub">UTC+5:30 · Available for engagements</div>
+    <div class="hero-value">{{ $home.Params.location | default "Goa, India" }}</div>
+    <div class="hero-sub">UTC+5:30 · {{ $home.Params.status | default "Available for engagements" }}</div>
   </div>
   <div class="hero-cell c-red">
     <div class="hero-label">specialization</div>
-    <div class="hero-value">Smart Contracts · DeFi · DarkWeb</div>
-    <div class="hero-sub">Solidity auditing · Stealer log analysis · SOCMINT</div>
+    <div class="hero-value">{{ $home.Params.specialization | default "Smart Contracts · DeFi · DarkWeb" }}</div>
+    <div class="hero-sub">{{ $home.Params.spec_detail | default "Solidity auditing · Stealer log analysis · SOCMINT" }}</div>
   </div>
   <div class="hero-cell c-purple">
     <div class="hero-label">tools / frameworks</div>
-    <div class="hero-value">Pinaka · Sentinel-Web3 · SocMint-X</div>
-    <div class="hero-sub">Custom-built offensive security tooling</div>
+    <div class="hero-value">{{ $home.Params.tools | default "Pinaka · Sentinel-Web3 · SocMint-X" }}</div>
+    <div class="hero-sub">{{ $home.Params.tools_detail | default "Custom-built offensive security tooling" }}</div>
   </div>
 </div>
 
-{{/* Recent posts — only real ones */}}
 {{ $allPages := where .Site.RegularPages "Section" "ne" "" }}
 {{ if $allPages }}
 <div class="section-label">// recent_activity</div>
@@ -40,21 +39,20 @@
 </div>
 {{ else }}
 <div class="section-label">// recent_activity</div>
-<div style="padding: 2rem 0; color: var(--dim); font-size: 0.82rem;">
+<div style="padding: 1.5rem 0; font-size: 0.82rem;">
   <span style="color: var(--accent)">root@0xprit3sh:~$</span> ls ./posts/<br>
   <span style="color: var(--dim)">// No posts yet. Go to <a href="/admin/" style="color: var(--accent2)">/admin</a> to create your first post.</span>
 </div>
 {{ end }}
 
-{{/* Skills terminal block */}}
 <div class="section-label">// skill_matrix</div>
 <div style="background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; padding: 1.25rem; margin-bottom: 2rem; font-size: 0.8rem;">
-  <div style="color: var(--dim); margin-bottom: 0.75rem;">root@0xprit3sh:~$ cat skills.txt</div>
+  <div style="color: var(--dim); margin-bottom: 0.75rem;"><span style="color:var(--accent)">root@0xprit3sh:~$</span> cat skills.txt</div>
   <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.5rem;">
-    <div><span style="color: var(--accent2)">web3       </span><span style="color: var(--text2)">Solidity · DeFi · EVM · dApps</span></div>
-    <div><span style="color: var(--accent2)">offensive  </span><span style="color: var(--text2)">VAPT · Red Team · API · Network</span></div>
-    <div><span style="color: var(--accent2)">intel      </span><span style="color: var(--text2)">DarkWeb · OSINT · SOCMINT · TI</span></div>
-    <div><span style="color: var(--accent2)">tools      </span><span style="color: var(--text2)">Python · Bash · JS · Solidity</span></div>
+    <div><span style="color: var(--accent2)">web3      </span><span style="color: var(--text2)"> Solidity · DeFi · EVM · dApps</span></div>
+    <div><span style="color: var(--accent2)">offensive </span><span style="color: var(--text2)"> VAPT · Red Team · API · Network</span></div>
+    <div><span style="color: var(--accent2)">intel     </span><span style="color: var(--text2)"> DarkWeb · OSINT · SOCMINT · TI</span></div>
+    <div><span style="color: var(--accent2)">tools     </span><span style="color: var(--text2)"> Python · Bash · JS · Solidity</span></div>
   </div>
 </div>
 
