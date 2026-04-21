@@ -16,11 +16,28 @@ collections:
     create: true
     slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
     fields:
-      - { label: "Title",  name: "title", widget: "string" }
-      - { label: "Date",   name: "date",  widget: "datetime" }
-      - { label: "Tags",   name: "tags",  widget: "list", allow_add: true }
-      - { label: "TL;DR", name: "tldr",  widget: "string", required: false }
-      - { label: "Body",   name: "body",  widget: "markdown" }
+      - { label: "Title", name: "title", widget: "string" }
+      - { label: "Date",  name: "date",  widget: "datetime" }
+      - { label: "Tags",  name: "tags",  widget: "list", allow_add: true }
+      - { label: "TL;DR", name: "tldr", widget: "string", required: false }
+      - label: "Body"
+        name: "body"
+        widget: "markdown"
+        buttons:
+          - bold
+          - italic
+          - code
+          - link
+          - heading-one
+          - heading-two
+          - heading-three
+          - quote
+          - bulleted-list
+          - numbered-list
+          - code-block
+        editor_components:
+          - code-block
+          - image
 
   - name: "osint"
     label: "OSINT Investigations"
@@ -31,14 +48,31 @@ collections:
       - { label: "Title",      name: "title",   widget: "string" }
       - { label: "Date",       name: "date",    widget: "datetime" }
       - { label: "Tags",       name: "tags",    widget: "list", allow_add: true,
-          hint: "Use: GEOINT, SOCMINT, HUMINT, C2, ACTOR" }
+          hint: "Use: GEOINT, SOCMINT, HUMINT, C2, ACTOR, CTI" }
       - { label: "Node Color", name: "color",   widget: "color",
-          default: "#00d4ff",  hint: "Color of this node in graph view" }
+          default: "#00d4ff",  hint: "Color of this node in the graph view" }
       - { label: "Enable Map", name: "leaflet", widget: "boolean", default: false }
       - { label: "TL;DR",     name: "tldr",    widget: "string", required: false }
       - { label: "Status",     name: "status",  widget: "select",
           options: ["active", "closed", "ongoing"], default: "active" }
-      - { label: "Body",       name: "body",    widget: "markdown" }
+      - label: "Body"
+        name: "body"
+        widget: "markdown"
+        buttons:
+          - bold
+          - italic
+          - code
+          - link
+          - heading-one
+          - heading-two
+          - heading-three
+          - quote
+          - bulleted-list
+          - numbered-list
+          - code-block
+        editor_components:
+          - code-block
+          - image
 
   - name: "writeups"
     label: "Writeups"
@@ -54,17 +88,73 @@ collections:
       - { label: "Platform", name: "platform", widget: "string", required: false,
           hint: "e.g. HackTheBox, Immunefi, Private bug bounty" }
       - { label: "TL;DR",   name: "tldr",     widget: "string", required: false }
-      - { label: "Body",     name: "body",     widget: "markdown" }
+      - label: "Body"
+        name: "body"
+        widget: "markdown"
+        buttons:
+          - bold
+          - italic
+          - code
+          - link
+          - heading-one
+          - heading-two
+          - heading-three
+          - quote
+          - bulleted-list
+          - numbered-list
+          - code-block
+        editor_components:
+          - code-block
+          - image
 
   - name: "pages"
     label: "Pages"
     files:
+
+      - label: "Home"
+        name: "home"
+        file: "content/_index.md"
+        fields:
+          - { label: "Operator Name",  name: "operator",       widget: "string",
+              default: "Pritesh S Naik" }
+          - { label: "Tagline",        name: "tagline",        widget: "string",
+              default: "Red Team · VAPT · OSINT · Web3 Security" }
+          - { label: "Location",       name: "location",       widget: "string",
+              default: "Goa, India" }
+          - { label: "Status",         name: "status",         widget: "string",
+              default: "Available for engagements" }
+          - { label: "Specialization", name: "specialization", widget: "string",
+              default: "Smart Contracts · DeFi · DarkWeb" }
+          - { label: "Spec Detail",    name: "spec_detail",    widget: "string",
+              default: "Solidity auditing · Stealer log analysis · SOCMINT" }
+          - { label: "Tools",          name: "tools",          widget: "string",
+              default: "Pinaka · Sentinel-Web3 · SocMint-X" }
+          - { label: "Tools Detail",   name: "tools_detail",   widget: "string",
+              default: "Custom-built offensive security tooling" }
+
       - label: "About"
         name: "about"
         file: "content/about.md"
         fields:
           - { label: "Title", name: "title", widget: "string" }
-          - { label: "Body",  name: "body",  widget: "markdown" }
+          - label: "Body"
+            name: "body"
+            widget: "markdown"
+            buttons:
+              - bold
+              - italic
+              - code
+              - link
+              - heading-one
+              - heading-two
+              - heading-three
+              - quote
+              - bulleted-list
+              - numbered-list
+              - code-block
+            editor_components:
+              - code-block
+              - image
 
       - label: "Services"
         name: "services"
@@ -72,4 +162,21 @@ collections:
         fields:
           - { label: "Title",       name: "title",       widget: "string" }
           - { label: "Description", name: "description", widget: "string", required: false }
-          - { label: "Body",        name: "body",        widget: "markdown" }
+          - label: "Body"
+            name: "body"
+            widget: "markdown"
+            buttons:
+              - bold
+              - italic
+              - code
+              - link
+              - heading-one
+              - heading-two
+              - heading-three
+              - quote
+              - bulleted-list
+              - numbered-list
+              - code-block
+            editor_components:
+              - code-block
+              - image
