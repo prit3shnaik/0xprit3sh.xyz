@@ -60,8 +60,16 @@ collections:
     label: "Pages"
     files:
       - label: "About"
-        name:  "about"
-        file:  "content/about.md"
+        name: "about"
+        file: "content/about.md"
         fields:
           - { label: "Title", name: "title", widget: "string" }
           - { label: "Body",  name: "body",  widget: "markdown" }
+
+      - label: "Services"
+        name: "services"
+        file: "content/services.md"
+        fields:
+          - { label: "Title",       name: "title",       widget: "string" }
+          - { label: "Description", name: "description", widget: "string", required: false }
+          - { label: "Body",        name: "body",        widget: "markdown" }
