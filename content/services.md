@@ -1,15 +1,15 @@
 ---
-title: "Services"
-description: "Security services — VAPT, Web3 auditing, CTI, OSINT investigations. Real skills, no fluff."
+title: Services
+description: Security services — VAPT, Web3 auditing, CTI, OSINT investigations. Real skills, no fluff.
 ---
 
 ## available for engagements
 
-I take on a limited number of clients at a time. Work is done manually — no automated scan dumps passed off as reports. If you want real findings, this is the right place.
+I take on a limited number of clients at a time. Work is done manually,  no automated scan dumps passed off as reports. If you want real findings, this is the right place.
 
 All engagements are under NDA. Findings stay between us.
 
----
+***
 
 ## what i offer
 
@@ -21,10 +21,10 @@ What you get: a structured report with confirmed findings, reproduction steps, s
 
 Typical scope: internal tools, SaaS platforms, fintech apps, admin panels, authentication flows.
 
-**Starting from:** contact for scope-based pricing  
+**Starting from:** contact for scope-based pricing
 **Timeline:** 5–15 days depending on scope
 
----
+***
 
 ### Web3 Security — Smart Contract Auditing
 
@@ -34,10 +34,10 @@ I've reviewed contracts handling real liquidity. I understand what "this will ge
 
 What you get: line-by-line findings, severity classification, proof-of-concept exploit code where applicable, and fix recommendations.
 
-**Best for:** pre-launch audits, protocol upgrades, bridge contracts, custom token logic  
+**Best for:** pre-launch audits, protocol upgrades, bridge contracts, custom token logic
 **Timeline:** 3–10 days depending on contract complexity
 
----
+***
 
 ### CTI — Cyber Threat Intelligence
 
@@ -49,7 +49,7 @@ Reporting is structured for both technical teams and executive audiences.
 
 **Timeline:** ongoing retainer or one-time investigation
 
----
+***
 
 ### OSINT Investigation
 
@@ -61,7 +61,7 @@ I work methodically. No assumptions, no guesswork — everything sourced and doc
 
 **Timeline:** 3–7 days for standard investigations
 
----
+***
 
 ## need dev work?
 
@@ -69,7 +69,7 @@ Security is my lane. If you need a web app, mobile app, or backend system built 
 
 Tell me what you need and I'll connect you with the right person.
 
----
+***
 
 ## how to engage
 
@@ -81,7 +81,7 @@ Tell me: what you need, rough scope, timeline. I'll respond within 24 hours with
 
 For sensitive engagements, PGP available on request.
 
----
+***
 
 ## working style
 
