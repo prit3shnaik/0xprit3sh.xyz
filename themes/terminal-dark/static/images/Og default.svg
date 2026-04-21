@@ -21,7 +21,7 @@
   <text x="340" y="220" font-family="'JetBrains Mono', 'Courier New', monospace" font-size="72" font-weight="700" fill="#e6edf3">0xprit3sh</text>
  
   <!-- Subtitle -->
-  <text x="340" y="280" font-family="'JetBrains Mono', 'Courier New', monospace" font-size="22" fill="#00ff41">Red Team · VAPT · OSINT · Web3 Security</text>
+  <text x="340" y="280" font-family="'JetBrains Mono', 'Courier New', monospace" font-size="22" fill="#00ff41">Red Team Â· VAPT Â· OSINT Â· Web3 Security</text>
  
   <!-- Divider line -->
   <rect x="340" y="308" width="780" height="1" fill="#1e1e1e"/>
@@ -47,7 +47,7 @@
  
   <!-- Bottom terminal line -->
   <text x="80" y="580" font-family="monospace" font-size="14" fill="#00ff41">root@0xprit3sh:~$</text>
-  <text x="280" y="580" font-family="monospace" font-size="14" fill="#484f58">// Goa, India · Available for engagements</text>
+  <text x="280" y="580" font-family="monospace" font-size="14" fill="#484f58">// Goa, India Â· Available for engagements</text>
  
   <!-- Right side decorative element -->
   <g opacity="0.06">
