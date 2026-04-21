@@ -8,6 +8,7 @@ og_image: /images/uploads/file_0000000021e471fa89a86429241cd935.png
 ---
 
 ### **Hey, it’s Pritesh here — a boy who once dreamed of being in the defence services.**
+
 **Right now? Exploiting, hacking (or whatever you call it), just managing to live a day-to-day life.**
 
 ***
