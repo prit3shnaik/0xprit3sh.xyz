@@ -16,10 +16,12 @@ collections:
     create: true
     slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
     fields:
-      - { label: "Title", name: "title", widget: "string" }
-      - { label: "Date",  name: "date",  widget: "datetime" }
-      - { label: "Tags",  name: "tags",  widget: "list", allow_add: true }
-      - { label: "TL;DR", name: "tldr", widget: "string", required: false }
+      - { label: "Title",       name: "title",    widget: "string" }
+      - { label: "Date",        name: "date",     widget: "datetime" }
+      - { label: "Tags",        name: "tags",     widget: "list", allow_add: true }
+      - { label: "TL;DR",      name: "tldr",     widget: "string", required: false }
+      - { label: "Cover Image", name: "og_image", widget: "image",  required: false,
+          hint: "1200x630px — shows when shared on X, LinkedIn, Telegram" }
       - label: "Body"
         name: "body"
         widget: "markdown"
@@ -45,16 +47,18 @@ collections:
     create: true
     slug: "{{slug}}"
     fields:
-      - { label: "Title",      name: "title",   widget: "string" }
-      - { label: "Date",       name: "date",    widget: "datetime" }
-      - { label: "Tags",       name: "tags",    widget: "list", allow_add: true,
+      - { label: "Title",      name: "title",    widget: "string" }
+      - { label: "Date",       name: "date",     widget: "datetime" }
+      - { label: "Tags",       name: "tags",     widget: "list", allow_add: true,
           hint: "Use: GEOINT, SOCMINT, HUMINT, C2, ACTOR, CTI" }
-      - { label: "Node Color", name: "color",   widget: "color",
+      - { label: "Node Color", name: "color",    widget: "color",
           default: "#00d4ff",  hint: "Color of this node in the graph view" }
-      - { label: "Enable Map", name: "leaflet", widget: "boolean", default: false }
-      - { label: "TL;DR",     name: "tldr",    widget: "string", required: false }
-      - { label: "Status",     name: "status",  widget: "select",
+      - { label: "Enable Map", name: "leaflet",  widget: "boolean", default: false }
+      - { label: "TL;DR",     name: "tldr",     widget: "string",  required: false }
+      - { label: "Status",     name: "status",   widget: "select",
           options: ["active", "closed", "ongoing"], default: "active" }
+      - { label: "Cover Image", name: "og_image", widget: "image",  required: false,
+          hint: "1200x630px — shows when shared on X, LinkedIn, Telegram" }
       - label: "Body"
         name: "body"
         widget: "markdown"
@@ -80,14 +84,16 @@ collections:
     create: true
     slug: "{{slug}}"
     fields:
-      - { label: "Title",    name: "title",    widget: "string" }
-      - { label: "Date",     name: "date",     widget: "datetime" }
-      - { label: "Tags",     name: "tags",     widget: "list", allow_add: true }
-      - { label: "Severity", name: "severity", widget: "select",
+      - { label: "Title",       name: "title",    widget: "string" }
+      - { label: "Date",        name: "date",     widget: "datetime" }
+      - { label: "Tags",        name: "tags",     widget: "list", allow_add: true }
+      - { label: "Severity",    name: "severity", widget: "select",
           options: ["critical", "high", "medium", "low"], required: false }
-      - { label: "Platform", name: "platform", widget: "string", required: false,
+      - { label: "Platform",    name: "platform", widget: "string", required: false,
           hint: "e.g. HackTheBox, Immunefi, Private bug bounty" }
-      - { label: "TL;DR",   name: "tldr",     widget: "string", required: false }
+      - { label: "TL;DR",      name: "tldr",     widget: "string", required: false }
+      - { label: "Cover Image", name: "og_image", widget: "image",  required: false,
+          hint: "1200x630px — shows when shared on X, LinkedIn, Telegram" }
       - label: "Body"
         name: "body"
         widget: "markdown"
