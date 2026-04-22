@@ -1,3 +1,4 @@
+buildFuture = true
 baseURL = "https://0xprit3sh.xyz/"
 languageCode = "en-us"
 title = "0xprit3sh"
