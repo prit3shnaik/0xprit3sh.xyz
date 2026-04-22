@@ -1,8 +1,15 @@
 {{ define "main" }}
 <div class="post-layout">
 
-  {{/* ── Main content ── */}}
   <div class="post-main">
+
+    {{/* Cover image */}}
+    {{ with .Params.og_image }}
+    <div class="post-cover">
+      <img src="{{ . | relURL }}" alt="{{ $.Title }}" loading="lazy">
+    </div>
+    {{ end }}
+
     <div class="post-eyebrow">
       <a href="/">~/home</a>
       <span class="sep">/</span>
@@ -16,8 +23,10 @@
     <div class="post-meta-row">
       <span>{{ .Date.Format "2006-01-02" }}</span>
       {{ with .ReadingTime }}<span>{{ . }} min read</span>{{ end }}
+      {{ with .Params.severity }}<span class="severity sev-{{ . }}">{{ . | upper }}</span>{{ end }}
+      {{ with .Params.platform }}<span style="font-size:0.7rem;color:var(--dim)">{{ . }}</span>{{ end }}
       {{ with .Params.tags }}{{ range . }}<span class="tag">{{ . }}</span>{{ end }}{{ end }}
-      <a href="/admin/#/collections/{{ .Section }}/entries/{{ .File.BaseFileName }}" class="edit-btn" style="margin-left: auto; font-size: 0.68rem;">edit post</a>
+      <a href="/admin/#/collections/{{ .Section }}/entries/{{ .File.BaseFileName }}" class="edit-btn" style="margin-left:auto;font-size:0.68rem;">edit post</a>
     </div>
 
     {{ with .Params.tldr }}
@@ -37,10 +46,15 @@
     </nav>
   </div>
 
-  {{/* ── Sidebar ── */}}
   <div class="post-sidebar">
 
-    {{/* Share box */}}
+    {{/* Cover image preview in sidebar if exists */}}
+    {{ with .Params.og_image }}
+    <div class="sidebar-box" style="padding:0;overflow:hidden;">
+      <img src="{{ . | relURL }}" alt="{{ $.Title }}" style="width:100%;display:block;border-radius:6px;">
+    </div>
+    {{ end }}
+
     <div class="sidebar-box">
       <div class="sidebar-box-title">// share</div>
       <div class="share-row">
@@ -57,10 +71,8 @@
           <span class="share-icon">#</span> <span id="copy-label">copy link</span>
         </button>
       </div>
-
-      {{/* OG Preview */}}
-      <div class="og-preview" style="margin-top: 10px;">
-        <div class="og-preview-bar">preview — how it looks when shared</div>
+      <div class="og-preview" style="margin-top:10px;">
+        <div class="og-preview-bar">social preview</div>
         <div class="og-preview-body">
           <div class="og-preview-title">{{ .Title }}</div>
           <div class="og-preview-desc">{{ with .Description }}{{ . }}{{ else }}{{ .Summary | truncate 80 }}{{ end }}</div>
@@ -69,22 +81,20 @@
       </div>
     </div>
 
-    {{/* Tags */}}
     {{ with .Params.tags }}
     <div class="sidebar-box">
       <div class="sidebar-box-title">// tags</div>
-      <div>{{ range . }}<span class="tag" style="margin: 2px; display: inline-block;">{{ . }}</span>{{ end }}</div>
+      <div>{{ range . }}<span class="tag" style="margin:2px;display:inline-block;">{{ . }}</span>{{ end }}</div>
     </div>
     {{ end }}
 
-    {{/* Related posts */}}
     {{ $related := .Site.RegularPages.Related . | first 4 }}
     {{ with $related }}
     <div class="sidebar-box">
       <div class="sidebar-box-title">// related</div>
       {{ range . }}
-      <div style="padding: 5px 0; border-bottom: 1px solid var(--border);">
-        <a href="{{ .Permalink }}" style="font-size: 0.78rem; color: var(--text2);">{{ .Title }}</a>
+      <div style="padding:5px 0;border-bottom:1px solid var(--border);">
+        <a href="{{ .Permalink }}" style="font-size:0.78rem;color:var(--text2);">{{ .Title }}</a>
       </div>
       {{ end }}
     </div>
