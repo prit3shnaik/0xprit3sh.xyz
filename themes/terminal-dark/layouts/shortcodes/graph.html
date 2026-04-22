@@ -1,0 +1,364 @@
+{{/* 
+  OSINT Graph Shortcode
+  Usage in post body:
+  {{< graph id="investigation-1" height="500" >}}
+  { "nodes": [...], "edges": [...] }
+  {{< /graph >}}
+  
+  Node format:
+  { "id": "n1", "label": "12.34.56.78", "type": "ip", "color": "#ff4444", "notes": "C2 server", "ip": "12.34.56.78", "asn": "AS14618" }
+  
+  Types: ip, domain, wallet, actor, email, server, org, unknown
+  
+  Edge format:
+  { "from": "n1", "to": "n2", "label": "RESOLVES", "color": "#484f58" }
+*/}}
+
+{{ $id := .Get "id" | default (printf "graph-%s" (.Page.File.BaseFileName)) }}
+{{ $height := .Get "height" | default "520" }}
+
+<div class="inv-graph-wrap" id="wrap-{{ $id }}">
+  <div class="inv-graph-toolbar">
+    <span class="igt-title">// node graph</span>
+    <div class="igt-btns">
+      <button class="igt-btn" onclick="igZoomIn('{{ $id }}')">zoom +</button>
+      <button class="igt-btn" onclick="igZoomOut('{{ $id }}')">zoom −</button>
+      <button class="igt-btn" onclick="igFit('{{ $id }}')">fit</button>
+      <button class="igt-btn" onclick="igReset('{{ $id }}')">reset</button>
+      <span class="igt-stat" id="stat-{{ $id }}">loading...</span>
+    </div>
+  </div>
+  <div class="inv-graph-canvas" id="canvas-{{ $id }}" style="height:{{ $height }}px">
+    <div class="inv-graph-grid"></div>
+    <svg id="svg-{{ $id }}" style="width:100%;height:100%;position:absolute;top:0;left:0;overflow:visible"></svg>
+    <div class="inv-graph-panel" id="panel-{{ $id }}">
+      <div class="igp-close" onclick="igClosePanel('{{ $id }}')">×</div>
+      <div class="igp-type" id="ptype-{{ $id }}">—</div>
+      <div class="igp-label" id="plabel-{{ $id }}">—</div>
+      <div class="igp-rows" id="prowrows-{{ $id }}"></div>
+      <div class="igp-notes" id="pnotes-{{ $id }}"></div>
+    </div>
+    <div class="inv-graph-legend" id="legend-{{ $id }}"></div>
+  </div>
+  <script type="application/json" id="data-{{ $id }}">{{ .Inner }}</script>
+</div>
+
+<script>
+(function() {
+  const ID = '{{ $id }}';
+  const wrap   = document.getElementById('wrap-' + ID);
+  const svgEl  = document.getElementById('svg-' + ID);
+  const canvas = document.getElementById('canvas-' + ID);
+  const panel  = document.getElementById('panel-' + ID);
+  const stat   = document.getElementById('stat-' + ID);
+  const legend = document.getElementById('legend-' + ID);
+
+  // ── Parse data ──────────────────────────────────────────
+  let graphData = { nodes: [], edges: [] };
+  try {
+    const raw = document.getElementById('data-' + ID).textContent.trim();
+    graphData = JSON.parse(raw);
+  } catch(e) {
+    svgEl.parentElement.innerHTML += '<div style="padding:2rem;color:var(--dim);font-size:.78rem;text-align:center">// invalid graph JSON — check your data</div>';
+    return;
+  }
+
+  const nodes = graphData.nodes || [];
+  const edges = graphData.edges || [];
+
+  // ── Type config ──────────────────────────────────────────
+  const TYPES = {
+    ip:      { color: '#ff4444', shape: 'circle',  label: 'IP' },
+    domain:  { color: '#58a6ff', shape: 'circle',  label: 'Domain' },
+    wallet:  { color: '#bc8cff', shape: 'diamond', label: 'Wallet' },
+    actor:   { color: '#e8c547', shape: 'circle',  label: 'Actor' },
+    email:   { color: '#f0883e', shape: 'circle',  label: 'Email' },
+    server:  { color: '#ff4444', shape: 'square',  label: 'Server' },
+    org:     { color: '#00d4ff', shape: 'circle',  label: 'Org' },
+    unknown: { color: '#484f58', shape: 'circle',  label: 'Unknown' },
+  };
+
+  // ── State ────────────────────────────────────────────────
+  let zoom = 1, panX = 0, panY = 0;
+  let dragging = null, dragStart = null, lastMouse = null;
+  let positions = {};
+  let W, H;
+
+  // ── Layout: force-directed simplified ───────────────────
+  function initPositions() {
+    W = canvas.clientWidth || 700;
+    H = parseInt('{{ $height }}') || 520;
+    const cx = W / 2, cy = H / 2;
+    const n = nodes.length;
+    nodes.forEach((node, i) => {
+      if (n === 1) {
+        positions[node.id] = { x: cx, y: cy };
+      } else if (i === 0) {
+        positions[node.id] = { x: cx, y: cy };
+      } else {
+        const angle = ((i - 1) / (n - 1)) * Math.PI * 2 - Math.PI / 2;
+        const R = Math.min(W, H) * 0.32;
+        positions[node.id] = {
+          x: cx + R * Math.cos(angle),
+          y: cy + R * Math.sin(angle)
+        };
+      }
+    });
+    runForce(60);
+  }
+
+  function runForce(iterations) {
+    for (let iter = 0; iter < iterations; iter++) {
+      const forces = {};
+      nodes.forEach(n => { forces[n.id] = { x: 0, y: 0 }; });
+      // Repulsion
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const a = positions[nodes[i].id], b = positions[nodes[j].id];
+          const dx = b.x - a.x, dy = b.y - a.y;
+          const dist = Math.max(Math.sqrt(dx * dx + dy * dy), 1);
+          const force = 4000 / (dist * dist);
+          const fx = (dx / dist) * force, fy = (dy / dist) * force;
+          forces[nodes[i].id].x -= fx; forces[nodes[i].id].y -= fy;
+          forces[nodes[j].id].x += fx; forces[nodes[j].id].y += fy;
+        }
+      }
+      // Attraction along edges
+      edges.forEach(e => {
+        const a = positions[e.from], b = positions[e.to];
+        if (!a || !b) return;
+        const dx = b.x - a.x, dy = b.y - a.y;
+        const dist = Math.max(Math.sqrt(dx * dx + dy * dy), 1);
+        const force = (dist - 120) * 0.04;
+        const fx = (dx / dist) * force, fy = (dy / dist) * force;
+        forces[e.from].x += fx; forces[e.from].y += fy;
+        forces[e.to].x -= fx;  forces[e.to].y -= fy;
+      });
+      // Apply
+      nodes.forEach(n => {
+        positions[n.id].x += forces[n.id].x * 0.1;
+        positions[n.id].y += forces[n.id].y * 0.1;
+      });
+    }
+  }
+
+  // ── Render ───────────────────────────────────────────────
+  function render() {
+    W = canvas.clientWidth || 700;
+    H = parseInt('{{ $height }}') || 520;
+    const ns = 'http://www.w3.org/2000/svg';
+    svgEl.innerHTML = '';
+    svgEl.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+    // Defs: arrowhead
+    const defs = document.createElementNS(ns, 'defs');
+    const marker = document.createElementNS(ns, 'marker');
+    marker.setAttribute('id', 'arrow-' + ID);
+    marker.setAttribute('viewBox', '0 0 10 10');
+    marker.setAttribute('refX', '18');
+    marker.setAttribute('refY', '5');
+    marker.setAttribute('markerWidth', '6');
+    marker.setAttribute('markerHeight', '6');
+    marker.setAttribute('orient', 'auto');
+    const arrowPath = document.createElementNS(ns, 'path');
+    arrowPath.setAttribute('d', 'M0,0 L10,5 L0,10 Z');
+    arrowPath.setAttribute('fill', '#2a2a2a');
+    marker.appendChild(arrowPath);
+    defs.appendChild(marker);
+    svgEl.appendChild(defs);
+
+    // Transform group for pan/zoom
+    const g = document.createElementNS(ns, 'g');
+    g.setAttribute('id', 'g-' + ID);
+    g.setAttribute('transform', `translate(${panX},${panY}) scale(${zoom})`);
+    svgEl.appendChild(g);
+
+    // Draw edges
+    edges.forEach((e, ei) => {
+      const a = positions[e.from], b = positions[e.to];
+      if (!a || !b) return;
+      const line = document.createElementNS(ns, 'line');
+      line.setAttribute('x1', a.x); line.setAttribute('y1', a.y);
+      line.setAttribute('x2', b.x); line.setAttribute('y2', b.y);
+      line.setAttribute('stroke', e.color || '#2a2a2a');
+      line.setAttribute('stroke-width', '1.2');
+      line.setAttribute('marker-end', `url(#arrow-${ID})`);
+      g.appendChild(line);
+
+      // Edge label
+      if (e.label) {
+        const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+        const bg = document.createElementNS(ns, 'rect');
+        bg.setAttribute('x', mx - 28); bg.setAttribute('y', my - 8);
+        bg.setAttribute('width', 56);   bg.setAttribute('height', 13);
+        bg.setAttribute('rx', 2);
+        bg.setAttribute('fill', 'var(--bg, #090909)');
+        bg.setAttribute('opacity', '0.85');
+        g.appendChild(bg);
+        const lt = document.createElementNS(ns, 'text');
+        lt.setAttribute('x', mx); lt.setAttribute('y', my + 2);
+        lt.setAttribute('text-anchor', 'middle');
+        lt.setAttribute('fill', '#484f58');
+        lt.setAttribute('font-size', '8');
+        lt.setAttribute('font-family', 'monospace');
+        lt.textContent = e.label;
+        g.appendChild(lt);
+      }
+    });
+
+    // Draw nodes
+    nodes.forEach((node) => {
+      const p = positions[node.id];
+      if (!p) return;
+      const tc = TYPES[node.type] || TYPES.unknown;
+      const col = node.color || tc.color;
+      const r = node.size || (node.id === nodes[0]?.id ? 14 : 10);
+
+      const ng = document.createElementNS(ns, 'g');
+      ng.setAttribute('cursor', 'pointer');
+      ng.setAttribute('data-id', node.id);
+
+      // Glow ring for hub node
+      if (node.id === nodes[0]?.id) {
+        const glow = document.createElementNS(ns, 'circle');
+        glow.setAttribute('cx', p.x); glow.setAttribute('cy', p.y);
+        glow.setAttribute('r', r + 5);
+        glow.setAttribute('fill', col);
+        glow.setAttribute('opacity', '0.15');
+        ng.appendChild(glow);
+      }
+
+      // Main shape
+      if (tc.shape === 'diamond') {
+        const size = r * 1.3;
+        const diamond = document.createElementNS(ns, 'polygon');
+        diamond.setAttribute('points', `${p.x},${p.y-size} ${p.x+size},${p.y} ${p.x},${p.y+size} ${p.x-size},${p.y}`);
+        diamond.setAttribute('fill', col);
+        diamond.setAttribute('opacity', '0.9');
+        ng.appendChild(diamond);
+      } else if (tc.shape === 'square') {
+        const sq = document.createElementNS(ns, 'rect');
+        sq.setAttribute('x', p.x - r); sq.setAttribute('y', p.y - r);
+        sq.setAttribute('width', r * 2); sq.setAttribute('height', r * 2);
+        sq.setAttribute('rx', '3');
+        sq.setAttribute('fill', col);
+        sq.setAttribute('opacity', '0.9');
+        ng.appendChild(sq);
+      } else {
+        const circle = document.createElementNS(ns, 'circle');
+        circle.setAttribute('cx', p.x); circle.setAttribute('cy', p.y);
+        circle.setAttribute('r', r);
+        circle.setAttribute('fill', col);
+        circle.setAttribute('opacity', '0.9');
+        ng.appendChild(circle);
+      }
+
+      // Label
+      const lbl = document.createElementNS(ns, 'text');
+      const shortLabel = (node.label || node.id).length > 16 ? (node.label || node.id).slice(0, 14) + '…' : (node.label || node.id);
+      lbl.setAttribute('x', p.x);
+      lbl.setAttribute('y', p.y + r + 12);
+      lbl.setAttribute('text-anchor', 'middle');
+      lbl.setAttribute('fill', '#8b949e');
+      lbl.setAttribute('font-size', '9');
+      lbl.setAttribute('font-family', 'monospace');
+      lbl.setAttribute('pointer-events', 'none');
+      lbl.textContent = shortLabel;
+      ng.appendChild(lbl);
+
+      // Click handler
+      ng.addEventListener('click', () => showPanel(node));
+
+      // Drag
+      ng.addEventListener('mousedown', ev => {
+        dragging = node.id;
+        dragStart = { x: ev.clientX, y: ev.clientY };
+        ev.stopPropagation();
+      });
+
+      g.appendChild(ng);
+    });
+
+    // Update stats
+    stat.textContent = nodes.length + ' nodes · ' + edges.length + ' edges';
+
+    // Legend
+    const seen = {};
+    nodes.forEach(n => { const t = n.type || 'unknown'; seen[t] = TYPES[t]?.color || '#484f58'; });
+    legend.innerHTML = Object.entries(seen).map(([t, c]) =>
+      `<div class="igl-item"><span class="igl-dot" style="background:${c}"></span>${t}</div>`
+    ).join('');
+  }
+
+  // ── Node detail panel ────────────────────────────────────
+  function showPanel(node) {
+    const tc = TYPES[node.type] || TYPES.unknown;
+    document.getElementById('ptype-' + ID).textContent = '[' + (node.type || 'unknown').toUpperCase() + ']';
+    document.getElementById('ptype-' + ID).style.color = node.color || tc.color;
+    document.getElementById('plabel-' + ID).textContent = node.label || node.id;
+    const fields = ['ip','asn','domain','registrar','country','wallet','platform','handle','email','org'];
+    const rows = fields.filter(f => node[f]).map(f =>
+      `<div class="igp-row"><span class="igp-k">${f}</span><span class="igp-v">${node[f]}</span></div>`
+    ).join('');
+    document.getElementById('prowrows-' + ID).innerHTML = rows;
+    const notesEl = document.getElementById('pnotes-' + ID);
+    notesEl.textContent = node.notes || '';
+    notesEl.style.display = node.notes ? 'block' : 'none';
+    panel.classList.add('visible');
+  }
+
+  function igClosePanel(id) { document.getElementById('panel-' + id).classList.remove('visible'); }
+  window['igClosePanel'] = igClosePanel;
+
+  // ── Zoom/Pan ─────────────────────────────────────────────
+  function applyTransform() {
+    const g = document.getElementById('g-' + ID);
+    if (g) g.setAttribute('transform', `translate(${panX},${panY}) scale(${zoom})`);
+  }
+  window['igZoomIn']  = function(id) { if (id !== ID) return; zoom = Math.min(zoom + 0.2, 4); applyTransform(); };
+  window['igZoomOut'] = function(id) { if (id !== ID) return; zoom = Math.max(zoom - 0.2, 0.2); applyTransform(); };
+  window['igFit']     = function(id) { if (id !== ID) return; zoom = 1; panX = 0; panY = 0; applyTransform(); };
+  window['igReset']   = function(id) { if (id !== ID) return; zoom = 1; panX = 0; panY = 0; initPositions(); render(); };
+
+  // Mouse drag to pan
+  svgEl.addEventListener('mousedown', ev => { lastMouse = { x: ev.clientX, y: ev.clientY }; });
+  svgEl.addEventListener('mousemove', ev => {
+    if (dragging) {
+      const dx = (ev.clientX - dragStart.x) / zoom;
+      const dy = (ev.clientY - dragStart.y) / zoom;
+      positions[dragging].x += dx; positions[dragging].y += dy;
+      dragStart = { x: ev.clientX, y: ev.clientY };
+      render(); return;
+    }
+    if (lastMouse && ev.buttons === 1) {
+      panX += ev.clientX - lastMouse.x;
+      panY += ev.clientY - lastMouse.y;
+      lastMouse = { x: ev.clientX, y: ev.clientY };
+      applyTransform();
+    }
+  });
+  svgEl.addEventListener('mouseup', () => { dragging = null; lastMouse = null; });
+  svgEl.addEventListener('wheel', ev => {
+    ev.preventDefault();
+    zoom = Math.max(0.2, Math.min(4, zoom - ev.deltaY * 0.001));
+    applyTransform();
+  }, { passive: false });
+
+  // Touch support
+  let lastTouch = null;
+  svgEl.addEventListener('touchstart', ev => { lastTouch = ev.touches[0]; });
+  svgEl.addEventListener('touchmove', ev => {
+    if (!lastTouch) return;
+    panX += ev.touches[0].clientX - lastTouch.clientX;
+    panY += ev.touches[0].clientY - lastTouch.clientY;
+    lastTouch = ev.touches[0];
+    applyTransform();
+    ev.preventDefault();
+  }, { passive: false });
+
+  // Init
+  initPositions();
+  render();
+  window.addEventListener('resize', () => { initPositions(); render(); });
+})();
+</script>
