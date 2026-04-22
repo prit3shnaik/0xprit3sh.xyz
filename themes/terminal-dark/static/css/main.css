@@ -1524,3 +1524,154 @@ body:has(.osint-workspace) .site-main {
   .ow-toolbar-row2 { flex-wrap: wrap; }
   .owt-actions .owtb:nth-child(n+3) { display: none; }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   OSINT INVESTIGATION GRAPH — append to main.css
+   ═══════════════════════════════════════════════════════════ */
+
+.inv-graph-wrap {
+  margin: 1.5rem 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.inv-graph-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 12px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.igt-title {
+  font-size: 0.7rem;
+  color: var(--accent);
+  font-family: var(--font);
+}
+
+.igt-btns { display: flex; align-items: center; gap: 4px; }
+
+.igt-btn {
+  background: none;
+  border: 1px solid var(--border2);
+  color: var(--dim);
+  font-family: var(--font);
+  font-size: 0.62rem;
+  padding: 2px 8px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.igt-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+.igt-stat {
+  font-size: 0.62rem;
+  color: var(--dim);
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  padding: 2px 8px;
+  border-radius: 2px;
+  margin-left: 6px;
+}
+
+.inv-graph-canvas {
+  position: relative;
+  overflow: hidden;
+  cursor: grab;
+}
+.inv-graph-canvas:active { cursor: grabbing; }
+
+.inv-graph-grid {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, var(--border2) 1px, transparent 1px);
+  background-size: 24px 24px;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* Node detail panel */
+.inv-graph-panel {
+  position: absolute;
+  top: 10px; right: 10px;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  padding: 12px 14px;
+  width: 200px;
+  font-size: 0.7rem;
+  z-index: 20;
+  display: none;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+.inv-graph-panel.visible { display: block; }
+
+.igp-close {
+  position: absolute;
+  top: 8px; right: 10px;
+  color: var(--dim);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+}
+.igp-close:hover { color: var(--text); }
+
+.igp-type {
+  font-size: 0.62rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  letter-spacing: 0.05em;
+}
+.igp-label {
+  font-size: 0.82rem;
+  color: var(--text);
+  font-weight: 700;
+  margin-bottom: 8px;
+  padding-right: 12px;
+  word-break: break-all;
+}
+.igp-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 6px;
+}
+.igp-row:last-child { border-bottom: none; }
+.igp-k { color: var(--dim); flex-shrink: 0; }
+.igp-v { color: var(--text); text-align: right; word-break: break-all; }
+.igp-notes {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  font-size: 0.68rem;
+  color: var(--text2);
+  line-height: 1.6;
+}
+
+/* Legend */
+.inv-graph-legend {
+  position: absolute;
+  bottom: 10px; left: 10px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  z-index: 10;
+}
+.igl-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.62rem;
+  color: var(--dim);
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  padding: 2px 7px;
+  border-radius: 10px;
+}
+.igl-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
