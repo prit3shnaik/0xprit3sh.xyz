@@ -174,7 +174,7 @@ Respect to that community.
 
 ## Rejections & Reality
 
-I’ve given 10+ cybersecurity interviews in India.
+I’ve given 10+ interviews for security roles!
 
 All rejections.
 
