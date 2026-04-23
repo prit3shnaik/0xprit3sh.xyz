@@ -1719,3 +1719,19 @@ body:has(.osint-workspace) .site-main {
 /* If images uploaded via CMS go to /images/uploads/filename.png
    make sure img src doesn't double-slash */
 img[src^="//"] { display: none; }
+
+/* OSINT full-width override */
+body:has(.osint-workspace) .site-main > .container {
+  max-width: 100% !important;
+  padding: 0 !important;
+}
+body:has(.osint-workspace) .site-main {
+  padding: 0 !important;
+}
+.osint-workspace {
+  border-radius: 0 !important;
+  border-left: none !important;
+  border-right: none !important;
+  margin: 0 !important;
+  height: calc(100vh - var(--header-h)) !important;
+}
