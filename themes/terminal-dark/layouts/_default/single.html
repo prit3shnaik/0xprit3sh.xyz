@@ -3,7 +3,6 @@
 
   <div class="post-main">
 
-    {{/* Cover image */}}
     {{ with .Params.og_image }}
     <div class="post-cover">
       <img src="{{ . | relURL }}" alt="{{ $.Title }}" loading="lazy">
@@ -48,35 +47,40 @@
 
   <div class="post-sidebar">
 
-    {{/* Cover image preview in sidebar if exists */}}
     {{ with .Params.og_image }}
-    <div class="sidebar-box" style="padding:0;overflow:hidden;">
-      <img src="{{ . | relURL }}" alt="{{ $.Title }}" style="width:100%;display:block;border-radius:6px;">
+    <div class="sidebar-box" style="padding:0;overflow:hidden;margin-bottom:1rem;">
+      <img src="{{ . | relURL }}" alt="{{ $.Title }}" style="width:100%;display:block;border-radius:6px;max-height:140px;object-fit:cover;">
     </div>
     {{ end }}
 
-    <div class="sidebar-box">
-      <div class="sidebar-box-title">// share</div>
-      <div class="share-row">
-        <a class="share-btn" href="https://twitter.com/intent/tweet?text={{ .Title | urlize }}&url={{ .Permalink }}" target="_blank" rel="noopener">
-          <span class="share-icon">𝕏</span> post on X / Twitter
-        </a>
-        <a class="share-btn" href="https://www.linkedin.com/sharing/share-offsite/?url={{ .Permalink }}" target="_blank" rel="noopener">
-          <span class="share-icon">in</span> share on LinkedIn
-        </a>
-        <a class="share-btn" href="https://t.me/share/url?url={{ .Permalink }}&text={{ .Title | urlize }}" target="_blank" rel="noopener">
-          <span class="share-icon">✈</span> share on Telegram
-        </a>
-        <button class="share-btn" onclick="copyLink('{{ .Permalink }}')">
-          <span class="share-icon">#</span> <span id="copy-label">copy link</span>
-        </button>
+    {{/* Share box — collapsible */}}
+    <div class="sidebar-box share-sidebar-box" id="share-box">
+      <div class="sidebar-box-title" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleShare()">
+        <span>// share</span>
+        <span id="share-toggle-icon" style="font-size:0.8rem;color:var(--dim);transition:transform .2s">▾</span>
       </div>
-      <div class="og-preview" style="margin-top:10px;">
-        <div class="og-preview-bar">social preview</div>
-        <div class="og-preview-body">
-          <div class="og-preview-title">{{ .Title }}</div>
-          <div class="og-preview-desc">{{ with .Description }}{{ . }}{{ else }}{{ .Summary | truncate 80 }}{{ end }}</div>
-          <div class="og-preview-url">0xprit3sh.xyz · {{ .Section }}</div>
+      <div id="share-content">
+        <div class="share-row" style="margin-top:0.5rem;">
+          <a class="share-btn" href="https://twitter.com/intent/tweet?text={{ .Title | urlize }}&url={{ .Permalink }}" target="_blank" rel="noopener">
+            <span class="share-icon">𝕏</span> post on X / Twitter
+          </a>
+          <a class="share-btn" href="https://www.linkedin.com/sharing/share-offsite/?url={{ .Permalink }}" target="_blank" rel="noopener">
+            <span class="share-icon">in</span> share on LinkedIn
+          </a>
+          <a class="share-btn" href="https://t.me/share/url?url={{ .Permalink }}&text={{ .Title | urlize }}" target="_blank" rel="noopener">
+            <span class="share-icon">✈</span> share on Telegram
+          </a>
+          <button class="share-btn" onclick="copyLink('{{ .Permalink }}')">
+            <span class="share-icon">#</span> <span id="copy-label">copy link</span>
+          </button>
+        </div>
+        <div class="og-preview" style="margin-top:10px;">
+          <div class="og-preview-bar">social preview</div>
+          <div class="og-preview-body">
+            <div class="og-preview-title">{{ .Title }}</div>
+            <div class="og-preview-desc">{{ with .Description }}{{ . }}{{ else }}{{ .Summary | truncate 80 }}{{ end }}</div>
+            <div class="og-preview-url">0xprit3sh.xyz · {{ .Section }}</div>
+          </div>
         </div>
       </div>
     </div>
@@ -111,5 +115,25 @@ function copyLink(url) {
     setTimeout(() => el.textContent = 'copy link', 2000);
   });
 }
+
+// Share box collapse
+let shareOpen = true;
+function toggleShare() {
+  shareOpen = !shareOpen;
+  const content = document.getElementById('share-content');
+  const icon = document.getElementById('share-toggle-icon');
+  content.style.display = shareOpen ? '' : 'none';
+  icon.style.transform = shareOpen ? '' : 'rotate(-90deg)';
+  localStorage.setItem('share-box-open', shareOpen ? '1' : '0');
+}
+
+// Restore preference
+(function() {
+  const pref = localStorage.getItem('share-box-open');
+  if (pref === '0') {
+    shareOpen = true;
+    toggleShare();
+  }
+})();
 </script>
 {{ end }}
