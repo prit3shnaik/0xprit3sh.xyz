@@ -188,7 +188,7 @@ Reasons?
 
 That hits hard.
 
-Motivation drops.
+Motivation drops. \~ Fucks
 
 ***
 
