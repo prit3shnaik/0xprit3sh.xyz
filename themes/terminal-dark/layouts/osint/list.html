@@ -308,7 +308,7 @@ function initMap(){
   leafMap=L.map('osint-leaflet-map').setView([20,0],2);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'&copy; OpenStreetMap &copy; CARTO',subdomains:'abcd',maxZoom:19}).addTo(leafMap);
 }
-let zoom=1;
+zoom=1;
 function zoomIn(){zoom=Math.min(zoom+0.2,3);applyZoom();}
 function zoomOut(){zoom=Math.max(zoom-0.2,0.3);applyZoom();}
 function resetZoom(){zoom=1;applyZoom();}
