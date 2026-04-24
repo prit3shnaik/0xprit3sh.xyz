@@ -41,7 +41,7 @@ collections:
           - code-block
           - image
 
-- name: "alerts"
+  - name: "alerts"
     label: "Alerts"
     folder: "content/alerts"
     create: true
