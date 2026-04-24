@@ -90,3 +90,5 @@ For sensitive engagements, PGP available on request.
 - I tell you if something is out of scope rather than pretending I covered it.
 - NDAs are standard. Findings don't leave the engagement.
 - I work with startups, solo founders, small security teams, and companies that can't afford a Big 4 firm but need the same quality.
+
+{{< chai >}}
