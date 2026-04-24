@@ -56,3 +56,8 @@ theme = "terminal-dark"
   name   = "~/services"
   url    = "/services/"
   weight = 5
+
+[[menus.main]]
+  name   = "~/alerts"
+  url    = "/alerts/"
+  weight = 6
