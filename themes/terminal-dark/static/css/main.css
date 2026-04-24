@@ -1959,3 +1959,26 @@ body:has(.osint-workspace) .site-main {
   min-width: 55px;
   text-align: center;
 }
+
+/* ── OSINT SECTION ONLY — full viewport ────────────────────
+   ─────────────────────────────────────────────────────── */
+
+body.osint-page .site-main {
+  padding: 0 !important;
+}
+body.osint-page .site-main > .container {
+  max-width: 100% !important;
+  padding: 0 !important;
+  width: 100% !important;
+}
+body.osint-page .site-footer {
+  display: none;
+}
+.osint-workspace {
+  height: calc(100vh - var(--header-h)) !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+}
