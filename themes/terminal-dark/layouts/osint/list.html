@@ -1,9 +1,5 @@
 {{ define "main" }}
-{{/* Full-bleed override — break out of container */}}
-<style>
-.site-main > .container { max-width: 100% !important; padding: 0 !important; }
-.osint-workspace { margin: 0; border-radius: 0; border-left: none; border-right: none; border-bottom: none; height: calc(100vh - var(--header-h)); }
-</style>
+<script>document.body.classList.add('osint-page');</script>
 
 <div class="osint-workspace" id="osint-ws">
 
@@ -84,8 +80,6 @@
 
   {{/* ══ RIGHT CANVAS ══ */}}
   <div class="ow-canvas" id="ow-canvas">
-
-    {{/* Toolbar — TWO ROWS to prevent overflow */}}
     <div class="ow-toolbar">
       <div class="ow-toolbar-row1">
         <span class="owt-label" id="owt-inv-name">// select an investigation from the sidebar</span>
@@ -109,11 +103,9 @@
       </div>
     </div>
 
-    {{/* GRAPH VIEW */}}
     <div class="ow-view on" id="view-graph-area">
       <div class="ow-grid"></div>
       <svg id="main-svg" style="position:absolute;top:0;left:0;width:100%;height:100%"></svg>
-
       <div class="ow-node-panel" id="node-panel">
         <div class="onp-close" onclick="closePanel()">×</div>
         <div class="onp-title" id="np-title">—</div>
@@ -123,21 +115,18 @@
           <a class="onp-btn" id="np-edit" href="#">edit</a>
         </div>
       </div>
-
       <div class="ow-minimap">
         <svg id="mm-svg" width="110" height="75"></svg>
       </div>
-
       <div class="ow-canvas-empty" id="canvas-empty">
         <div style="font-size:2rem;opacity:.15;margin-bottom:8px">◎</div>
         <div style="font-size:0.78rem;color:var(--dim)">select an investigation to render the graph</div>
       </div>
     </div>
 
-    {{/* TIMELINE VIEW */}}
     <div class="ow-view" id="view-timeline-area">
       <div class="ow-timeline-wrap">
-        <div class="ow-timeline-header">// investigation timeline · all entries</div>
+        <div class="ow-timeline-header">// investigation timeline</div>
         <div class="ow-timeline">
           {{ range .Pages }}
           <div class="tl-node">
@@ -159,7 +148,6 @@
       </div>
     </div>
 
-    {{/* MAP VIEW */}}
     <div class="ow-view" id="view-map-area">
       <div id="osint-leaflet-map" style="width:100%;height:100%"></div>
       <div class="ow-map-legend">
@@ -170,7 +158,6 @@
       </div>
     </div>
 
-    {{/* STATUS BAR */}}
     <div class="ow-statusbar">
       <div class="owsb-left">
         <div class="owsb-dot" id="sb-dot"></div>
@@ -197,71 +184,53 @@ const INV = [{{ range .Pages }}{
   tldr:{{ with .Params.tldr }}{{ . | jsonify }}{{ else }}""{{ end }},
 },{{ end }}];
 
-let current = null, zoom = 1, view = 'graph', filter = 'ALL', leafMap = null;
+let current=null,zoom=1,view='graph',filter='ALL',leafMap=null;
 
-/* ── Tabs ── */
-function owTab(btn, id) {
-  document.querySelectorAll('.owt').forEach(b => b.classList.remove('on'));
-  document.querySelectorAll('.ow-tab-panel').forEach(p => p.classList.remove('on'));
-  btn.classList.add('on');
-  document.getElementById(id).classList.add('on');
+function owTab(btn,id){
+  document.querySelectorAll('.owt').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('.ow-tab-panel').forEach(p=>p.classList.remove('on'));
+  btn.classList.add('on');document.getElementById(id).classList.add('on');
 }
-
-/* ── View ── */
-function setView(v, btn) {
-  view = v;
-  document.querySelectorAll('.owtb').forEach(b => b.classList.remove('on'));
+function setView(v,btn){
+  view=v;
+  document.querySelectorAll('.owtb').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
-  document.querySelectorAll('.ow-view').forEach(el => el.classList.remove('on'));
-  document.getElementById('view-' + v + '-area').classList.add('on');
-  if (v === 'map') initMap();
-  if (v === 'graph' && current !== null) buildGraph(current);
+  document.querySelectorAll('.ow-view').forEach(el=>el.classList.remove('on'));
+  document.getElementById('view-'+v+'-area').classList.add('on');
+  if(v==='map')initMap();
+  if(v==='graph'&&current!==null)buildGraph(current);
 }
-
-/* ── Filter ── */
-function setFilter(btn, tag) {
-  document.querySelectorAll('.owf').forEach(b => b.classList.remove('on'));
-  btn.classList.add('on');
-  filter = tag;
+function setFilter(btn,tag){
+  document.querySelectorAll('.owf').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');filter=tag;
   filterInv(document.getElementById('ow-search').value);
 }
-
-function filterInv(q) {
-  q = (q || '').toLowerCase();
-  let vis = 0;
-  document.querySelectorAll('.ow-inv-item').forEach(el => {
-    const mq = !q || el.dataset.title.includes(q) || el.dataset.tags.includes(q);
-    const mf = filter === 'ALL' || el.dataset.tags.toUpperCase().includes(filter);
-    el.style.display = (mq && mf) ? '' : 'none';
-    if (mq && mf) vis++;
+function filterInv(q){
+  q=(q||'').toLowerCase();let vis=0;
+  document.querySelectorAll('.ow-inv-item').forEach(el=>{
+    const mq=!q||el.dataset.title.includes(q)||el.dataset.tags.includes(q);
+    const mf=filter==='ALL'||el.dataset.tags.toUpperCase().includes(filter);
+    el.style.display=(mq&&mf)?'':'none';if(mq&&mf)vis++;
   });
-  document.getElementById('ow-count').textContent = vis;
+  document.getElementById('ow-count').textContent=vis;
 }
-
-/* ── Select investigation ── */
-function selectInv(e, el) {
+function selectInv(e,el){
   e.preventDefault();
-  document.querySelectorAll('.ow-inv-item').forEach(i => i.classList.remove('sel'));
+  document.querySelectorAll('.ow-inv-item').forEach(i=>i.classList.remove('sel'));
   el.classList.add('sel');
-  const idx = Array.from(document.querySelectorAll('.ow-inv-item')).indexOf(el);
-  current = INV[idx] || null;
-  if (!current) return;
-
-  document.getElementById('canvas-empty').style.display = 'none';
-  document.getElementById('owt-inv-name').textContent = '// ' + current.title;
-  document.getElementById('sb-dot').style.background = current.color;
-  document.getElementById('sb-text').textContent = '"' + current.title + '" · ' + current.status;
-  document.getElementById('np-view').href = current.url;
-  document.getElementById('np-edit').href = current.edit;
-
-  fillEntities(current);
-  fillNotes(current);
-  if (view === 'graph') buildGraph(current);
+  const idx=Array.from(document.querySelectorAll('.ow-inv-item')).indexOf(el);
+  current=INV[idx]||null;if(!current)return;
+  document.getElementById('canvas-empty').style.display='none';
+  document.getElementById('owt-inv-name').textContent='// '+current.title;
+  document.getElementById('sb-dot').style.background=current.color;
+  document.getElementById('sb-text').textContent='"'+current.title+'" · '+current.status;
+  document.getElementById('np-view').href=current.url;
+  document.getElementById('np-edit').href=current.edit;
+  fillEntities(current);fillNotes(current);
+  if(view==='graph')buildGraph(current);
 }
-
-/* ── Entities tab ── */
-function fillEntities(inv) {
-  document.getElementById('ow-entities').innerHTML = `
+function fillEntities(inv){
+  document.getElementById('ow-entities').innerHTML=`
     <div class="ow-entity-group"><div class="oweg-label">investigation</div>
       <div class="ow-entity-row"><div class="owe-dot" style="background:${inv.color}"></div><span class="owe-name">${inv.title}</span><span class="owe-badge">inv</span></div>
     </div>
@@ -273,126 +242,92 @@ function fillEntities(inv) {
       <div class="ow-entity-row"><div class="owe-dot" style="background:${inv.status==='active'?'#00ff41':'#484f58'}"></div><span class="owe-name">${inv.status}</span><span class="owe-badge">status</span></div>
     </div>`;
 }
-
-/* ── Notes tab ── */
-function fillNotes(inv) {
-  document.getElementById('ow-notes').innerHTML = `
+function fillNotes(inv){
+  document.getElementById('ow-notes').innerHTML=`
     <div class="ow-notes-inv">
       <div class="oni-title">${inv.title}</div>
-      ${inv.tldr ? `<div class="oni-tldr">// TL;DR<br>${inv.tldr}</div>` : '<div style="color:var(--dim);font-size:0.72rem">// no TL;DR set — add one in /admin</div>'}
+      ${inv.tldr?`<div class="oni-tldr">// TL;DR<br>${inv.tldr}</div>`:'<div style="color:var(--dim);font-size:0.72rem">// no TL;DR — add in /admin</div>'}
       <div class="oni-links" style="margin-top:10px">
         <a href="${inv.url}" class="oni-link">open full investigation →</a><br>
         <a href="${inv.edit}" class="oni-link" style="color:var(--dim)">edit in CMS →</a>
       </div>
     </div>`;
 }
-
-/* ── Build graph ── */
-function buildGraph(inv) {
-  const svg = document.getElementById('main-svg');
-  const wrap = document.getElementById('view-graph-area');
-  if (!svg || !wrap) return;
-
-  const W = wrap.clientWidth || 800;
-  const H = wrap.clientHeight || 500;
-  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
-  svg.setAttribute('width', W);
-  svg.setAttribute('height', H);
-
-  const cx = W / 2, cy = H / 2;
-  const R1 = Math.min(W, H) * 0.2;
-  const R2 = Math.min(W, H) * 0.38;
-
-  const tagColors = { GEOINT:'#ff4444',SOCMINT:'#bc8cff',C2:'#ff4444',HUMINT:'#58a6ff',CTI:'#e8c547',ACTOR:'#f0883e' };
-  const nc = inv.tags[0] ? (tagColors[inv.tags[0].toUpperCase()] || '#00d4ff') : inv.color;
-
-  const seed = inv.title.length;
-  const r1c = Math.min(6, 3 + (seed % 4));
-  const r2c = Math.min(12, 6 + (seed % 6));
-
-  const nodes = [{ x:cx, y:cy, r:18, c:inv.color, label:'HUB', main:true }];
-  const edges = [];
-
-  for (let i = 0; i < r1c; i++) {
-    const a = (i / r1c) * Math.PI * 2 - Math.PI / 2;
-    nodes.push({ x: cx + R1 * Math.cos(a), y: cy + R1 * Math.sin(a), r:10, c:nc, label: inv.tags[i % Math.max(1, inv.tags.length)] || 'node' });
-    edges.push([0, i + 1]);
+function buildGraph(inv){
+  const svg=document.getElementById('main-svg');
+  const wrap=document.getElementById('view-graph-area');
+  if(!svg||!wrap)return;
+  const W=wrap.clientWidth||800,H=wrap.clientHeight||500;
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  svg.setAttribute('width',W);svg.setAttribute('height',H);
+  const cx=W/2,cy=H/2;
+  const R1=Math.min(W,H)*0.2,R2=Math.min(W,H)*0.38;
+  const tagColors={GEOINT:'#ff4444',SOCMINT:'#bc8cff',C2:'#ff4444',HUMINT:'#58a6ff',CTI:'#e8c547',ACTOR:'#f0883e'};
+  const nc=inv.tags[0]?(tagColors[inv.tags[0].toUpperCase()]||'#00d4ff'):inv.color;
+  const seed=inv.title.length;
+  const r1c=Math.min(6,3+(seed%4)),r2c=Math.min(12,6+(seed%6));
+  const nodes=[{x:cx,y:cy,c:inv.color,r:18,o:1,label:'HUB',main:true}];
+  const edges=[];
+  for(let i=0;i<r1c;i++){
+    const a=(i/r1c)*Math.PI*2-Math.PI/2;
+    nodes.push({x:cx+R1*Math.cos(a),y:cy+R1*Math.sin(a),r:10,c:nc,label:inv.tags[i%Math.max(1,inv.tags.length)]||'node'});
+    edges.push([0,i+1]);
   }
-  for (let i = 0; i < r2c; i++) {
-    const a = (i / r2c) * Math.PI * 2 - Math.PI / 2 + 0.25;
-    nodes.push({ x: cx + R2 * Math.cos(a), y: cy + R2 * Math.sin(a), r:6, c:'#2a2a2a' });
-    edges.push([1 + (i % r1c), r1c + 1 + i]);
+  for(let i=0;i<r2c;i++){
+    const a=(i/r2c)*Math.PI*2-Math.PI/2+0.25;
+    nodes.push({x:cx+R2*Math.cos(a),y:cy+R2*Math.sin(a),r:6,c:'#2a2a2a'});
+    edges.push([1+(i%r1c),r1c+1+i]);
   }
-
-  document.getElementById('owt-nodes').textContent = nodes.length + ' nodes';
-  document.getElementById('owt-edges').textContent = edges.length + ' edges';
-
-  let h = `<defs><filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
-  edges.forEach(([a, b]) => {
-    const na = nodes[a], nb = nodes[b];
-    if (na && nb) h += `<line x1="${na.x}" y1="${na.y}" x2="${nb.x}" y2="${nb.y}" stroke="#1e1e1e" stroke-width="1"/>`;
+  document.getElementById('owt-nodes').textContent=nodes.length+' nodes';
+  document.getElementById('owt-edges').textContent=edges.length+' edges';
+  let h=`<defs><filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
+  edges.forEach(([a,b])=>{const na=nodes[a],nb=nodes[b];if(na&&nb)h+=`<line x1="${na.x}" y1="${na.y}" x2="${nb.x}" y2="${nb.y}" stroke="#1e1e1e" stroke-width="1"/>`;});
+  nodes.forEach((n,i)=>{
+    const gf=n.main?'filter="url(#glow)"':'';
+    h+=`<circle cx="${n.x}" cy="${n.y}" r="${n.r}" fill="${n.c}" opacity="${n.main?1:0.8}" style="cursor:pointer" ${gf} onclick="nodeClick(${i})"/>`;
+    if(n.label)h+=`<text x="${n.x}" y="${n.y+n.r+12}" text-anchor="middle" fill="#484f58" font-size="9" font-family="monospace" pointer-events="none">${n.label}</text>`;
   });
-  nodes.forEach((n, i) => {
-    const gf = n.main ? 'filter="url(#glow)"' : '';
-    h += `<circle cx="${n.x}" cy="${n.y}" r="${n.r}" fill="${n.c}" opacity="${n.main?1:0.8}" style="cursor:pointer" ${gf} onclick="nodeClick(${i})"/>`;
-    if (n.label) h += `<text x="${n.x}" y="${n.y + n.r + 12}" text-anchor="middle" fill="#484f58" font-size="9" font-family="monospace" pointer-events="none">${n.label}</text>`;
-  });
-  svg.innerHTML = h;
-
-  // minimap
-  const mm = document.getElementById('mm-svg');
-  let mh = `<rect width="110" height="75" fill="#0a0a0a"/>`;
-  nodes.forEach(n => { mh += `<circle cx="${(n.x/W)*100+5}" cy="${(n.y/H)*65+5}" r="${Math.max(1.5,n.r*0.35)}" fill="${n.c}" opacity="0.7"/>`; });
-  mm.innerHTML = mh;
+  svg.innerHTML=h;
+  const mm=document.getElementById('mm-svg');
+  let mh=`<rect width="110" height="75" fill="#0a0a0a"/>`;
+  nodes.forEach(n=>{mh+=`<circle cx="${(n.x/W)*100+5}" cy="${(n.y/H)*65+5}" r="${Math.max(1.5,n.r*0.35)}" fill="${n.c}" opacity="0.7"/>`;});
+  mm.innerHTML=mh;
 }
-
-function nodeClick(i) {
-  if (!current) return;
-  const n = i === 0 ? { title: current.title, type: 'hub', tags: current.tags.join(', ') || '—', date: current.date }
-                    : { title: 'entity_' + i, type: current.tags[i % Math.max(1,current.tags.length)] || 'node', tags: '—', date: '—' };
-  document.getElementById('np-title').textContent = n.title;
-  document.getElementById('np-rows').innerHTML = Object.entries(n).slice(1).map(([k,v]) =>
+function nodeClick(i){
+  if(!current)return;
+  const n=i===0?{title:current.title,type:'hub',tags:current.tags.join(', ')||'—',date:current.date}
+                :{title:'entity_'+i,type:current.tags[i%Math.max(1,current.tags.length)]||'node',tags:'—',date:'—'};
+  document.getElementById('np-title').textContent=n.title;
+  document.getElementById('np-rows').innerHTML=Object.entries(n).slice(1).map(([k,v])=>
     `<div class="onp-row"><span class="onp-k">${k}</span><span class="onp-v">${v}</span></div>`).join('');
   document.getElementById('node-panel').classList.add('visible');
 }
-function closePanel() { document.getElementById('node-panel').classList.remove('visible'); }
-
-/* ── Map ── */
-function initMap() {
-  if (leafMap || typeof L === 'undefined') return;
-  leafMap = L.map('osint-leaflet-map').setView([20, 0], 2);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    attribution:'&copy; OpenStreetMap &copy; CARTO', subdomains:'abcd', maxZoom:19
-  }).addTo(leafMap);
+function closePanel(){document.getElementById('node-panel').classList.remove('visible');}
+function initMap(){
+  if(leafMap||typeof L==='undefined')return;
+  leafMap=L.map('osint-leaflet-map').setView([20,0],2);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'&copy; OpenStreetMap &copy; CARTO',subdomains:'abcd',maxZoom:19}).addTo(leafMap);
 }
-
-/* ── Zoom ── */
-function zoomIn()    { zoom = Math.min(zoom + 0.2, 3); applyZoom(); }
-function zoomOut()   { zoom = Math.max(zoom - 0.2, 0.3); applyZoom(); }
-function resetZoom() { zoom = 1; applyZoom(); }
-function applyZoom() {
-  document.getElementById('main-svg').style.transform = `scale(${zoom})`;
-  document.getElementById('main-svg').style.transformOrigin = 'center center';
-  document.getElementById('sb-zoom').textContent = 'zoom: ' + Math.round(zoom*100) + '%';
+let zoom=1;
+function zoomIn(){zoom=Math.min(zoom+0.2,3);applyZoom();}
+function zoomOut(){zoom=Math.max(zoom-0.2,0.3);applyZoom();}
+function resetZoom(){zoom=1;applyZoom();}
+function applyZoom(){
+  document.getElementById('main-svg').style.transform=`scale(${zoom})`;
+  document.getElementById('main-svg').style.transformOrigin='center center';
+  document.getElementById('sb-zoom').textContent='zoom: '+Math.round(zoom*100)+'%';
 }
-
-/* ── Export ── */
-function exportInv() {
-  if (!current) return;
-  const blob = new Blob([JSON.stringify(current, null, 2)], {type:'application/json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = current.title.replace(/\s+/g,'-').toLowerCase() + '.json';
-  a.click();
+function exportInv(){
+  if(!current)return;
+  const blob=new Blob([JSON.stringify(current,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=current.title.replace(/\s+/g,'-').toLowerCase()+'.json';a.click();
 }
-
-/* ── Auto-select first ── */
-window.addEventListener('load', () => {
-  const first = document.querySelector('.ow-inv-item');
-  if (first) first.click();
-  setTimeout(() => { if (current) buildGraph(current); }, 200);
+window.addEventListener('load',()=>{
+  const first=document.querySelector('.ow-inv-item');
+  if(first)first.click();
+  setTimeout(()=>{if(current&&view==='graph')buildGraph(current);},200);
 });
-
-window.addEventListener('resize', () => { if (current && view === 'graph') buildGraph(current); });
+window.addEventListener('resize',()=>{if(current&&view==='graph')buildGraph(current);});
 </script>
 {{ end }}
