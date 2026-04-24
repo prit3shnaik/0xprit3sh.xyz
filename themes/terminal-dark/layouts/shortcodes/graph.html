@@ -1,26 +1,13 @@
 {{/*
-  OSINT Graph Shortcode v2 — fixed JSON parsing
-  
-  Usage option 1 — from frontmatter (RECOMMENDED):
-  In your post frontmatter add:
-    graph_data: '{"nodes":[...],"edges":[...]}'
-  Then in body:
-    {{< graph >}}
-  
-  Usage option 2 — inline id reference:
-    {{< graph id="my-graph" src="graph-data" >}}
-    Where graph-data is a param name in frontmatter
+  Graph shortcode v3 — reads graph_data from page frontmatter
+  Usage in post BODY: {{< graph >}}
+  Data source: graph_data field in frontmatter (paste JSON from graph-builder)
 */}}
-
-{{ $id := .Get "id" | default (printf "graph-%s" (.Page.File.BaseFileName)) }}
+{{ $id := .Get "id" | default (printf "g%s" (md5 .Page.File.BaseFileName)) }}
 {{ $height := .Get "height" | default "520" }}
 
-{{/* Try to get graph data from frontmatter */}}
-{{ $graphData := "" }}
-{{ $src := .Get "src" | default "graph_data" }}
-{{ with index .Page.Params $src }}
-  {{ $graphData = . }}
-{{ end }}
+{{ $raw := "" }}
+{{ with .Page.Params.graph_data }}{{ $raw = . }}{{ end }}
 
 <div class="inv-graph-wrap" id="wrap-{{ $id }}">
   <div class="inv-graph-toolbar">
@@ -30,312 +17,246 @@
       <button class="igt-btn" onclick="igZoomOut('{{ $id }}')">zoom −</button>
       <button class="igt-btn" onclick="igFit('{{ $id }}')">fit</button>
       <button class="igt-btn" onclick="igReset('{{ $id }}')">reset</button>
-      <span class="igt-stat" id="stat-{{ $id }}">loading...</span>
+      <span class="igt-stat" id="stat-{{ $id }}">
+        {{ if $raw }}loading...{{ else }}// no graph data — add graph_data to frontmatter{{ end }}
+      </span>
     </div>
   </div>
-  <div class="inv-graph-canvas" id="canvas-{{ $id }}" style="height:{{ $height }}px">
+  <div class="inv-graph-canvas" id="canvas-{{ $id }}" style="height:{{ $height }}px; position:relative; overflow:hidden;">
     <div class="inv-graph-grid"></div>
-    <svg id="svg-{{ $id }}" style="width:100%;height:100%;position:absolute;top:0;left:0;overflow:visible"></svg>
+    <svg id="svg-{{ $id }}" style="position:absolute;top:0;left:0;width:100%;height:100%;"></svg>
     <div class="inv-graph-panel" id="panel-{{ $id }}">
-      <div class="igp-close" onclick="igClosePanel('{{ $id }}')">×</div>
+      <div class="igp-close" onclick="document.getElementById('panel-{{ $id }}').classList.remove('visible')">×</div>
       <div class="igp-type" id="ptype-{{ $id }}">—</div>
       <div class="igp-label" id="plabel-{{ $id }}">—</div>
-      <div class="igp-rows" id="prowrows-{{ $id }}"></div>
+      <div class="igp-rows" id="prows-{{ $id }}"></div>
       <div class="igp-notes" id="pnotes-{{ $id }}"></div>
     </div>
     <div class="inv-graph-legend" id="legend-{{ $id }}"></div>
   </div>
 </div>
 
-{{/* Pass JSON safely via JS variable - avoids markdown processing */}}
+{{ if $raw }}
 <script>
-(function() {
-  const ID = '{{ $id }}';
+(function(){
+  const ID   = {{ $id | jsonify }};
+  const RAW  = {{ $raw | jsonify }};
 
-  // ── Get graph data ─────────────────────────────────────
-  // Data comes from frontmatter field 'graph_data'
-  // This avoids markdown processing breaking the JSON
-  let graphData = { nodes: [], edges: [] };
-
-  {{ if $graphData }}
+  let graphData = {nodes:[],edges:[]};
   try {
-    // Hugo passes the frontmatter string safely here
-    const raw = {{ $graphData | jsonify }};
-    if (typeof raw === 'string') {
-      graphData = JSON.parse(raw);
-    } else if (typeof raw === 'object') {
-      graphData = raw;
-    }
-  } catch(e) {
-    console.warn('Graph data parse error:', e);
-  }
-  {{ end }}
-
-  const svgEl  = document.getElementById('svg-' + ID);
-  const canvas = document.getElementById('canvas-' + ID);
-  const stat   = document.getElementById('stat-' + ID);
-  const legend = document.getElementById('legend-' + ID);
-
-  if (!svgEl) return;
+    const parsed = JSON.parse(RAW);
+    graphData = parsed;
+  } catch(e){ console.error('graph parse error',e); }
 
   const nodes = graphData.nodes || [];
   const edges = graphData.edges || [];
+  if(!nodes.length){ document.getElementById('stat-'+ID).textContent='// empty graph'; return; }
 
-  if (nodes.length === 0) {
-    stat.textContent = '// no graph data — add graph_data to frontmatter';
-    return;
-  }
+  const TYPES={ip:{color:'#ff4444',shape:'circle'},domain:{color:'#58a6ff',shape:'circle'},
+    wallet:{color:'#bc8cff',shape:'diamond'},actor:{color:'#e8c547',shape:'circle'},
+    email:{color:'#f0883e',shape:'circle'},server:{color:'#ff4444',shape:'square'},
+    org:{color:'#00d4ff',shape:'circle'},unknown:{color:'#484f58',shape:'circle'}};
 
-  // ── Type config ──────────────────────────────────────────
-  const TYPES = {
-    ip:      { color: '#ff4444', shape: 'circle'  },
-    domain:  { color: '#58a6ff', shape: 'circle'  },
-    wallet:  { color: '#bc8cff', shape: 'diamond' },
-    actor:   { color: '#e8c547', shape: 'circle'  },
-    email:   { color: '#f0883e', shape: 'circle'  },
-    server:  { color: '#ff4444', shape: 'square'  },
-    org:     { color: '#00d4ff', shape: 'circle'  },
-    unknown: { color: '#484f58', shape: 'circle'  },
-  };
+  let zoom=1,panX=0,panY=0,dragging=null,dragOff=null,lastMouse=null;
+  const positions={};
 
-  // ── State ────────────────────────────────────────────────
-  let zoom = 1, panX = 0, panY = 0;
-  let dragging = null, dragOff = null, lastMouse = null;
-  let positions = {};
-  let W, H;
+  function initPos(){
+    const canvas=document.getElementById('canvas-'+ID);
+    const W=canvas.clientWidth||700, H=parseInt('{{ $height }}')||520;
+    const cx=W/2, cy=H/2;
 
-  // ── Init positions ───────────────────────────────────────
-  function initPositions() {
-    W = canvas.clientWidth || 700;
-    H = canvas.clientHeight || 520;
-    const cx = W / 2, cy = H / 2;
-    const n = nodes.length;
-
-    // Use saved x/y from builder if available
-    nodes.forEach((node, i) => {
-      if (node.x && node.y) {
-        // Scale saved positions to current canvas size
-        positions[node.id] = { x: node.x, y: node.y };
-      } else if (n === 1) {
-        positions[node.id] = { x: cx, y: cy };
-      } else if (i === 0) {
-        positions[node.id] = { x: cx, y: cy };
+    nodes.forEach((node,i)=>{
+      if(node.x!=null && node.y!=null){
+        positions[node.id]={x:node.x, y:node.y};
+      } else if(i===0){
+        positions[node.id]={x:cx,y:cy};
       } else {
-        const angle = ((i - 1) / (n - 1)) * Math.PI * 2 - Math.PI / 2;
-        const R = Math.min(W, H) * 0.32;
-        positions[node.id] = {
-          x: cx + R * Math.cos(angle),
-          y: cy + R * Math.sin(angle)
-        };
+        const a=(i-1)/(nodes.length-1)*Math.PI*2-Math.PI/2;
+        const R=Math.min(W,H)*0.32;
+        positions[node.id]={x:cx+R*Math.cos(a),y:cy+R*Math.sin(a)};
       }
     });
 
-    // If positions came from builder, center them on canvas
-    if (nodes[0]?.x) {
-      const xs = Object.values(positions).map(p => p.x);
-      const ys = Object.values(positions).map(p => p.y);
-      const minX = Math.min(...xs), maxX = Math.max(...xs);
-      const minY = Math.min(...ys), maxY = Math.max(...ys);
-      const dataW = maxX - minX || 1, dataH = maxY - minY || 1;
-      const scaleX = (W * 0.8) / dataW, scaleY = (H * 0.8) / dataH;
-      const scale = Math.min(scaleX, scaleY, 1.5);
-      const offX = cx - ((minX + maxX) / 2) * scale;
-      const offY = cy - ((minY + maxY) / 2) * scale;
-      Object.keys(positions).forEach(id => {
-        positions[id] = {
-          x: positions[id].x * scale + offX,
-          y: positions[id].y * scale + offY
-        };
+    /* If positions came from builder, scale+center them */
+    const hasBuilderPos = nodes[0]?.x!=null;
+    if(hasBuilderPos){
+      const xs=Object.values(positions).map(p=>p.x);
+      const ys=Object.values(positions).map(p=>p.y);
+      const mnX=Math.min(...xs),mxX=Math.max(...xs);
+      const mnY=Math.min(...ys),mxY=Math.max(...ys);
+      const dW=mxX-mnX||1, dH=mxY-mnY||1;
+      const sc=Math.min((W*0.75)/dW,(H*0.75)/dH,2);
+      const ox=cx-((mnX+mxX)/2)*sc, oy=cy-((mnY+mxY)/2)*sc;
+      Object.keys(positions).forEach(id=>{
+        positions[id]={x:positions[id].x*sc+ox, y:positions[id].y*sc+oy};
       });
     }
   }
 
-  // ── Render ───────────────────────────────────────────────
-  function render() {
-    W = canvas.clientWidth || 700;
-    H = canvas.clientHeight || 520;
-    const ns = 'http://www.w3.org/2000/svg';
-    svgEl.innerHTML = '';
-    svgEl.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  function render(){
+    const canvas=document.getElementById('canvas-'+ID);
+    const svg=document.getElementById('svg-'+ID);
+    const W=canvas.clientWidth||700, H=parseInt('{{ $height }}')||520;
+    svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+    const ns='http://www.w3.org/2000/svg';
+    svg.innerHTML='';
 
-    const defs = document.createElementNS(ns, 'defs');
-    const mk = document.createElementNS(ns, 'marker');
-    mk.setAttribute('id', 'arr-' + ID);
-    mk.setAttribute('viewBox', '0 0 10 10');
-    mk.setAttribute('refX', '20'); mk.setAttribute('refY', '5');
-    mk.setAttribute('markerWidth', '6'); mk.setAttribute('markerHeight', '6');
-    mk.setAttribute('orient', 'auto');
-    const ap = document.createElementNS(ns, 'path');
-    ap.setAttribute('d', 'M0,0 L10,5 L0,10 Z');
-    ap.setAttribute('fill', '#2a2a2a');
-    mk.appendChild(ap); defs.appendChild(mk); svgEl.appendChild(defs);
+    /* Defs - arrow marker */
+    const defs=document.createElementNS(ns,'defs');
+    const mk=document.createElementNS(ns,'marker');
+    mk.setAttribute('id','arr-'+ID);mk.setAttribute('viewBox','0 0 10 10');
+    mk.setAttribute('refX','20');mk.setAttribute('refY','5');
+    mk.setAttribute('markerWidth','5');mk.setAttribute('markerHeight','5');
+    mk.setAttribute('orient','auto');
+    const mp=document.createElementNS(ns,'path');
+    mp.setAttribute('d','M0,0 L10,5 L0,10 Z');mp.setAttribute('fill','#2a2a2a');
+    mk.appendChild(mp);defs.appendChild(mk);svg.appendChild(defs);
 
-    const g = document.createElementNS(ns, 'g');
-    g.setAttribute('id', 'g-' + ID);
-    g.setAttribute('transform', `translate(${panX},${panY}) scale(${zoom})`);
-    svgEl.appendChild(g);
+    const g=document.createElementNS(ns,'g');
+    g.setAttribute('id','g-'+ID);
+    g.setAttribute('transform',`translate(${panX},${panY}) scale(${zoom})`);
+    svg.appendChild(g);
 
-    // Edges
-    edges.forEach(e => {
-      const a = positions[e.from], b = positions[e.to];
-      if (!a || !b) return;
-      const line = document.createElementNS(ns, 'line');
-      line.setAttribute('x1', a.x); line.setAttribute('y1', a.y);
-      line.setAttribute('x2', b.x); line.setAttribute('y2', b.y);
-      line.setAttribute('stroke', e.color || '#2a2a2a');
-      line.setAttribute('stroke-width', '1.5');
-      line.setAttribute('marker-end', `url(#arr-${ID})`);
+    /* Edges */
+    edges.forEach(e=>{
+      const a=positions[e.from],b=positions[e.to];
+      if(!a||!b)return;
+      const line=document.createElementNS(ns,'line');
+      line.setAttribute('x1',a.x);line.setAttribute('y1',a.y);
+      line.setAttribute('x2',b.x);line.setAttribute('y2',b.y);
+      line.setAttribute('stroke',e.color||'#2a2a2a');
+      line.setAttribute('stroke-width','1.2');
+      line.setAttribute('marker-end',`url(#arr-${ID})`);
       g.appendChild(line);
-
-      if (e.label) {
-        const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
-        const bg = document.createElementNS(ns, 'rect');
-        bg.setAttribute('x', mx - 32); bg.setAttribute('y', my - 8);
-        bg.setAttribute('width', 64); bg.setAttribute('height', 14);
-        bg.setAttribute('rx', 2); bg.setAttribute('fill', '#090909');
-        bg.setAttribute('opacity', '0.85'); g.appendChild(bg);
-        const lt = document.createElementNS(ns, 'text');
-        lt.setAttribute('x', mx); lt.setAttribute('y', my + 3);
-        lt.setAttribute('text-anchor', 'middle'); lt.setAttribute('fill', '#484f58');
-        lt.setAttribute('font-size', '8'); lt.setAttribute('font-family', 'monospace');
-        lt.setAttribute('pointer-events', 'none'); lt.textContent = e.label;
+      if(e.label){
+        const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
+        const bg=document.createElementNS(ns,'rect');
+        bg.setAttribute('x',mx-28);bg.setAttribute('y',my-7);
+        bg.setAttribute('width',56);bg.setAttribute('height',13);
+        bg.setAttribute('rx',2);bg.setAttribute('fill','#090909');bg.setAttribute('opacity','0.8');
+        g.appendChild(bg);
+        const lt=document.createElementNS(ns,'text');
+        lt.setAttribute('x',mx);lt.setAttribute('y',my+3);
+        lt.setAttribute('text-anchor','middle');lt.setAttribute('fill','#484f58');
+        lt.setAttribute('font-size','8');lt.setAttribute('font-family','monospace');
+        lt.setAttribute('pointer-events','none');lt.textContent=e.label;
         g.appendChild(lt);
       }
     });
 
-    // Nodes
-    nodes.forEach((node) => {
-      const p = positions[node.id];
-      if (!p) return;
-      const tc = TYPES[node.type] || TYPES.unknown;
-      const col = node.color || tc.color;
-      const shape = node.shape || tc.shape;
-      const r = 12;
-      const ng = document.createElementNS(ns, 'g');
-      ng.setAttribute('cursor', 'pointer');
-      ng.setAttribute('data-id', node.id);
+    /* Nodes */
+    nodes.forEach((node,idx)=>{
+      const p=positions[node.id];if(!p)return;
+      const tc=TYPES[node.type]||TYPES.unknown;
+      const col=node.color||tc.color;
+      const shape=node.shape||tc.shape;
+      const r=idx===0?16:11;
+      const ng=document.createElementNS(ns,'g');
+      ng.setAttribute('cursor','pointer');ng.setAttribute('data-id',node.id);
 
-      if (shape === 'diamond') {
-        const s = r * 1.3;
-        const d = document.createElementNS(ns, 'polygon');
-        d.setAttribute('points', `${p.x},${p.y-s} ${p.x+s},${p.y} ${p.x},${p.y+s} ${p.x-s},${p.y}`);
-        d.setAttribute('fill', col); d.setAttribute('opacity', '0.9');
-        ng.appendChild(d);
-      } else if (shape === 'square') {
-        const sq = document.createElementNS(ns, 'rect');
-        sq.setAttribute('x', p.x - r); sq.setAttribute('y', p.y - r);
-        sq.setAttribute('width', r * 2); sq.setAttribute('height', r * 2);
-        sq.setAttribute('rx', '3'); sq.setAttribute('fill', col); sq.setAttribute('opacity', '0.9');
-        ng.appendChild(sq);
-      } else {
-        const c = document.createElementNS(ns, 'circle');
-        c.setAttribute('cx', p.x); c.setAttribute('cy', p.y); c.setAttribute('r', r);
-        c.setAttribute('fill', col); c.setAttribute('opacity', '0.9');
-        ng.appendChild(c);
+      if(idx===0){
+        const glow=document.createElementNS(ns,'circle');
+        glow.setAttribute('cx',p.x);glow.setAttribute('cy',p.y);glow.setAttribute('r',r+6);
+        glow.setAttribute('fill',col);glow.setAttribute('opacity','0.15');
+        glow.setAttribute('pointer-events','none');ng.appendChild(glow);
       }
 
-      const sl = (node.label || node.id).length > 16 ? (node.label || node.id).slice(0,14)+'…' : (node.label || node.id);
-      const lbl = document.createElementNS(ns, 'text');
-      lbl.setAttribute('x', p.x); lbl.setAttribute('y', p.y + r + 12);
-      lbl.setAttribute('text-anchor', 'middle'); lbl.setAttribute('fill', '#8b949e');
-      lbl.setAttribute('font-size', '9'); lbl.setAttribute('font-family', 'monospace');
-      lbl.setAttribute('pointer-events', 'none'); lbl.textContent = sl;
+      if(shape==='diamond'){
+        const s=r*1.3;
+        const d=document.createElementNS(ns,'polygon');
+        d.setAttribute('points',`${p.x},${p.y-s} ${p.x+s},${p.y} ${p.x},${p.y+s} ${p.x-s},${p.y}`);
+        d.setAttribute('fill',col);d.setAttribute('opacity','0.9');ng.appendChild(d);
+      } else if(shape==='square'){
+        const sq=document.createElementNS(ns,'rect');
+        sq.setAttribute('x',p.x-r);sq.setAttribute('y',p.y-r);
+        sq.setAttribute('width',r*2);sq.setAttribute('height',r*2);sq.setAttribute('rx','3');
+        sq.setAttribute('fill',col);sq.setAttribute('opacity','0.9');ng.appendChild(sq);
+      } else {
+        const c=document.createElementNS(ns,'circle');
+        c.setAttribute('cx',p.x);c.setAttribute('cy',p.y);c.setAttribute('r',r);
+        c.setAttribute('fill',col);c.setAttribute('opacity','0.9');ng.appendChild(c);
+      }
+
+      const sl=(node.label||node.id).length>16?(node.label||node.id).slice(0,14)+'…':(node.label||node.id);
+      const lbl=document.createElementNS(ns,'text');
+      lbl.setAttribute('x',p.x);lbl.setAttribute('y',p.y+r+12);
+      lbl.setAttribute('text-anchor','middle');lbl.setAttribute('fill','#8b949e');
+      lbl.setAttribute('font-size','9');lbl.setAttribute('font-family','monospace');
+      lbl.setAttribute('pointer-events','none');lbl.textContent=sl;
       ng.appendChild(lbl);
 
-      ng.addEventListener('click', () => showPanel(node));
-      ng.addEventListener('mousedown', ev => {
-        dragging = node.id;
-        const pt = svgEl.createSVGPoint();
-        pt.x = ev.clientX; pt.y = ev.clientY;
-        const sp = pt.matrixTransform(svgEl.getScreenCTM().inverse());
-        dragOff = { x: sp.x / zoom - panX / zoom - p.x, y: sp.y / zoom - panY / zoom - p.y };
+      ng.addEventListener('click',()=>showPanel(node));
+      ng.addEventListener('mousedown',ev=>{
         ev.stopPropagation();
+        dragging=node.id;
+        const pt=svg.createSVGPoint();pt.x=ev.clientX;pt.y=ev.clientY;
+        const sp=pt.matrixTransform(svg.getScreenCTM().inverse());
+        dragOff={x:sp.x/zoom-panX/zoom-p.x,y:sp.y/zoom-panY/zoom-p.y};
       });
       g.appendChild(ng);
     });
 
-    // Stats + legend
-    stat.textContent = nodes.length + ' nodes · ' + edges.length + ' edges';
-    const seen = {};
-    nodes.forEach(n => { seen[n.type || 'unknown'] = n.color || TYPES[n.type]?.color || '#484f58'; });
-    legend.innerHTML = Object.entries(seen).map(([t, c]) =>
-      `<div class="igl-item"><span class="igl-dot" style="background:${c}"></span>${t}</div>`
-    ).join('');
+    /* Stats */
+    document.getElementById('stat-'+ID).textContent=nodes.length+' nodes · '+edges.length+' edges';
+
+    /* Legend */
+    const seen={};
+    nodes.forEach(n=>{seen[n.type||'unknown']=n.color||(TYPES[n.type]?.color||'#484f58');});
+    document.getElementById('legend-'+ID).innerHTML=Object.entries(seen).map(([t,c])=>
+      `<div class="igl-item"><span class="igl-dot" style="background:${c}"></span>${t}</div>`).join('');
   }
 
-  // ── Panel ────────────────────────────────────────────────
-  function showPanel(node) {
-    const tc = TYPES[node.type] || TYPES.unknown;
-    document.getElementById('ptype-' + ID).textContent = '[' + (node.type||'unknown').toUpperCase() + ']';
-    document.getElementById('ptype-' + ID).style.color = node.color || tc.color;
-    document.getElementById('plabel-' + ID).textContent = node.label || node.id;
-    const fields = ['ip','asn','domain','registrar','country','wallet','platform','handle','email','org'];
-    document.getElementById('prowrows-' + ID).innerHTML = fields.filter(f => node[f]).map(f =>
-      `<div class="igp-row"><span class="igp-k">${f}</span><span class="igp-v">${node[f]}</span></div>`
-    ).join('');
-    const notesEl = document.getElementById('pnotes-' + ID);
-    notesEl.textContent = node.notes || '';
-    notesEl.style.display = node.notes ? 'block' : 'none';
-    document.getElementById('panel-' + ID).classList.add('visible');
+  function showPanel(node){
+    const tc=TYPES[node.type]||TYPES.unknown;
+    document.getElementById('ptype-'+ID).textContent='['+( node.type||'unknown').toUpperCase()+']';
+    document.getElementById('ptype-'+ID).style.color=node.color||tc.color;
+    document.getElementById('plabel-'+ID).textContent=node.label||node.id;
+    const fields=['ip','asn','domain','country','org','wallet','handle','email','registrar','platform'];
+    document.getElementById('prows-'+ID).innerHTML=fields.filter(f=>node[f]).map(f=>
+      `<div class="igp-row"><span class="igp-k">${f}</span><span class="igp-v">${node[f]}</span></div>`).join('');
+    const n=document.getElementById('pnotes-'+ID);
+    n.textContent=node.notes||'';n.style.display=node.notes?'block':'none';
+    document.getElementById('panel-'+ID).classList.add('visible');
   }
 
-  window['igClosePanel'] = function(id) {
-    document.getElementById('panel-' + id).classList.remove('visible');
-  };
-
-  // ── Mouse events ─────────────────────────────────────────
-  svgEl.addEventListener('mousemove', ev => {
-    if (dragging) {
-      const pt = svgEl.createSVGPoint();
-      pt.x = ev.clientX; pt.y = ev.clientY;
-      const sp = pt.matrixTransform(svgEl.getScreenCTM().inverse());
-      positions[dragging].x = sp.x / zoom - panX / zoom - dragOff.x;
-      positions[dragging].y = sp.y / zoom - panY / zoom - dragOff.y;
-      render(); return;
+  /* Mouse */
+  const svg=document.getElementById('svg-'+ID);
+  svg.addEventListener('mousemove',ev=>{
+    if(dragging){
+      const pt=svg.createSVGPoint();pt.x=ev.clientX;pt.y=ev.clientY;
+      const sp=pt.matrixTransform(svg.getScreenCTM().inverse());
+      positions[dragging].x=sp.x/zoom-panX/zoom-dragOff.x;
+      positions[dragging].y=sp.y/zoom-panY/zoom-dragOff.y;
+      render();return;
     }
-    if (lastMouse && ev.buttons === 1) {
-      panX += ev.clientX - lastMouse.x;
-      panY += ev.clientY - lastMouse.y;
-      lastMouse = { x: ev.clientX, y: ev.clientY };
-      applyTransform();
+    if(lastMouse&&ev.buttons===1){
+      panX+=ev.clientX-lastMouse.x;panY+=ev.clientY-lastMouse.y;
+      lastMouse={x:ev.clientX,y:ev.clientY};
+      applyT();
     }
   });
-  svgEl.addEventListener('mousedown', ev => {
-    if (!ev.target.closest('[data-id]')) lastMouse = { x: ev.clientX, y: ev.clientY };
-  });
-  svgEl.addEventListener('mouseup', () => { dragging = null; lastMouse = null; });
-  svgEl.addEventListener('wheel', ev => {
+  svg.addEventListener('mousedown',ev=>{if(!ev.target.closest('[data-id]'))lastMouse={x:ev.clientX,y:ev.clientY};});
+  svg.addEventListener('mouseup',()=>{dragging=null;lastMouse=null;});
+  svg.addEventListener('wheel',ev=>{
     ev.preventDefault();
-    zoom = Math.max(0.2, Math.min(4, zoom - ev.deltaY * 0.001));
-    applyTransform();
-  }, { passive: false });
+    zoom=Math.max(0.2,Math.min(4,zoom-ev.deltaY*0.001));applyT();
+  },{passive:false});
+  let lt2=null;
+  svg.addEventListener('touchstart',ev=>{lt2=ev.touches[0];});
+  svg.addEventListener('touchmove',ev=>{
+    if(!lt2)return;panX+=ev.touches[0].clientX-lt2.clientX;panY+=ev.touches[0].clientY-lt2.clientY;
+    lt2=ev.touches[0];applyT();ev.preventDefault();
+  },{passive:false});
 
-  // Touch
-  let lastTouch = null;
-  svgEl.addEventListener('touchstart', ev => { lastTouch = ev.touches[0]; });
-  svgEl.addEventListener('touchmove', ev => {
-    if (!lastTouch) return;
-    panX += ev.touches[0].clientX - lastTouch.clientX;
-    panY += ev.touches[0].clientY - lastTouch.clientY;
-    lastTouch = ev.touches[0];
-    applyTransform();
-    ev.preventDefault();
-  }, { passive: false });
+  function applyT(){const g=document.getElementById('g-'+ID);if(g)g.setAttribute('transform',`translate(${panX},${panY}) scale(${zoom})`);}
 
-  function applyTransform() {
-    const g = document.getElementById('g-' + ID);
-    if (g) g.setAttribute('transform', `translate(${panX},${panY}) scale(${zoom})`);
-  }
+  window['igZoomIn'] =function(id){if(id!==ID)return;zoom=Math.min(zoom+0.2,4);applyT();};
+  window['igZoomOut']=function(id){if(id!==ID)return;zoom=Math.max(zoom-0.2,0.2);applyT();};
+  window['igFit']    =function(id){if(id!==ID)return;zoom=1;panX=0;panY=0;applyT();};
+  window['igReset']  =function(id){if(id!==ID)return;zoom=1;panX=0;panY=0;initPos();render();};
 
-  // ── Zoom controls ────────────────────────────────────────
-  window['igZoomIn']  = function(id) { if (id !== ID) return; zoom = Math.min(zoom+0.2,4); applyTransform(); };
-  window['igZoomOut'] = function(id) { if (id !== ID) return; zoom = Math.max(zoom-0.2,0.2); applyTransform(); };
-  window['igFit']     = function(id) { if (id !== ID) return; zoom=1;panX=0;panY=0; applyTransform(); };
-  window['igReset']   = function(id) { if (id !== ID) return; zoom=1;panX=0;panY=0; initPositions(); render(); };
-
-  // Init
-  initPositions();
-  render();
-  window.addEventListener('resize', () => { initPositions(); render(); });
+  initPos();render();
+  window.addEventListener('resize',()=>{initPos();render();});
 })();
 </script>
+{{ end }}
