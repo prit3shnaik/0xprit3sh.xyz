@@ -41,6 +41,53 @@ collections:
           - code-block
           - image
 
+- name: "alerts"
+    label: "Alerts"
+    folder: "content/alerts"
+    create: true
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    fields:
+      - { label: "Title",            name: "title",            widget: "string" }
+      - { label: "Date",             name: "date",             widget: "datetime" }
+      - { label: "Severity",         name: "severity",         widget: "select",
+          options: ["critical","high","medium","info"],         default: "info" }
+      - { label: "Alert Type",       name: "alert_type",       widget: "select",
+          options: ["IOC","CVE","ThreatActor","Malware","Phishing","DarkWeb","General"],
+          default: "General" }
+      - { label: "TLP",              name: "tlp",              widget: "select",
+          options: ["RED","AMBER","GREEN","WHITE","CLEAR"],     default: "WHITE",
+          hint: "Traffic Light Protocol — controls sharing permissions" }
+      - { label: "Active Threat",    name: "active",           widget: "boolean",
+          default: false, hint: "Shows pulsing ACTIVE badge on the alert" }
+      - { label: "IOC",              name: "ioc",              widget: "string",
+          required: false, hint: "Indicator of Compromise — IP, domain, hash, etc." }
+      - { label: "CVE ID",           name: "cve",              widget: "string",
+          required: false, hint: "e.g. CVE-2024-1234" }
+      - { label: "Affected Systems", name: "affected_systems", widget: "string",
+          required: false, hint: "e.g. Windows 10/11, Apache 2.4, etc." }
+      - { label: "Source URL",       name: "source",           widget: "string",
+          required: false, hint: "Original source / reference link" }
+      - { label: "TL;DR",           name: "tldr",             widget: "string",
+          required: false }
+      - { label: "Tags",             name: "tags",             widget: "list",
+          allow_add: true }
+      - label: "Body"
+        name: "body"
+        widget: "markdown"
+        buttons:
+          - bold
+          - italic
+          - code
+          - link
+          - heading-two
+          - heading-three
+          - quote
+          - bulleted-list
+          - numbered-list
+          - code-block
+        editor_components:
+          - code-block
+
   - name: "osint"
     label: "OSINT Investigations"
     folder: "content/osint"
