@@ -78,3 +78,5 @@ Reach out and I'll make the introduction.
 Bachelor of Computer Applications (BCA) — incomplete due to financial constraints.
 Self-taught in offensive security, blockchain development, and intelligence analysis since 2021.
 Continuing education planned when financial stability allows.
+
+{{< chai >}}
