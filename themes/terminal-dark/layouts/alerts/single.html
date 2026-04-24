@@ -1,0 +1,151 @@
+{{ define "main" }}
+<div class="post-layout">
+  <div class="post-main">
+
+    <div class="post-eyebrow">
+      <a href="/">~/home</a>
+      <span class="sep">/</span>
+      <a href="/alerts/">alerts</a>
+      <span class="sep">/</span>
+      <span>{{ .File.BaseFileName }}</span>
+    </div>
+
+    {{/* Alert header block */}}
+    <div class="alert-single-header">
+      <div class="alert-single-badges">
+        <span class="alert-severity sev-{{ .Params.severity | default "info" }}">
+          {{ .Params.severity | default "INFO" | upper }}
+        </span>
+        {{ with .Params.alert_type }}<span class="alert-type-badge">{{ . }}</span>{{ end }}
+        {{ if .Params.active }}<span class="alert-active-badge">ACTIVE</span>{{ end }}
+        {{ with .Params.tlp }}<span class="alert-tlp tlp-{{ . | lower }}">TLP:{{ . | upper }}</span>{{ end }}
+      </div>
+      <time style="font-size:0.72rem;color:var(--dim)">{{ .Date.Format "2006-01-02 15:04" }} UTC</time>
+    </div>
+
+    <h1 class="post-title">{{ .Title }}</h1>
+
+    <div class="post-meta-row">
+      <span>{{ .Date.Format "2006-01-02" }}</span>
+      {{ with .ReadingTime }}<span>{{ . }} min read</span>{{ end }}
+      {{ with .Params.tags }}{{ range . }}<span class="tag">{{ . }}</span>{{ end }}{{ end }}
+      <a href="/admin/#/collections/alerts/entries/{{ .File.BaseFileName }}" class="edit-btn" style="margin-left:auto;font-size:0.68rem;">edit alert</a>
+    </div>
+
+    {{/* IOC / CVE quick reference */}}
+    {{ if or .Params.ioc .Params.cve .Params.affected_systems }}
+    <div class="alert-ref-box">
+      <div class="alert-ref-title">// quick reference</div>
+      {{ with .Params.ioc }}
+      <div class="alert-ref-row">
+        <span class="alert-ref-key">IOC</span>
+        <code class="alert-ioc">{{ . }}</code>
+      </div>
+      {{ end }}
+      {{ with .Params.cve }}
+      <div class="alert-ref-row">
+        <span class="alert-ref-key" style="color:var(--orange)">CVE</span>
+        <code class="alert-ioc">{{ . }}</code>
+      </div>
+      {{ end }}
+      {{ with .Params.affected_systems }}
+      <div class="alert-ref-row">
+        <span class="alert-ref-key">AFFECTS</span>
+        <span style="font-size:0.78rem;color:var(--text2)">{{ . }}</span>
+      </div>
+      {{ end }}
+      {{ with .Params.source }}
+      <div class="alert-ref-row">
+        <span class="alert-ref-key">SOURCE</span>
+        <a href="{{ . }}" target="_blank" style="font-size:0.75rem;color:var(--accent2);word-break:break-all">{{ . }}</a>
+      </div>
+      {{ end }}
+    </div>
+    {{ end }}
+
+    {{ with .Params.tldr }}
+    <div class="tldr-box">
+      <strong>// TL;DR</strong>
+      <p>{{ . }}</p>
+    </div>
+    {{ end }}
+
+    <div class="post-content">
+      {{ .Content }}
+    </div>
+
+    <nav class="post-nav">
+      {{ with .PrevInSection }}<a href="{{ .Permalink }}">← {{ .Title }}</a>{{ else }}<span></span>{{ end }}
+      {{ with .NextInSection }}<a href="{{ .Permalink }}">{{ .Title }} →</a>{{ end }}
+    </nav>
+  </div>
+
+  <div class="post-sidebar">
+    {{/* Share */}}
+    <div class="sidebar-box">
+      <div class="sidebar-box-title" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleShare()">
+        <span>// share alert</span>
+        <span id="share-toggle-icon" style="font-size:0.8rem;color:var(--dim)">▾</span>
+      </div>
+      <div id="share-content">
+        <div class="share-row" style="margin-top:0.5rem;">
+          <a class="share-btn" href="https://twitter.com/intent/tweet?text=🚨 {{ .Params.severity | default "INFO" | upper }}: {{ .Title | urlize }}&url={{ .Permalink }}" target="_blank">
+            <span class="share-icon">𝕏</span> post on X
+          </a>
+          <a class="share-btn" href="https://t.me/share/url?url={{ .Permalink }}&text=🚨 {{ .Title | urlize }}" target="_blank">
+            <span class="share-icon">✈</span> Telegram
+          </a>
+          <button class="share-btn" onclick="copyLink('{{ .Permalink }}')">
+            <span class="share-icon">#</span> <span id="copy-label">copy link</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    {{/* Alert metadata */}}
+    <div class="sidebar-box">
+      <div class="sidebar-box-title">// alert info</div>
+      <div class="contact-item"><span class="k">severity</span><span class="alert-severity sev-{{ .Params.severity | default "info" }}" style="font-size:0.65rem">{{ .Params.severity | default "info" | upper }}</span></div>
+      {{ with .Params.alert_type }}<div class="contact-item"><span class="k">type</span><span>{{ . }}</span></div>{{ end }}
+      {{ with .Params.tlp }}<div class="contact-item"><span class="k">TLP</span><span class="alert-tlp tlp-{{ . | lower }}">TLP:{{ . | upper }}</span></div>{{ end }}
+      <div class="contact-item"><span class="k">posted</span><span>{{ .Date.Format "2006-01-02" }}</span></div>
+      {{ with .Params.active }}<div class="contact-item"><span class="k">status</span><span style="color:var(--red)">⚡ ACTIVE</span></div>{{ end }}
+    </div>
+
+    {{ with .Params.tags }}
+    <div class="sidebar-box">
+      <div class="sidebar-box-title">// tags</div>
+      <div>{{ range . }}<span class="tag" style="margin:2px;display:inline-block;">{{ . }}</span>{{ end }}</div>
+    </div>
+    {{ end }}
+
+    {{ $related := .Site.RegularPages.Related . | first 3 }}
+    {{ with $related }}
+    <div class="sidebar-box">
+      <div class="sidebar-box-title">// related alerts</div>
+      {{ range . }}
+      <div style="padding:5px 0;border-bottom:1px solid var(--border);">
+        <a href="{{ .Permalink }}" style="font-size:0.78rem;color:var(--text2);">{{ .Title }}</a>
+      </div>
+      {{ end }}
+    </div>
+    {{ end }}
+  </div>
+</div>
+
+<script>
+function copyLink(url) {
+  navigator.clipboard.writeText(url).then(() => {
+    const el = document.getElementById('copy-label');
+    el.textContent = 'copied!';
+    setTimeout(() => el.textContent = 'copy link', 2000);
+  });
+}
+let shareOpen = true;
+function toggleShare() {
+  shareOpen = !shareOpen;
+  document.getElementById('share-content').style.display = shareOpen ? '' : 'none';
+  document.getElementById('share-toggle-icon').style.transform = shareOpen ? '' : 'rotate(-90deg)';
+}
+</script>
+{{ end }}
