@@ -1,0 +1,116 @@
+{{ define "main" }}
+<div class="alerts-page">
+
+  <div class="page-header">
+    <div>
+      <span class="page-title"><span class="dim">~/</span>alerts</span>
+      <span class="alerts-live-dot"></span>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <span class="page-count">{{ len .Pages }} alerts</span>
+      <a href="/admin/#/collections/alerts/new" class="edit-btn">+ new alert</a>
+    </div>
+  </div>
+
+  {{/* Filter bar */}}
+  <div class="alert-filter-bar" id="alert-filters">
+    <button class="alert-filter-btn on" onclick="filterAlerts(this,'all')">all</button>
+    <button class="alert-filter-btn" onclick="filterAlerts(this,'critical')" style="--fc:var(--red)">critical</button>
+    <button class="alert-filter-btn" onclick="filterAlerts(this,'high')" style="--fc:var(--yellow)">high</button>
+    <button class="alert-filter-btn" onclick="filterAlerts(this,'medium')" style="--fc:var(--accent2)">medium</button>
+    <button class="alert-filter-btn" onclick="filterAlerts(this,'info')" style="--fc:var(--blue)">info</button>
+    <button class="alert-filter-btn" onclick="filterAlerts(this,'ioc')" style="--fc:var(--purple)">IOC</button>
+    <button class="alert-filter-btn" onclick="filterAlerts(this,'cve')" style="--fc:var(--orange)">CVE</button>
+    <div style="margin-left:auto;display:flex;gap:6px;align-items:center;">
+      <input type="text" class="alert-search" placeholder="search alerts..." oninput="searchAlerts(this.value)">
+    </div>
+  </div>
+
+  {{/* Alert feed */}}
+  <div class="alert-feed" id="alert-feed">
+    {{ if .Pages }}
+      {{ range .Pages }}
+      <article class="alert-card"
+               data-severity="{{ .Params.severity | default "info" }}"
+               data-type="{{ .Params.alert_type | default "general" | lower }}"
+               data-title="{{ .Title | lower }}">
+
+        <div class="alert-card-header">
+          <div class="alert-left">
+            <span class="alert-severity sev-{{ .Params.severity | default "info" }}">
+              {{ .Params.severity | default "INFO" | upper }}
+            </span>
+            {{ with .Params.alert_type }}
+            <span class="alert-type-badge">{{ . }}</span>
+            {{ end }}
+            {{ if .Params.active }}
+            <span class="alert-active-badge">ACTIVE</span>
+            {{ end }}
+          </div>
+          <div class="alert-right">
+            <time class="alert-time">{{ .Date.Format "2006-01-02 15:04" }} UTC</time>
+            {{ with .Params.tlp }}
+            <span class="alert-tlp tlp-{{ . | lower }}">TLP:{{ . | upper }}</span>
+            {{ end }}
+          </div>
+        </div>
+
+        <h2 class="alert-title">
+          <a href="{{ .Permalink }}">{{ .Title }}</a>
+        </h2>
+
+        {{ with .Params.ioc }}
+        <div class="alert-ioc-row">
+          <span class="alert-ioc-label">IOC</span>
+          <code class="alert-ioc">{{ . }}</code>
+        </div>
+        {{ end }}
+
+        {{ with .Params.cve }}
+        <div class="alert-ioc-row">
+          <span class="alert-ioc-label" style="color:var(--orange)">CVE</span>
+          <code class="alert-ioc">{{ . }}</code>
+        </div>
+        {{ end }}
+
+        <p class="alert-summary">{{ .Summary | truncate 200 }}</p>
+
+        <div class="alert-card-footer">
+          <div class="alert-tags">
+            {{ with .Params.tags }}{{ range . }}<span class="tag">{{ . }}</span>{{ end }}{{ end }}
+          </div>
+          <a href="{{ .Permalink }}" class="alert-read-more">read full alert →</a>
+        </div>
+
+      </article>
+      {{ end }}
+    {{ else }}
+      <div class="alert-empty">
+        <div style="font-size:2rem;opacity:.2;margin-bottom:8px">⚡</div>
+        <div>no alerts posted yet</div>
+        <a href="/admin/#/collections/alerts/new" style="color:var(--accent);font-size:0.78rem;margin-top:6px;display:block">post first alert →</a>
+      </div>
+    {{ end }}
+  </div>
+
+</div>
+
+<script>
+function filterAlerts(btn, val) {
+  document.querySelectorAll('.alert-filter-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('.alert-card').forEach(card => {
+    const match = val === 'all' ||
+      card.dataset.severity === val ||
+      card.dataset.type === val;
+    card.style.display = match ? '' : 'none';
+  });
+}
+function searchAlerts(q) {
+  q = q.toLowerCase();
+  document.querySelectorAll('.alert-card').forEach(card => {
+    card.style.display = !q || card.dataset.title.includes(q) ? '' : 'none';
+  });
+}
+</script>
+{{ end }}
