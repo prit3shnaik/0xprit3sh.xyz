@@ -65,4 +65,4 @@ theme = "terminal-dark"
   [[menus.main]]
   name   = "~/tools"
   url    = "/tools/"
-  weight = 7
+  weight = 5
