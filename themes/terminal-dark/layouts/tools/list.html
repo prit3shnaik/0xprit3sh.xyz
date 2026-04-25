@@ -1,75 +1,91 @@
 {{ define "main" }}
 <div class="page-header">
   <span class="page-title"><span class="dim">~/</span>tools</span>
-  <span class="page-count">SECURITY_SAGE</span>
+  <span class="page-count">free security tools</span>
 </div>
 
 <div class="tools-grid">
 
-  <a href="/tools/" class="tool-card" target="_self">
+  {{/* Tool 1: Web3 Security */}}
+  <a href="/tools/web3/" class="tool-card">
     <div class="tool-card-header">
       <span class="tool-icon">[ ⬡ ]</span>
       <span class="tool-badge">web3</span>
     </div>
-    <div class="tool-name">PINAKA-Web3</div>
-    <div class="tool-desc">Solidity smart contract red flags scanner + DeFi wallet tracer. Detect reentrancy, tx.origin misuse, Tornado Cash interactions and more.</div>
+    <div class="tool-name">Web3 Security Tools</div>
+    <div class="tool-desc">Solidity smart contract red flags scanner + DeFi wallet tracer. Detect reentrancy, tx.origin misuse, Tornado Cash interactions. 100% client-side — nothing leaves your browser.</div>
     <div class="tool-tags">
       <span class="tag">Solidity</span>
       <span class="tag">DeFi</span>
-      <span class="tag">Wallet</span>
+      <span class="tag">Wallet Tracer</span>
       <span class="tag">Smart Contracts</span>
     </div>
     <div class="tool-footer">
       <span style="color:var(--accent);font-size:.72rem">open tool →</span>
-      <span style="font-size:.68rem;color:var(--dim)">client-side</span>
+      <span style="font-size:.68rem;color:var(--dim)">client-side · free</span>
     </div>
   </a>
 
-  <!-- More tools will appear here as you build them -->
-  <div class="tool-card tool-coming-soon">
-    <div class="tool-card-header">
-      <span class="tool-icon">[ $ ]</span>
-      <span class="tool-badge" style="background:rgba(188,140,255,.1);color:var(--purple);border-color:rgba(188,140,255,.2)">soon</span>
-    </div>
-    <div class="tool-name" style="color:var(--dim)">Sock Puppet Generator</div>
-    <div class="tool-desc" style="color:var(--dim)">Generate fictional personas for OSINT drills and red team operations. Region-aware, browser-only.</div>
-    <div class="tool-tags">
-      <span class="tag">OSINT</span><span class="tag">Red Team</span>
-    </div>
-    <div class="tool-footer">
-      <span style="color:var(--dim);font-size:.72rem">coming soon</span>
-    </div>
-  </div>
-
-  <div class="tool-card tool-coming-soon">
+  {{/* Tool 2: Fenrir */}}
+  <a href="https://fenrir-ashen.vercel.app/" class="tool-card" target="_blank" rel="noopener">
     <div class="tool-card-header">
       <span class="tool-icon">[ ◎ ]</span>
-      <span class="tool-badge" style="background:rgba(188,140,255,.1);color:var(--purple);border-color:rgba(188,140,255,.2)">soon</span>
+      <span class="tool-badge" style="background:rgba(0,212,255,.1);color:var(--accent2);border-color:rgba(0,212,255,.2)">OSINT</span>
     </div>
-    <div class="tool-name" style="color:var(--dim)">Google Dork Generator</div>
-    <div class="tool-desc" style="color:var(--dim)">Generate optimized Google dork queries for OSINT recon, finding exposed files and admin panels.</div>
+    <div class="tool-name">Fenrir — Graph Investigation</div>
+    <div class="tool-desc">Interactive investigation graph for IPs, domains, URLs and hashes. Hunt threat infrastructure, map C2 relationships, build visual intelligence graphs with AI assistance.</div>
     <div class="tool-tags">
-      <span class="tag">OSINT</span><span class="tag">Recon</span>
+      <span class="tag">GEOINT</span>
+      <span class="tag">C2</span>
+      <span class="tag">IP</span>
+      <span class="tag">Domain</span>
+      <span class="tag">Hash</span>
     </div>
     <div class="tool-footer">
-      <span style="color:var(--dim);font-size:.72rem">coming soon</span>
+      <span style="color:var(--accent2);font-size:.72rem">open tool ↗</span>
+      <span style="font-size:.68rem;color:var(--dim)">by 0xprit3sh · free</span>
     </div>
-  </div>
+  </a>
 
 </div>
 
 <style>
-.tools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-top:1rem}
-.tool-card{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:1.25rem;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:.6rem;transition:border-color .2s,box-shadow .2s}
-.tool-card:hover{border-color:var(--accent);box-shadow:0 0 16px rgba(0,255,65,.08);color:inherit}
-.tool-coming-soon{cursor:default;opacity:.6}
-.tool-coming-soon:hover{border-color:var(--border);box-shadow:none}
-.tool-card-header{display:flex;align-items:center;justify-content:space-between}
-.tool-icon{font-family:var(--font);font-size:.85rem;color:var(--accent)}
-.tool-badge{font-size:.62rem;font-weight:700;padding:2px 7px;border-radius:2px;background:rgba(0,255,65,.1);color:var(--accent);border:1px solid rgba(0,255,65,.2)}
-.tool-name{font-size:.95rem;color:var(--text);font-weight:700}
-.tool-desc{font-size:.78rem;color:var(--text2);line-height:1.6;flex:1}
-.tool-tags{display:flex;gap:4px;flex-wrap:wrap}
-.tool-footer{display:flex;align-items:center;justify-content:space-between;padding-top:.5rem;border-top:1px solid var(--border)}
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
+  margin-top: 1rem;
+}
+.tool-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1.25rem;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+  transition: border-color .2s, box-shadow .2s;
+  cursor: pointer;
+}
+.tool-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 16px rgba(0,255,65,.08);
+  color: inherit;
+}
+.tool-card-header { display: flex; align-items: center; justify-content: space-between; }
+.tool-icon { font-family: var(--font); font-size: .85rem; color: var(--accent); }
+.tool-badge {
+  font-size: .62rem; font-weight: 700; padding: 2px 7px; border-radius: 2px;
+  background: rgba(0,255,65,.1); color: var(--accent); border: 1px solid rgba(0,255,65,.2);
+}
+.tool-name { font-size: .95rem; color: var(--text); font-weight: 700; }
+.tool-desc { font-size: .78rem; color: var(--text2); line-height: 1.6; flex: 1; }
+.tool-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+.tool-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-top: .5rem; border-top: 1px solid var(--border); margin-top: .25rem;
+}
 </style>
 {{ end }}
