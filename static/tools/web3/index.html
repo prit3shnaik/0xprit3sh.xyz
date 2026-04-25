@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Web3 Security Tools — 0xprit3sh</title>
-<meta name="description" content="Free Solidity smart contract red flags scanner and DeFi wallet tracer by 0xprit3sh">
+<title>Pinaka— 0xprit3sh</title>
+<meta name="description" content="Solidity smart contract red flags scanner and DeFi wallet tracer by 0xprit3sh">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&display=swap" rel="stylesheet">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -276,7 +276,7 @@ contract Vault {
       </div>
 
       <div class="api-note" style="margin-bottom:1rem">
-        ⚠️ Requires free Etherscan API key. Get one at <a href="https://etherscan.io/apis" target="_blank">etherscan.io/apis</a> — paste below.
+        ⚠️ Requires free Etherscan V2 API key. Get one at <a href="https://etherscan.io/apis" target="_blank">etherscan.io/apis</a> — works for ETH, BSC and Polygon with one key.
         <br><br>
         <input type="text" class="wallet-input" id="api-key" placeholder="Etherscan API key (free)" style="margin-top:6px;font-size:.75rem">
       </div>
@@ -668,9 +668,9 @@ async function traceWallet() {
   bodyEl.innerHTML = '<div class="loading">fetching wallet data from Etherscan...</div>';
 
   const EXPLORERS = {
-    eth: 'https://api.etherscan.io',
-    bsc: 'https://api.bscscan.com',
-    polygon: 'https://api.polygonscan.com',
+    eth: 'https://api.etherscan.io/v2/api?chainid=1',
+    bsc: 'https://api.etherscan.io/v2/api?chainid=56',
+    polygon: 'https://api.etherscan.io/v2/api?chainid=137',
   };
   const EXPLORER_LINKS = {
     eth: 'https://etherscan.io/address/',
@@ -683,10 +683,11 @@ async function traceWallet() {
 
   try {
     // Fetch balance + transactions in parallel
+    // Using Etherscan V2 API (unified endpoint with chainid)
     const [balRes, txRes, erc20Res] = await Promise.all([
-      fetch(`${base}/api?module=account&action=balance&address=${addr}&tag=latest&apikey=${apiKey}`).then(r=>r.json()),
-      fetch(`${base}/api?module=account&action=txlist&address=${addr}&startblock=0&endblock=99999999&sort=desc&page=1&offset=20&apikey=${apiKey}`).then(r=>r.json()),
-      fetch(`${base}/api?module=account&action=tokentx&address=${addr}&sort=desc&page=1&offset=20&apikey=${apiKey}`).then(r=>r.json()),
+      fetch(`${base}&module=account&action=balance&address=${addr}&tag=latest&apikey=${apiKey}`).then(r=>r.json()),
+      fetch(`${base}&module=account&action=txlist&address=${addr}&startblock=0&endblock=99999999&sort=desc&page=1&offset=20&apikey=${apiKey}`).then(r=>r.json()),
+      fetch(`${base}&module=account&action=tokentx&address=${addr}&sort=desc&page=1&offset=20&apikey=${apiKey}`).then(r=>r.json()),
     ]);
 
     if (balRes.status === '0' && balRes.message === 'NOTOK') {
@@ -811,7 +812,6 @@ async function traceWallet() {
               <div class="flag-title">${f.title}</div>
               <div class="flag-detail">${f.detail}</div>
             </div>
-            
           </div>
         `).join('')}
       </div>` : `
