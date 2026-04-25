@@ -61,3 +61,8 @@ theme = "terminal-dark"
   name   = "~/alerts"
   url    = "/alerts/"
   weight = 6
+
+  [[menus.main]]
+  name   = "~/tools"
+  url    = "/tools/"
+  weight = 7
