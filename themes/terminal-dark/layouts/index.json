@@ -1,0 +1,14 @@
+{{- $pages := where .Site.RegularPages "Section" "ne" "" -}}
+[
+  {{- range $i, $p := $pages -}}
+  {{- if $i -}},{{- end -}}
+  {
+    "title":     {{ $p.Title | jsonify }},
+    "permalink": {{ $p.Permalink | jsonify }},
+    "section":   {{ $p.Section | jsonify }},
+    "summary":   {{ $p.Summary | plainify | truncate 120 | jsonify }},
+    "tags":      {{ with $p.Params.tags }}{{ . | jsonify }}{{ else }}[]{{ end }},
+    "content":   {{ $p.Plain | truncate 500 | jsonify }}
+  }
+  {{- end -}}
+]
