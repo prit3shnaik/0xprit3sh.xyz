@@ -2025,3 +2025,28 @@ body.osint-page .site-footer {
   color: var(--dim);
   margin: 0;
 }
+
+/* Fix congested menu - force everything into one line */
+.header__inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 100% !important;
+}
+
+.menu {
+    flex-grow: 1;
+    display: flex;
+    flex-wrap: nowrap !important; /* Forces one line */
+    justify-content: flex-end;
+    overflow-x: auto; /* Adds a scrollbar on mobile if too long */
+}
+
+.menu__item {
+    margin-left: 10px !important;
+    white-space: nowrap; /* Prevents text from breaking */
+}
+
+.menu__link {
+    font-size: 0.9rem; /* Slightly smaller text to fit more items */
+}
