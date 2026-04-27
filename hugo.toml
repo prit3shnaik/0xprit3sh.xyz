@@ -66,8 +66,3 @@ theme = "terminal-dark"
   name   = "~/tools"
   url    = "/tools/"
   weight = 5
-
-[[menus.main]]
-  name   = "~/threat-actors"
-  url    = "/threat-actors/"
-  weight = 7
