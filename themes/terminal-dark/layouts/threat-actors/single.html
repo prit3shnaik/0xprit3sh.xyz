@@ -1,0 +1,100 @@
+{{ define "main" }}
+<div class="post-layout">
+  <div class="post-main">
+
+    <div class="post-eyebrow">
+      <a href="/">~/home</a><span class="sep">/</span>
+      <a href="/actors/">actors</a><span class="sep">/</span>
+      <span>{{ .File.BaseFileName }}</span>
+    </div>
+
+    <div class="actor-single-header">
+      <div>
+        {{ with .Params.alias }}<div style="font-size:.72rem;color:var(--dim);margin-bottom:4px">{{ . }}</div>{{ end }}
+        <h1 class="post-title" style="margin-bottom:.5rem">{{ .Title }}</h1>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+          {{ with .Params.category }}<span class="actor-cat cat-{{ . | lower | replaceRE "[^a-z]" "-" }}">{{ . }}</span>{{ end }}
+          {{ with .Params.threat_level }}<span class="actor-threat threat-{{ . | lower }}">{{ . | upper }}</span>{{ end }}
+          {{ with .Params.status }}<span class="actor-status status-{{ . | lower }}">{{ . }}</span>{{ end }}
+          {{ with .Params.origin }}<span style="font-size:.7rem;color:var(--dim);margin-left:4px">📍 {{ . }}</span>{{ end }}
+        </div>
+      </div>
+      <a href="/admin/#/collections/actors/entries/{{ .File.BaseFileName }}" class="edit-btn" style="font-size:.68rem;align-self:flex-start">edit</a>
+    </div>
+
+    {{ with .Params.tldr }}
+    <div class="tldr-box"><strong>// TL;DR</strong><p>{{ . }}</p></div>
+    {{ end }}
+
+    {{ if or .Params.ttps .Params.targets .Params.tools_used .Params.aliases }}
+    <div class="actor-ref-grid">
+      {{ with .Params.aliases }}
+      <div class="actor-ref-box">
+        <div class="actor-ref-title">// aliases</div>
+        <div class="actor-ref-tags">{{ range . }}<span class="tag">{{ . }}</span>{{ end }}</div>
+      </div>{{ end }}
+      {{ with .Params.ttps }}
+      <div class="actor-ref-box">
+        <div class="actor-ref-title">// TTPs</div>
+        <div class="actor-ref-tags">{{ range . }}<span class="tag">{{ . }}</span>{{ end }}</div>
+      </div>{{ end }}
+      {{ with .Params.targets }}
+      <div class="actor-ref-box">
+        <div class="actor-ref-title">// targets</div>
+        <div class="actor-ref-tags">{{ range . }}<span class="tag">{{ . }}</span>{{ end }}</div>
+      </div>{{ end }}
+      {{ with .Params.tools_used }}
+      <div class="actor-ref-box">
+        <div class="actor-ref-title">// tools / malware</div>
+        <div class="actor-ref-tags">{{ range . }}<span class="tag" style="color:var(--orange)">{{ . }}</span>{{ end }}</div>
+      </div>{{ end }}
+      {{ with .Params.iocs }}
+      <div class="actor-ref-box" style="grid-column:1/-1">
+        <div class="actor-ref-title">// known IOCs</div>
+        {{ range . }}<code style="display:block;font-size:.75rem;color:var(--orange);margin-bottom:3px;background:var(--bg3);padding:2px 8px;border-radius:3px">{{ . }}</code>{{ end }}
+      </div>{{ end }}
+    </div>
+    {{ end }}
+
+    <div class="post-content">{{ .Content }}</div>
+
+    <nav class="post-nav">
+      {{ with .PrevInSection }}<a href="{{ .Permalink }}">← {{ .Title }}</a>{{ else }}<span></span>{{ end }}
+      {{ with .NextInSection }}<a href="{{ .Permalink }}">{{ .Title }} →</a>{{ end }}
+    </nav>
+  </div>
+
+  <div class="post-sidebar">
+    <div class="sidebar-box">
+      <div class="sidebar-box-title">// actor profile</div>
+      {{ with .Params.origin }}<div class="contact-item"><span class="k">origin</span><span>{{ . }}</span></div>{{ end }}
+      {{ with .Params.threat_level }}<div class="contact-item"><span class="k">threat</span><span class="actor-threat threat-{{ . | lower }}">{{ . | upper }}</span></div>{{ end }}
+      {{ with .Params.status }}<div class="contact-item"><span class="k">status</span><span class="actor-status status-{{ . | lower }}">{{ . }}</span></div>{{ end }}
+      {{ with .Params.first_seen }}<div class="contact-item"><span class="k">first seen</span><span>{{ . }}</span></div>{{ end }}
+      {{ with .Params.last_seen }}<div class="contact-item"><span class="k">last seen</span><span>{{ . }}</span></div>{{ end }}
+      {{ with .Params.motivation }}<div class="contact-item"><span class="k">motivation</span><span>{{ . }}</span></div>{{ end }}
+    </div>
+    {{ with .Params.tags }}
+    <div class="sidebar-box">
+      <div class="sidebar-box-title">// tags</div>
+      <div>{{ range . }}<span class="tag" style="margin:2px;display:inline-block">{{ . }}</span>{{ end }}</div>
+    </div>{{ end }}
+    <div class="sidebar-box">
+      <div class="sidebar-box-title">// share</div>
+      <div class="share-row">
+        <a class="share-btn" href="https://twitter.com/intent/tweet?text={{ .Title | urlize }}&url={{ .Permalink }}" target="_blank"><span class="share-icon">𝕏</span> share</a>
+        <button class="share-btn" onclick="navigator.clipboard.writeText('{{ .Permalink }}')"><span class="share-icon">#</span> copy link</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.actor-single-header{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;margin-bottom:1rem;flex-wrap:wrap}
+.actor-ref-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:1rem 0 1.5rem}
+.actor-ref-box{background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:.75rem 1rem}
+.actor-ref-title{font-size:.68rem;color:var(--accent);margin-bottom:.5rem}
+.actor-ref-tags{display:flex;gap:4px;flex-wrap:wrap}
+@media(max-width:600px){.actor-ref-grid{grid-template-columns:1fr}}
+</style>
+{{ end }}
