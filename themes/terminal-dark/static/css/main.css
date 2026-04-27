@@ -99,9 +99,11 @@ body.light-mode::before { display: none; }
 .site-header .container {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 1.5rem;
   width: 100%;
   max-width: 100%;
+  padding: 0 1.25rem;
 }
 .site-logo {
   font-size: 0.82rem;
