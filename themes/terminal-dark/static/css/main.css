@@ -99,7 +99,8 @@ body.light-mode::before { display: none; }
 .site-header .container {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
+  position: relative;
   gap: 1.5rem;
   width: 100%;
   max-width: 100%;
