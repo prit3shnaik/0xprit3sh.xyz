@@ -66,3 +66,8 @@ theme = "terminal-dark"
   name   = "~/tools"
   url    = "/tools/"
   weight = 5
+
+ [[menus.main]]
+  name   = "~/actors"
+  url    = "/actors/"
+  weight = 7
