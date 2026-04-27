@@ -54,4 +54,14 @@ document.querySelectorAll('.main-nav a').forEach(a => {
   }
 });
  
- 
+ // Reading Progress Bar
+(function() {
+  const bar = document.createElement('div');
+  bar.style.cssText = 'position:fixed;top:0;left:0;height:2px;background:var(--accent);width:0%;z-index:9998;transition:width .1s linear;pointer-events:none;box-shadow:0 0 6px rgba(0,255,65,.5)';
+  document.body.appendChild(bar);
+  window.addEventListener('scroll', () => {
+    const el = document.documentElement;
+    const pct = (el.scrollTop / (el.scrollHeight - el.clientHeight)) * 100;
+    bar.style.width = Math.min(pct, 100) + '%';
+  }, { passive: true });
+})();
