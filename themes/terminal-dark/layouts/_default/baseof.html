@@ -82,11 +82,23 @@
       {{ end }}
     </nav>
     <div class="header-actions">
+      <!-- ✦ NEW: hamburger button (hidden on desktop, visible on mobile) -->
+      <button class="hamburger-btn" aria-label="Menu">☰</button>
       <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">[ light ]</button>
       <a href="/admin/" class="edit-btn">+ edit</a>
     </div>
   </div>
 </header>
+
+<!-- ✦ NEW: mobile navigation overlay + menu -->
+<div class="mobile-nav-overlay"></div>
+<nav class="mobile-nav-menu">
+  <button class="mobile-nav-close" aria-label="Close">✕</button>
+  {{ range .Site.Menus.main }}
+  <a href="{{ .URL }}" class="{{ if $.IsMenuCurrent "main" . }}active{{ end }}">{{ .Name }}</a>
+  {{ end }}
+</nav>
+<!-- ✦ END mobile navigation -->
 
 <main class="site-main">
   <div class="container">
