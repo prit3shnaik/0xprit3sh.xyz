@@ -227,3 +227,27 @@ document.querySelectorAll('.main-nav a, .mobile-nav-menu a').forEach(a => {
     if (actions) actions.insertBefore(hint, actions.firstChild);
   });
 })();
+
+// ── Theme toggle ──────────────────────────────────────────
+function toggleTheme() {
+  const isLight = document.body.classList.toggle('light-mode');
+  const btn = document.getElementById('theme-btn');
+  if (btn) btn.textContent = isLight ? '[ dark ]' : '[ light ]';
+  localStorage.setItem('0xp-theme', isLight ? 'light' : 'dark');
+  
+  // ✦ Sync mobile menu button text
+  const mobileBtn = document.querySelector('.mobile-theme-btn');
+  if (mobileBtn) mobileBtn.textContent = isLight ? '☾ dark mode' : '☀ light mode';
+}
+
+(function applyStoredTheme() {
+  const t = localStorage.getItem('0xp-theme');
+  if (t === 'light') {
+    document.body.classList.add('light-mode');
+    const btn = document.getElementById('theme-btn');
+    if (btn) btn.textContent = '[ dark ]';
+    // ✦ Sync mobile menu button text on load
+    const mobileBtn = document.querySelector('.mobile-theme-btn');
+    if (mobileBtn) mobileBtn.textContent = '☾ dark mode';
+  }
+})();
