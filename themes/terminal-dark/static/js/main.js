@@ -1,72 +1,107 @@
-// Mobile Menu Toggle
-document.addEventListener('DOMContentLoaded', function() {
-  const hamburgerBtn = document.querySelector('.hamburger-btn');
-  const mobileNavOverlay = document.querySelector('.mobile-nav-overlay');
-  const mobileNavMenu = document.querySelector('.mobile-nav-menu');
-  const mobileNavClose = document.querySelector('.mobile-nav-close');
+// ─────────────────────────────────────────────────────────────
+// MOBILE MENU TOGGLE
+// ─────────────────────────────────────────────────────────────
+(function() {
+  const hamburgerBtn = document.getElementById('hamburgerBtn');
+  const mobileOverlay = document.getElementById('mobileNavOverlay');
+  const mobileMenu = document.getElementById('mobileNavMenu');
+  const mobileClose = document.getElementById('mobileNavClose');
   
-  if (hamburgerBtn && mobileNavOverlay && mobileNavMenu) {
-    function openMobileMenu() {
-      mobileNavOverlay.classList.add('active');
-      mobileNavMenu.classList.add('active');
-      document.body.style.overflow = 'hidden';
-    }
-    
-    function closeMobileMenu() {
-      mobileNavOverlay.classList.remove('active');
-      mobileNavMenu.classList.remove('active');
-      document.body.style.overflow = '';
-    }
-    
-    hamburgerBtn.addEventListener('click', openMobileMenu);
-    
-    if (mobileNavClose) {
-      mobileNavClose.addEventListener('click', closeMobileMenu);
-    }
-    
-    mobileNavOverlay.addEventListener('click', closeMobileMenu);
-    
-    // Close on link click
-    const mobileLinks = mobileNavMenu.querySelectorAll('a');
-    mobileLinks.forEach(link => {
-      link.addEventListener('click', closeMobileMenu);
-    });
-    
-    // Close on escape key
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') {
-        closeMobileMenu();
-      }
-    });
+  function openMobileMenu() {
+    if (mobileOverlay) mobileOverlay.classList.add('active');
+    if (mobileMenu) mobileMenu.classList.add('active');
+    if (hamburgerBtn) hamburgerBtn.classList.add('open');
+    document.body.style.overflow = 'hidden';
   }
-});
-
-// ── Theme toggle ──────────────────────────────────────────
-function toggleTheme() {
-  const isLight = document.body.classList.toggle('light-mode');
-  const btn = document.getElementById('theme-btn');
-  if (btn) btn.textContent = isLight ? '[ dark ]' : '[ light ]';
-  localStorage.setItem('0xp-theme', isLight ? 'light' : 'dark');
   
-  // ✦ Sync mobile menu button text
-  const mobileBtn = document.querySelector('.mobile-theme-btn');
-  if (mobileBtn) mobileBtn.textContent = isLight ? '☾ dark mode' : '☀ light mode';
-}
+  function closeMobileMenu() {
+    if (mobileOverlay) mobileOverlay.classList.remove('active');
+    if (mobileMenu) mobileMenu.classList.remove('active');
+    if (hamburgerBtn) hamburgerBtn.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  
+  if (hamburgerBtn) {
+    hamburgerBtn.addEventListener('click', openMobileMenu);
+  }
+  
+  if (mobileClose) {
+    mobileClose.addEventListener('click', closeMobileMenu);
+  }
+  
+  if (mobileOverlay) {
+    mobileOverlay.addEventListener('click', closeMobileMenu);
+  }
+  
+  // Close menu when clicking any nav link
+  const mobileLinks = document.querySelectorAll('.mobile-nav-link');
+  mobileLinks.forEach(link => {
+    link.addEventListener('click', closeMobileMenu);
+  });
+  
+  // Close on Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && mobileMenu && mobileMenu.classList.contains('active')) {
+      closeMobileMenu();
+    }
+  });
+})();
 
-(function applyStoredTheme() {
-  const t = localStorage.getItem('0xp-theme');
-  if (t === 'light') {
-    document.body.classList.add('light-mode');
-    const btn = document.getElementById('theme-btn');
-    if (btn) btn.textContent = '[ dark ]';
-    // ✦ Sync mobile menu button text on load
-    const mobileBtn = document.querySelector('.mobile-theme-btn');
-    if (mobileBtn) mobileBtn.textContent = '☾ dark mode';
+// ─────────────────────────────────────────────────────────────
+// THEME TOGGLE (Desktop + Mobile sync)
+// ─────────────────────────────────────────────────────────────
+(function() {
+  const desktopThemeBtn = document.getElementById('theme-btn');
+  const mobileThemeBtn = document.getElementById('mobileThemeBtn');
+  
+  function updateThemeButtons(isLight) {
+    if (desktopThemeBtn) {
+      desktopThemeBtn.textContent = isLight ? '[ dark ]' : '[ light ]';
+    }
+    if (mobileThemeBtn) {
+      mobileThemeBtn.innerHTML = isLight ? '☾ dark mode' : '☀ light mode';
+    }
+  }
+  
+  function setTheme(isLight) {
+    if (isLight) {
+      document.body.classList.add('light-mode');
+    } else {
+      document.body.classList.remove('light-mode');
+    }
+    updateThemeButtons(isLight);
+    localStorage.setItem('0xp-theme', isLight ? 'light' : 'dark');
+  }
+  
+  function toggleTheme() {
+    const isCurrentlyLight = document.body.classList.contains('light-mode');
+    setTheme(!isCurrentlyLight);
+  }
+  
+  // Load stored theme
+  const storedTheme = localStorage.getItem('0xp-theme');
+  if (storedTheme === 'light') {
+    setTheme(true);
+  } else if (storedTheme === 'dark') {
+    setTheme(false);
+  } else {
+    // Check system preference
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    setTheme(!prefersDark);
+  }
+  
+  // Attach event listeners
+  if (desktopThemeBtn) {
+    desktopThemeBtn.addEventListener('click', toggleTheme);
+  }
+  if (mobileThemeBtn) {
+    mobileThemeBtn.addEventListener('click', toggleTheme);
   }
 })();
 
- 
-// ── Typewriter on home ────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// TYPEWRITER EFFECT ON HOME PAGE
+// ─────────────────────────────────────────────────────────────
 const typed = document.getElementById('typed-out');
 if (typed) {
   const words = ['whoami', 'cat skills.txt', 'ls ./investigations/', 'nmap -sV target'];
@@ -74,14 +109,16 @@ if (typed) {
   function tick() {
     const word = words[wi];
     typed.textContent = deleting ? word.slice(0, ci--) : word.slice(0, ci++);
-    if (!deleting && ci > word.length)  { deleting = true; setTimeout(tick, 1200); return; }
-    if (deleting && ci < 0)             { deleting = false; wi = (wi+1) % words.length; ci = 0; }
+    if (!deleting && ci > word.length) { deleting = true; setTimeout(tick, 1200); return; }
+    if (deleting && ci < 0) { deleting = false; wi = (wi+1) % words.length; ci = 0; }
     setTimeout(tick, deleting ? 60 : 100);
   }
   setTimeout(tick, 800);
 }
- 
-// ── Copy code buttons ─────────────────────────────────────
+
+// ─────────────────────────────────────────────────────────────
+// COPY CODE BUTTONS
+// ─────────────────────────────────────────────────────────────
 document.querySelectorAll('pre').forEach(pre => {
   const btn = document.createElement('button');
   btn.textContent = 'copy';
@@ -96,20 +133,24 @@ document.querySelectorAll('pre').forEach(pre => {
     setTimeout(() => { btn.textContent = 'copy'; btn.style.color = ''; }, 2000);
   });
 });
- 
-// ── Active nav link ───────────────────────────────────────
-const path = window.location.pathname;
-document.querySelectorAll('.main-nav a, .mobile-nav-menu a').forEach(a => {
+
+// ─────────────────────────────────────────────────────────────
+// ACTIVE NAV LINK
+// ─────────────────────────────────────────────────────────────
+const currentPath = window.location.pathname;
+document.querySelectorAll('.main-nav a, .mobile-nav-link').forEach(a => {
   const href = a.getAttribute('href');
-  if (href && href !== '/' && path.startsWith(href)) {
+  if (href && href !== '/' && currentPath.startsWith(href)) {
     a.classList.add('active');
   }
-  if (href === '/' && (path === '/' || path === '/index.html')) {
+  if (href === '/' && (currentPath === '/' || currentPath === '/index.html')) {
     a.classList.add('active');
   }
 });
- 
- // Reading Progress Bar
+
+// ─────────────────────────────────────────────────────────────
+// READING PROGRESS BAR
+// ─────────────────────────────────────────────────────────────
 (function() {
   const bar = document.createElement('div');
   bar.style.cssText = 'position:fixed;top:0;left:0;height:2px;background:var(--accent);width:0%;z-index:9998;transition:width .1s linear;pointer-events:none;box-shadow:0 0 6px rgba(0,255,65,.5)';
@@ -121,7 +162,9 @@ document.querySelectorAll('.main-nav a, .mobile-nav-menu a').forEach(a => {
   }, { passive: true });
 })();
 
-// Full-text Search
+// ─────────────────────────────────────────────────────────────
+// FULL-TEXT SEARCH
+// ─────────────────────────────────────────────────────────────
 (function() {
   const overlay = document.createElement('div');
   overlay.id = 'search-overlay';
@@ -144,7 +187,7 @@ document.querySelectorAll('.main-nav a, .mobile-nav-menu a').forEach(a => {
 
   const style = document.createElement('style');
   style.textContent = `
-    #search-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:10000;align-items:flex-start;justify-content:center;padding-top:80px;backdrop-filter:blur(4px)}
+    #search-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:10000;align-items:flex-start;justify-content:center;padding-top:80px;backdrop-filter:blur(4px)}
     #search-overlay.open{display:flex}
     #search-modal{background:var(--bg2);border:1px solid var(--border2);border-radius:8px;width:min(640px,90vw);box-shadow:0 20px 60px rgba(0,0,0,.6);overflow:hidden}
     #search-input-wrap{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border)}
@@ -182,9 +225,12 @@ document.querySelectorAll('.main-nav a, .mobile-nav-menu a').forEach(a => {
   function openSearch() { overlay.classList.add('open'); document.getElementById('search-input').focus(); loadIndex(); selected = -1; }
   function closeSearch() {
     overlay.classList.remove('open');
-    document.getElementById('search-input').value = '';
-    document.getElementById('search-results').innerHTML = '';
-    document.getElementById('search-count').textContent = '';
+    const input = document.getElementById('search-input');
+    if (input) input.value = '';
+    const results = document.getElementById('search-results');
+    if (results) results.innerHTML = '';
+    const count = document.getElementById('search-count');
+    if (count) count.textContent = '';
     selected = -1;
   }
 
@@ -199,31 +245,37 @@ document.querySelectorAll('.main-nav a, .mobile-nav-menu a').forEach(a => {
   });
 
   overlay.addEventListener('click', e => { if (e.target === overlay) closeSearch(); });
-  document.getElementById('search-esc').addEventListener('click', closeSearch);
+  const escBtn = document.getElementById('search-esc');
+  if (escBtn) escBtn.addEventListener('click', closeSearch);
 
   function hl(text, q) {
     return text.replace(new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')', 'gi'), '<mark>$1</mark>');
   }
 
-  document.getElementById('search-input').addEventListener('input', e => {
-    const q = e.target.value.trim().toLowerCase();
-    const resultsEl = document.getElementById('search-results');
-    const countEl = document.getElementById('search-count');
-    selected = -1;
-    if (!q) { resultsEl.innerHTML = ''; countEl.textContent = ''; return; }
-    const hits = index.filter(p =>
-      (p.title||'').toLowerCase().includes(q) ||
-      (p.content||'').toLowerCase().includes(q) ||
-      (p.tags||[]).join(' ').toLowerCase().includes(q)
-    ).slice(0, 10);
-    countEl.textContent = hits.length + ' results';
-    if (!hits.length) { resultsEl.innerHTML = `<div class="sr-empty">no results for "${q}"</div>`; return; }
-    resultsEl.innerHTML = hits.map(p => `
-      <a class="sr-item" href="${p.permalink}" onclick="closeSearch()">
-        <span class="sr-badge ${p.section||''}">${p.section||'page'}</span>
-        <div><div class="sr-title">${hl(p.title||'',q)}</div><div class="sr-summary">${p.summary||''}</div></div>
-      </a>`).join('');
-  });
+  const searchInput = document.getElementById('search-input');
+  if (searchInput) {
+    searchInput.addEventListener('input', e => {
+      const q = e.target.value.trim().toLowerCase();
+      const resultsEl = document.getElementById('search-results');
+      const countEl = document.getElementById('search-count');
+      selected = -1;
+      if (!q) { if (resultsEl) resultsEl.innerHTML = ''; if (countEl) countEl.textContent = ''; return; }
+      const hits = index.filter(p =>
+        (p.title||'').toLowerCase().includes(q) ||
+        (p.content||'').toLowerCase().includes(q) ||
+        (p.tags||[]).join(' ').toLowerCase().includes(q)
+      ).slice(0, 10);
+      if (countEl) countEl.textContent = hits.length + ' results';
+      if (!hits.length) { if (resultsEl) resultsEl.innerHTML = `<div class="sr-empty">no results for "${q}"</div>`; return; }
+      if (resultsEl) {
+        resultsEl.innerHTML = hits.map(p => `
+          <a class="sr-item" href="${p.permalink}" onclick="closeSearch()">
+            <span class="sr-badge ${p.section||''}">${p.section||'page'}</span>
+            <div><div class="sr-title">${hl(p.title||'',q)}</div><div class="sr-summary">${p.summary||''}</div></div>
+          </a>`).join('');
+      }
+    });
+  }
 
   // Add search hint to header
   window.addEventListener('DOMContentLoaded', () => {
