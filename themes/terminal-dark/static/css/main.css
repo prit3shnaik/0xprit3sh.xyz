@@ -2282,26 +2282,50 @@ img[src^="//"] { display: none; }
 
 /* ── Mobile Alerts ────────────────────────────────────────── */
 @media (max-width: 768px) {
-  .alert-search {
-    width: 140px;
+  :root {
+    --header-h: 48px;
   }
   
-  .alert-card {
-    padding: 0.75rem;
+  .container {
+    padding: 0 0.75rem;
   }
   
-  .alert-title {
-    font-size: 0.85rem;
+  /* Header — logo left, hamburger right, nothing else */
+  .site-header .container {
+    padding: 0 0.75rem;
   }
   
-  .alert-summary {
-    font-size: 0.78rem;
-  }
-  
-  .alert-ioc {
+  .site-logo {
     font-size: 0.72rem;
   }
-}
+  
+  .site-logo img {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .main-nav {
+    display: none;
+  }
+  
+  .hamburger-btn {
+    display: block;
+    font-size: 1rem;
+    padding: 6px 10px;
+  }
+  
+  /* ✦ Hide all action buttons on mobile */
+  .header-actions .theme-btn,
+  .header-actions .edit-btn,
+  .header-actions button:not(.hamburger-btn) {
+    display: none !important;
+  }
+  
+  /* ✦ Move hamburger to far right cleanly */
+  .header-actions {
+    gap: 0;
+    flex-shrink: 0;
+  }
 
 @media (max-width: 480px) {
   .alert-filter-bar {
