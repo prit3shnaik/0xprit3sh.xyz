@@ -82,11 +82,25 @@
       {{ end }}
     </nav>
     <div class="header-actions">
+      <!-- ✦ INSERT 1: hamburger button -->
+      <button class="hamburger-btn" aria-label="Menu">☰</button>
       <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">[ light ]</button>
       <a href="/admin/" class="edit-btn">+ edit</a>
     </div>
   </div>
 </header>
+
+<!-- ✦ INSERT 2: mobile menu (between </header> and <main>) -->
+<div class="mobile-nav-overlay"></div>
+<nav class="mobile-nav-menu">
+  <button class="mobile-nav-close" aria-label="Close">✕</button>
+  {{ range .Site.Menus.main }}
+  <a href="{{ .URL }}" class="{{ if $.IsMenuCurrent "main" . }}active{{ end }}">{{ .Name }}</a>
+  {{ end }}
+  <div class="mobile-menu-footer">
+    <button class="mobile-theme-btn" onclick="toggleTheme(); this.textContent = document.body.classList.contains('light-mode') ? '☾ dark mode' : '☀ light mode';">☀ light mode</button>
+  </div>
+</nav>
 
 <main class="site-main">
   <div class="container">
