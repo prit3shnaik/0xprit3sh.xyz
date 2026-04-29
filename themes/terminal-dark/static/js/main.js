@@ -1,3 +1,46 @@
+// Mobile Menu Toggle
+document.addEventListener('DOMContentLoaded', function() {
+  const hamburgerBtn = document.querySelector('.hamburger-btn');
+  const mobileNavOverlay = document.querySelector('.mobile-nav-overlay');
+  const mobileNavMenu = document.querySelector('.mobile-nav-menu');
+  const mobileNavClose = document.querySelector('.mobile-nav-close');
+  
+  if (hamburgerBtn && mobileNavOverlay && mobileNavMenu) {
+    function openMobileMenu() {
+      mobileNavOverlay.classList.add('active');
+      mobileNavMenu.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+    
+    function closeMobileMenu() {
+      mobileNavOverlay.classList.remove('active');
+      mobileNavMenu.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+    
+    hamburgerBtn.addEventListener('click', openMobileMenu);
+    
+    if (mobileNavClose) {
+      mobileNavClose.addEventListener('click', closeMobileMenu);
+    }
+    
+    mobileNavOverlay.addEventListener('click', closeMobileMenu);
+    
+    // Close on link click
+    const mobileLinks = mobileNavMenu.querySelectorAll('a');
+    mobileLinks.forEach(link => {
+      link.addEventListener('click', closeMobileMenu);
+    });
+    
+    // Close on escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeMobileMenu();
+      }
+    });
+  }
+});
+
 // ── Theme toggle ──────────────────────────────────────────
 function toggleTheme() {
   const isLight = document.body.classList.toggle('light-mode');
@@ -48,8 +91,12 @@ document.querySelectorAll('pre').forEach(pre => {
  
 // ── Active nav link ───────────────────────────────────────
 const path = window.location.pathname;
-document.querySelectorAll('.main-nav a').forEach(a => {
-  if (path.startsWith(a.getAttribute('href')) && a.getAttribute('href') !== '/') {
+document.querySelectorAll('.main-nav a, .mobile-nav-menu a').forEach(a => {
+  const href = a.getAttribute('href');
+  if (href && href !== '/' && path.startsWith(href)) {
+    a.classList.add('active');
+  }
+  if (href === '/' && (path === '/' || path === '/index.html')) {
     a.classList.add('active');
   }
 });
