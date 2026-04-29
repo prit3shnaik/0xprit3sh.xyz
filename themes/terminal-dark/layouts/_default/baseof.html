@@ -68,25 +68,60 @@
 <body id="body">
 
 <header class="site-header">
-  <div class="container">
-    <a href="{{ "/" | relURL }}" class="site-logo" style="display:flex;align-items:center;gap:10px;text-decoration:none;">
+  <div class="container header-container">
+    <!-- Logo -->
+    <a href="{{ "/" | relURL }}" class="site-logo">
       <img src="{{ "images/logo.png" | relURL }}"
-           width="34" height="34"
+           width="28" height="28"
            alt="0xprit3sh"
-           style="display:block;flex-shrink:0;">
+           class="logo-img">
       <span class="prompt">0xprit3sh</span><span class="cursor-blink">:~$</span>
     </a>
-    <nav class="main-nav">
+
+    <!-- Hamburger Button (mobile only) -->
+    <button class="hamburger-btn" id="hamburgerBtn" aria-label="Menu">
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+    </button>
+
+    <!-- Desktop Navigation -->
+    <nav class="main-nav desktop-nav">
       {{ range .Site.Menus.main }}
       <a href="{{ .URL }}" class="{{ if $.IsMenuCurrent "main" . }}active{{ end }}">{{ .Name }}</a>
       {{ end }}
     </nav>
-    <div class="header-actions">
-      <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">[ light ]</button>
+
+    <!-- Desktop Header Actions -->
+    <div class="header-actions desktop-actions">
+      <button class="theme-btn" id="theme-btn">[ light ]</button>
       <a href="/admin/" class="edit-btn">+ edit</a>
     </div>
   </div>
 </header>
+
+<!-- Mobile Navigation Overlay -->
+<div class="mobile-nav-overlay" id="mobileNavOverlay"></div>
+
+<!-- Mobile Navigation Menu -->
+<div class="mobile-nav-menu" id="mobileNavMenu">
+  <div class="mobile-nav-header">
+    <span class="mobile-nav-prompt">~/</span>
+    <button class="mobile-nav-close" id="mobileNavClose">✕</button>
+  </div>
+  
+  <nav class="mobile-nav-links">
+    {{ range .Site.Menus.main }}
+    <a href="{{ .URL }}" class="mobile-nav-link">{{ .Name }}</a>
+    {{ end }}
+  </nav>
+
+  <div class="mobile-nav-divider"></div>
+
+  <div class="mobile-nav-footer">
+    <button class="mobile-theme-btn" id="mobileThemeBtn">☀ light mode</button>
+  </div>
+</div>
 
 <main class="site-main">
   <div class="container">
@@ -115,4 +150,4 @@
 {{- end -}}
 
 </body>
-</html> 
+</html>
