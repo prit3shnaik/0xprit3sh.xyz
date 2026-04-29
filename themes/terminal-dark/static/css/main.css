@@ -2075,6 +2075,7 @@ body.osint-page .site-footer {
   justify-content: space-between;
   width: 100%;
   position: relative;
+  gap: 1rem;
 }
 
 /* Logo styling */
@@ -2263,7 +2264,22 @@ body.osint-page .site-footer {
   color: var(--accent);
 }
 
-/* Desktop elements - hidden on mobile */
+/* Desktop elements - visible on desktop only */
+@media (min-width: 701px) {
+  .desktop-nav {
+    display: flex !important;
+  }
+  .desktop-actions {
+    display: flex !important;
+  }
+  .hamburger-btn,
+  .mobile-nav-overlay,
+  .mobile-nav-menu {
+    display: none !important;
+  }
+}
+
+/* Mobile specific styles */
 @media (max-width: 700px) {
   .desktop-nav,
   .desktop-actions {
@@ -2281,32 +2297,9 @@ body.osint-page .site-footer {
   .header-container {
     padding: 0 0.75rem !important;
   }
-}
-
-/* Desktop: hide mobile elements */
-@media (min-width: 701px) {
-  .hamburger-btn,
-  .mobile-nav-overlay,
-  .mobile-nav-menu {
-    display: none !important;
-  }
   
-  .desktop-nav {
-    display: flex !important;
-  }
-  
-  .desktop-actions {
-    display: flex !important;
-  }
-}
-
-/* Fix: Remove any conflicting mobile styles */
-@media (max-width: 700px) {
-  /* Override old main-nav styles from existing CSS */
+  /* Override any conflicting styles */
   .main-nav {
-    position: static !important;
-    background: none !important;
-    border-top: none !important;
     display: none !important;
   }
   
@@ -2314,7 +2307,6 @@ body.osint-page .site-footer {
     padding-bottom: 1.5rem !important;
   }
   
-  /* Ensure header doesn't wrap */
   .site-header {
     height: auto;
     min-height: 52px;
@@ -2325,7 +2317,6 @@ body.osint-page .site-footer {
     justify-content: space-between;
   }
   
-  /* Prevent logo text from overflowing */
   .site-logo {
     max-width: 65%;
     white-space: nowrap;
