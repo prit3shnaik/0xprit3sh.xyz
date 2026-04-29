@@ -120,6 +120,9 @@ if (typed) {
 // COPY CODE BUTTONS
 // ─────────────────────────────────────────────────────────────
 document.querySelectorAll('pre').forEach(pre => {
+  // Skip if already has copy button
+  if (pre.querySelector('.copy-btn')) return;
+  
   const btn = document.createElement('button');
   btn.textContent = 'copy';
   btn.className = 'copy-btn';
@@ -140,10 +143,16 @@ document.querySelectorAll('pre').forEach(pre => {
 const currentPath = window.location.pathname;
 document.querySelectorAll('.main-nav a, .mobile-nav-link').forEach(a => {
   const href = a.getAttribute('href');
-  if (href && href !== '/' && currentPath.startsWith(href)) {
+  if (!href || href === '#') return;
+  
+  // Remove trailing slash for comparison
+  const cleanHref = href.replace(/\/$/, '');
+  const cleanPath = currentPath.replace(/\/$/, '');
+  
+  if (cleanHref !== '/' && cleanPath === cleanHref) {
     a.classList.add('active');
   }
-  if (href === '/' && (currentPath === '/' || currentPath === '/index.html')) {
+  if (cleanHref === '/' && (cleanPath === '' || cleanPath === '/')) {
     a.classList.add('active');
   }
 });
@@ -155,10 +164,18 @@ document.querySelectorAll('.main-nav a, .mobile-nav-link').forEach(a => {
   const bar = document.createElement('div');
   bar.style.cssText = 'position:fixed;top:0;left:0;height:2px;background:var(--accent);width:0%;z-index:9998;transition:width .1s linear;pointer-events:none;box-shadow:0 0 6px rgba(0,255,65,.5)';
   document.body.appendChild(bar);
+  
+  let ticking = false;
   window.addEventListener('scroll', () => {
-    const el = document.documentElement;
-    const pct = (el.scrollTop / (el.scrollHeight - el.clientHeight)) * 100;
-    bar.style.width = Math.min(pct, 100) + '%';
+    if (!ticking) {
+      requestAnimationFrame(() => {
+        const el = document.documentElement;
+        const pct = (el.scrollTop / (el.scrollHeight - el.clientHeight)) * 100;
+        bar.style.width = Math.min(pct, 100) + '%';
+        ticking = false;
+      });
+      ticking = true;
+    }
   }, { passive: true });
 })();
 
@@ -204,7 +221,6 @@ document.querySelectorAll('.main-nav a, .mobile-nav-link').forEach(a => {
     .sr-badge.osint{background:rgba(0,212,255,.1);color:var(--accent2);border-color:rgba(0,212,255,.2)}
     .sr-badge.writeups{background:rgba(255,68,68,.1);color:var(--red);border-color:rgba(255,68,68,.2)}
     .sr-badge.alerts{background:rgba(232,197,71,.1);color:var(--yellow);border-color:rgba(232,197,71,.2)}
-    .sr-badge.actors{background:rgba(240,136,62,.1);color:var(--orange);border-color:rgba(240,136,62,.2)}
     .sr-title{font-size:.85rem;color:var(--text);margin-bottom:2px}
     .sr-title mark{background:rgba(0,255,65,.15);color:var(--accent);border-radius:2px;padding:0 2px}
     .sr-summary{font-size:.72rem;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -218,11 +234,22 @@ document.querySelectorAll('.main-nav a, .mobile-nav-link').forEach(a => {
 
   async function loadIndex() {
     if (index.length) return;
-    try { index = await fetch('/index.json').then(r => r.json()); }
-    catch(e) { console.warn('Search index unavailable'); }
+    try { 
+      const response = await fetch('/index.json');
+      index = await response.json();
+    } catch(e) { 
+      console.warn('Search index unavailable'); 
+    }
   }
 
-  function openSearch() { overlay.classList.add('open'); document.getElementById('search-input').focus(); loadIndex(); selected = -1; }
+  function openSearch() { 
+    overlay.classList.add('open'); 
+    const input = document.getElementById('search-input');
+    if (input) input.focus(); 
+    loadIndex(); 
+    selected = -1; 
+  }
+  
   function closeSearch() {
     overlay.classList.remove('open');
     const input = document.getElementById('search-input');
@@ -235,12 +262,25 @@ document.querySelectorAll('.main-nav a, .mobile-nav-link').forEach(a => {
   }
 
   document.addEventListener('keydown', e => {
-    if (e.key === '/' && !['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) { e.preventDefault(); openSearch(); }
+    if (e.key === '/' && !['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) { 
+      e.preventDefault(); 
+      openSearch(); 
+    }
     if (e.key === 'Escape') closeSearch();
     if (!overlay.classList.contains('open')) return;
     const items = document.querySelectorAll('.sr-item');
-    if (e.key === 'ArrowDown') { e.preventDefault(); selected = Math.min(selected+1, items.length-1); items.forEach((el,i) => el.classList.toggle('active', i===selected)); items[selected]?.scrollIntoView({block:'nearest'}); }
-    if (e.key === 'ArrowUp')   { e.preventDefault(); selected = Math.max(selected-1, 0); items.forEach((el,i) => el.classList.toggle('active', i===selected)); items[selected]?.scrollIntoView({block:'nearest'}); }
+    if (e.key === 'ArrowDown') { 
+      e.preventDefault(); 
+      selected = Math.min(selected+1, items.length-1); 
+      items.forEach((el,i) => el.classList.toggle('active', i===selected)); 
+      items[selected]?.scrollIntoView({block:'nearest'}); 
+    }
+    if (e.key === 'ArrowUp')   { 
+      e.preventDefault(); 
+      selected = Math.max(selected-1, 0); 
+      items.forEach((el,i) => el.classList.toggle('active', i===selected)); 
+      items[selected]?.scrollIntoView({block:'nearest'}); 
+    }
     if (e.key === 'Enter' && selected >= 0) items[selected]?.click();
   });
 
@@ -259,14 +299,21 @@ document.querySelectorAll('.main-nav a, .mobile-nav-link').forEach(a => {
       const resultsEl = document.getElementById('search-results');
       const countEl = document.getElementById('search-count');
       selected = -1;
-      if (!q) { if (resultsEl) resultsEl.innerHTML = ''; if (countEl) countEl.textContent = ''; return; }
+      if (!q) { 
+        if (resultsEl) resultsEl.innerHTML = ''; 
+        if (countEl) countEl.textContent = ''; 
+        return; 
+      }
       const hits = index.filter(p =>
         (p.title||'').toLowerCase().includes(q) ||
         (p.content||'').toLowerCase().includes(q) ||
         (p.tags||[]).join(' ').toLowerCase().includes(q)
       ).slice(0, 10);
       if (countEl) countEl.textContent = hits.length + ' results';
-      if (!hits.length) { if (resultsEl) resultsEl.innerHTML = `<div class="sr-empty">no results for "${q}"</div>`; return; }
+      if (!hits.length) { 
+        if (resultsEl) resultsEl.innerHTML = `<div class="sr-empty">no results for "${q}"</div>`; 
+        return; 
+      }
       if (resultsEl) {
         resultsEl.innerHTML = hits.map(p => `
           <a class="sr-item" href="${p.permalink}" onclick="closeSearch()">
@@ -278,12 +325,21 @@ document.querySelectorAll('.main-nav a, .mobile-nav-link').forEach(a => {
   }
 
   // Add search hint to header
-  window.addEventListener('DOMContentLoaded', () => {
+  const addSearchHint = () => {
     const hint = document.createElement('button');
     hint.textContent = '⌕ search';
+    hint.className = 'search-hint';
     hint.style.cssText = 'background:var(--bg3);border:1px solid var(--border2);color:var(--dim);font-family:var(--font);font-size:.7rem;padding:4px 10px;border-radius:4px;cursor:pointer;transition:all .2s';
     hint.onclick = openSearch;
     const actions = document.querySelector('.header-actions');
-    if (actions) actions.insertBefore(hint, actions.firstChild);
-  });
+    if (actions && !document.querySelector('.search-hint')) {
+      actions.insertBefore(hint, actions.firstChild);
+    }
+  };
+  
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', addSearchHint);
+  } else {
+    addSearchHint();
+  }
 })();
