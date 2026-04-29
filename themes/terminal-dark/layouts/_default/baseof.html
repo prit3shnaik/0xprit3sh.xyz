@@ -71,10 +71,12 @@
   <div class="container header-container">
     <!-- Logo -->
     <a href="{{ "/" | relURL }}" class="site-logo">
+      {{ if fileExists "static/images/logo.png" }}
       <img src="{{ "images/logo.png" | relURL }}"
            width="28" height="28"
            alt="0xprit3sh"
            class="logo-img">
+      {{ end }}
       <span class="prompt">0xprit3sh</span><span class="cursor-blink">:~$</span>
     </a>
 
@@ -112,7 +114,7 @@
   
   <nav class="mobile-nav-links">
     {{ range .Site.Menus.main }}
-    <a href="{{ .URL }}" class="mobile-nav-link">{{ .Name }}</a>
+    <a href="{{ .URL }}" class="mobile-nav-link {{ if $.IsMenuCurrent "main" . }}active{{ end }}">{{ .Name }}</a>
     {{ end }}
   </nav>
 
@@ -135,7 +137,7 @@
     <span>
       <a href="https://github.com/{{ .Site.Params.github }}" target="_blank">github</a> ·
       <a href="https://linkedin.com/in/{{ .Site.Params.linkedin }}" target="_blank">linkedin</a> ·
-      <a href="https://x.com/{{ .Site.Params.twitter }}" target="_blank">twitter/x</a>
+      <a href="https://x.com/{{ .Site.Params.twitter }}" target="_blank">twitter/x</a> ·
       <a href="/index.xml" target="_blank">rss</a>
     </span>
   </div>
