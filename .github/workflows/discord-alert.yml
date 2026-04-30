@@ -16,28 +16,29 @@ jobs:
 
       - name: Parse and Send Alert
         run: |
-          # 1. Identify the new file
+          # 1. Identify the new alert file
           FILE=$(git diff --name-only HEAD^ HEAD | grep "content/alerts/" | head -n 1)
           if [ -z "$FILE" ]; then echo "No new alert file."; exit 0; fi
 
-          # 2. Extract YAML Frontmatter
+          # 2. Extract YAML Frontmatter fields
           TITLE=$(grep "^title:" "$FILE" | cut -d":" -f2- | sed 's/^ //;s/"//g')
           SEV=$(grep "^severity:" "$FILE" | cut -d":" -f2 | xargs | tr '[:upper:]' '[:lower:]')
           TARGET=$(grep "^affected_systems:" "$FILE" | cut -d":" -f2- | xargs)
           TLP=$(grep "^tlp:" "$FILE" | cut -d":" -f2 | xargs)
           
-          # 3. Generate Live URL (Hugo Slug Logic)
-          # Strips path and extension to match your site's structure
-          SLUG=$(basename "$FILE" .md)
-          URL="https://0xprit3sh.xyz"
+          # Mapping ACTOR to your 'alert_type' field (IOC, CVE, ThreatActor, etc.)
+          ACTOR=$(grep "^alert_type:" "$FILE" | cut -d":" -f2- | xargs) 
+          
+          # 3. Direct URL to your alerts page
+          URL="https://0xprit3sh.xyz/alerts/"
 
-          # 4. Extract TL;DR
+          # 4. Extract TL;DR or Body summary
           TLDR=$(grep "^tldr:" "$FILE" | cut -d":" -f2- | xargs)
           if [ -z "$TLDR" ]; then
             TLDR=$(sed '1,/---/d' "$FILE" | tr -d '\n' | head -c 200 | sed 's/"/\\"/g')...
           fi
 
-          # 5. Dynamic Styling
+          # 5. Set Color based on Severity
           case "$SEV" in
             "critical") COLOR=15548997; EMOJI="🚨";; 
             "high")     COLOR=15105570; EMOJI="🟠";;
@@ -53,7 +54,7 @@ jobs:
             "content": "'"$EMOJI"' **ALERT ___ '"$TITLE"'** ⚠️ >>>>",
             "embeds": [{
               "color": '"$COLOR"',
-              "description": "⚔️ **Target** : '"${TARGET:-Undisclosed}"'\n\n📖 **TL;DR** :\n> '"$TLDR"'\n\n🌐 **Full Details** :\n'"$URL"'\n\n🔎 **Severity** : **'"${SEV^^}"'** | **TLP:'"$TLP"'**\n\n📅 **Date** : '$(date +'%d-%m-%y')'\n\n⚔️ **Threat_Actor** : TEAM RED EAGLE 🇮🇳",
+              "description": "⚔️ **Target** : '"${TARGET:-Undisclosed}"'\n\n📖 **TL;DR** :\n> '"$TLDR"'\n\n🌐 **Full Details** :\n'"$URL"'\n\n🔎 **Severity** : **'"${SEV^^}"'** | **TLP: '"$TLP"'**\n\n📅 **Date** : '$(date +'%d-%m-%y')'\n\n⚔️ **Threat_Actor** : '"${ACTOR:-Undisclosed}"'",
               "footer": { "text": "Cyber Intelligence & Educational Purposes" }
             }]
           }' ${{ secrets.DISCORD_WEBHOOK_URL }}
