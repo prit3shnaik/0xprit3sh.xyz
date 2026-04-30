@@ -1,0 +1,59 @@
+name: Discord Alert Dispatcher
+
+on:
+  push:
+    paths:
+      - 'content/alerts/**'
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Parse and Send Alert
+        run: |
+          # 1. Identify the new file
+          FILE=$(git diff --name-only HEAD^ HEAD | grep "content/alerts/" | head -n 1)
+          if [ -z "$FILE" ]; then echo "No new alert file."; exit 0; fi
+
+          # 2. Extract YAML Frontmatter
+          TITLE=$(grep "^title:" "$FILE" | cut -d":" -f2- | sed 's/^ //;s/"//g')
+          SEV=$(grep "^severity:" "$FILE" | cut -d":" -f2 | xargs | tr '[:upper:]' '[:lower:]')
+          TARGET=$(grep "^affected_systems:" "$FILE" | cut -d":" -f2- | xargs)
+          TLP=$(grep "^tlp:" "$FILE" | cut -d":" -f2 | xargs)
+          
+          # 3. Generate Live URL (Hugo Slug Logic)
+          # Strips path and extension to match your site's structure
+          SLUG=$(basename "$FILE" .md)
+          URL="https://0xprit3sh.xyz"
+
+          # 4. Extract TL;DR
+          TLDR=$(grep "^tldr:" "$FILE" | cut -d":" -f2- | xargs)
+          if [ -z "$TLDR" ]; then
+            TLDR=$(sed '1,/---/d' "$FILE" | tr -d '\n' | head -c 200 | sed 's/"/\\"/g')...
+          fi
+
+          # 5. Dynamic Styling
+          case "$SEV" in
+            "critical") COLOR=15548997; EMOJI="🚨";; 
+            "high")     COLOR=15105570; EMOJI="🟠";;
+            "medium")   COLOR=15844367; EMOJI="🟡";;
+            *)          COLOR=3066993;  EMOJI="🔵";;
+          esac
+
+          # 6. Dispatch to Discord
+          curl -X POST -H "Content-Type: application/json" \
+          -d '{
+            "username": "0xprit3sh Intelligence",
+            "avatar_url": "https://0xprit3sh.xyz",
+            "content": "'"$EMOJI"' **ALERT ___ '"$TITLE"'** ⚠️ >>>>",
+            "embeds": [{
+              "color": '"$COLOR"',
+              "description": "⚔️ **Target** : '"${TARGET:-Undisclosed}"'\n\n📖 **TL;DR** :\n> '"$TLDR"'\n\n🌐 **Full Details** :\n'"$URL"'\n\n🔎 **Severity** : **'"${SEV^^}"'** | **TLP:'"$TLP"'**\n\n📅 **Date** : '$(date +'%d-%m-%y')'\n\n⚔️ **Threat_Actor** : TEAM RED EAGLE 🇮🇳",
+              "footer": { "text": "Cyber Intelligence & Educational Purposes" }
+            }]
+          }' ${{ secrets.DISCORD_WEBHOOK_URL }}
