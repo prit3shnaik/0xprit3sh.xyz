@@ -8,51 +8,98 @@ on:
 jobs:
   notify:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
 
-      - name: Parse and Send Alert
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Get Changed Alert Files
+        id: files
         run: |
-          # 1. Identify the new alert file
-          FILE=$(git diff --name-only HEAD^ HEAD | grep "content/alerts/" | head -n 1)
-          if [ -z "$FILE" ]; then echo "No new alert file."; exit 0; fi
+          FILES=$(jq -r '.commits[].added[]?, .commits[].modified[]?' "$GITHUB_EVENT_PATH" | grep '^content/alerts/' || true)
 
-          # 2. Extract YAML Frontmatter fields
-          TITLE=$(grep "^title:" "$FILE" | cut -d":" -f2- | sed 's/^ //;s/"//g')
-          SEV=$(grep "^severity:" "$FILE" | cut -d":" -f2 | xargs | tr '[:upper:]' '[:lower:]')
-          TARGET=$(grep "^affected_systems:" "$FILE" | cut -d":" -f2- | xargs)
-          TLP=$(grep "^tlp:" "$FILE" | cut -d":" -f2 | xargs)
-          ACTOR=$(grep "^alert_type:" "$FILE" | cut -d":" -f2- | xargs) 
-          
-          # 3. Direct URL to your alerts page
-          URL="https://0xprit3sh.xyz"
-
-          # 4. Extract TL;DR or Body summary
-          TLDR=$(grep "^tldr:" "$FILE" | cut -d":" -f2- | xargs)
-          if [ -z "$TLDR" ]; then
-            TLDR=$(sed '1,/---/d' "$FILE" | tr -d '\n' | head -c 200 | sed 's/"/\\"/g')...
+          if [ -z "$FILES" ]; then
+            echo "No alert files changed."
+            echo "files=" >> $GITHUB_OUTPUT
+            exit 0
           fi
 
-          # 5. Set Color based on Severity
-          case "$SEV" in
-            "critical") COLOR=15548997; EMOJI="🚨";; 
-            "high")     COLOR=15105570; EMOJI="🟠";;
-            "medium")   COLOR=15844367; EMOJI="🟡";;
-            *)          COLOR=3066993;  EMOJI="🔵";;
-          esac
+          echo "Changed files:"
+          echo "$FILES"
 
-          # 6. Dispatch to Discord (Name and Image changed here)
-          curl -X POST -H "Content-Type: application/json" \
-          -d '{
-            "username": "0xprit3sh Intel",
-            "avatar_url": "https://0xprit3sh.xyz",
-            "content": "'"$EMOJI"' **ALERT ___ '"$TITLE"'** ⚠️ >>>>",
-            "embeds": [{
-              "color": '"$COLOR"',
-              "description": "⚔️ **Target** : '"${TARGET:-Undisclosed}"'\n\n📖 **TL;DR** :\n> '"$TLDR"'\n\n🌐 **Full Details** :\n'"$URL"'\n\n🔎 **Severity** : **'"${SEV^^}"'** | **TLP: '"$TLP"'**\n\n📅 **Date** : '$(date +'%d-%m-%y')'\n\n⚔️ **Threat_Actor** : '"${ACTOR:-Undisclosed}"'",
-              "footer": { "text": "Cyber Intelligence & Educational Purposes" }
-            }]
-          }' ${{ secrets.DISCORD_WEBHOOK_URL }}
+          # Save for next step
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          echo "$FILES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Send Alerts to Discord
+        if: steps.files.outputs.files != ''
+        run: |
+          while read -r FILE; do
+            echo "Processing: $FILE"
+
+            # --- Extract Frontmatter ---
+            TITLE=$(grep "^title:" "$FILE" | cut -d":" -f2- | sed 's/^ //;s/"//g')
+            SEV=$(grep "^severity:" "$FILE" | cut -d":" -f2 | xargs | tr '[:upper:]' '[:lower:]')
+            TARGET=$(grep "^affected_systems:" "$FILE" | cut -d":" -f2- | xargs)
+            TLP=$(grep "^tlp:" "$FILE" | cut -d":" -f2 | xargs)
+            ACTOR=$(grep "^alert_type:" "$FILE" | cut -d":" -f2- | xargs)
+            TLDR=$(grep "^tldr:" "$FILE" | cut -d":" -f2- | xargs)
+
+            # --- Fallback TLDR ---
+            if [ -z "$TLDR" ]; then
+              TLDR=$(sed '1,/---/d' "$FILE" | head -c 200 | tr '\n' ' ')
+            fi
+
+            # --- Severity Color ---
+            case "$SEV" in
+              "critical") COLOR=15548997; EMOJI="🚨";;
+              "high")     COLOR=15105570; EMOJI="🟠";;
+              "medium")   COLOR=15844367; EMOJI="🟡";;
+              *)          COLOR=3066993;  EMOJI="🔵";;
+            esac
+
+            URL="https://0xprit3sh.xyz"
+
+            # --- Build JSON safely ---
+            PAYLOAD=$(jq -n \
+              --arg username "0xprit3sh Intel" \
+              --arg avatar "https://0xprit3sh.xyz/logo.png" \
+              --arg content "$EMOJI ALERT ___ $TITLE ⚠️ >>>>" \
+              --arg desc "⚔️ Target: ${TARGET:-Undisclosed}\n\n📖 TL;DR:\n> $TLDR\n\n🌐 Full Details:\n$URL\n\n🔎 Severity: ${SEV^^} | TLP: $TLP\n\n📅 Date: $(date +'%d-%m-%y')\n\n⚔️ Threat Actor: ${ACTOR:-Undisclosed}" \
+              --argjson color "$COLOR" \
+              '{
+                username: $username,
+                avatar_url: $avatar,
+                content: $content,
+                embeds: [{
+                  color: $color,
+                  description: $desc,
+                  footer: { text: "Cyber Intelligence & Educational Purposes" }
+                }]
+              }')
+
+            echo "Sending alert for: $TITLE"
+            echo "$PAYLOAD"
+
+            # --- Send with retry ---
+            for i in 1 2 3; do
+              RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
+                -X POST \
+                -H "Content-Type: application/json" \
+                -d "$PAYLOAD" \
+                "${{ secrets.DISCORD_WEBHOOK_URL }}")
+
+              if [ "$RESPONSE" -eq 204 ]; then
+                echo "✅ Sent successfully"
+                break
+              else
+                echo "⚠️ Failed (HTTP $RESPONSE), retry $i..."
+                sleep 2
+              fi
+            done
+
+          done <<< "${{ steps.files.outputs.files }}"
