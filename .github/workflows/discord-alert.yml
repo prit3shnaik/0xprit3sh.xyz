@@ -41,12 +41,21 @@ jobs:
         if: steps.files.outputs.files != ''
         run: |
           while read -r FILE; do
-            echo "Processing $FILE"
+            echo "-----------------------------"
+            echo "Processing: $FILE"
 
-            # --- Extract FRONTMATTER only ---
-            FRONTMATTER=$(sed -n '/^---$/,/^---$/p' "$FILE" | sed '1d;$d')
+            echo "------ RAW FILE ------"
+            cat "$FILE"
+            echo "----------------------"
 
-            # --- Parse safely using yq ---
+            # --- Extract FRONTMATTER safely ---
+            FRONTMATTER=$(awk 'BEGIN{p=0} /^---/{p++; next} p==1' "$FILE")
+
+            echo "------ FRONTMATTER ------"
+            echo "$FRONTMATTER"
+            echo "-------------------------"
+
+            # --- Parse YAML ---
             TITLE=$(echo "$FRONTMATTER" | yq -r '.title // "New Alert"')
             SEV=$(echo "$FRONTMATTER" | yq -r '.severity // "low"' | tr '[:upper:]' '[:lower:]')
             TARGET=$(echo "$FRONTMATTER" | yq -r '.affected_systems // "Undisclosed"')
@@ -54,14 +63,24 @@ jobs:
             ACTOR=$(echo "$FRONTMATTER" | yq -r '.alert_type // "Undisclosed"')
             TLDR=$(echo "$FRONTMATTER" | yq -r '.tldr // ""')
 
+            # --- Normalize TLDR ---
+            TLDR=$(echo "$TLDR" | xargs)
+
             # --- Fallback TLDR from body ---
-            if [ -z "$TLDR" ] || [ "$TLDR" = "..." ]; then
-              TLDR=$(sed '1,/^---$/d' "$FILE" | sed '1,/^---$/d' | tr '\n' ' ' | head -c 300)
+            if [ -z "$TLDR" ] || [ "$TLDR" = "null" ] || [ "$TLDR" = "..." ]; then
+              TLDR=$(awk 'BEGIN{p=0} /^---/{p++; next} p>=2' "$FILE" | tr '\n' ' ' | head -c 300)
             fi
 
             # --- Trim for Discord limits ---
             TITLE=$(echo "$TITLE" | head -c 200)
             TLDR=$(echo "$TLDR" | head -c 300)
+
+            echo "Parsed TITLE: $TITLE"
+            echo "Parsed SEV: $SEV"
+            echo "Parsed TARGET: $TARGET"
+            echo "Parsed TLP: $TLP"
+            echo "Parsed ACTOR: $ACTOR"
+            echo "Parsed TLDR: $TLDR"
 
             # --- Severity color ---
             case "$SEV" in
@@ -92,15 +111,19 @@ jobs:
                 }]
               }')
 
-            echo "Sending alert..."
+            echo "---- PAYLOAD ----"
+            echo "$PAYLOAD"
 
+            # --- Send to Discord ---
             RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}\n" \
               -X POST \
               -H "Content-Type: application/json" \
               -d "$PAYLOAD" \
               "${{ secrets.DISCORD_WEBHOOK_URL }}")
 
+            echo "---- DISCORD RESPONSE ----"
             echo "$RESPONSE"
+            echo "--------------------------"
 
             STATUS=$(echo "$RESPONSE" | grep HTTP_STATUS | cut -d":" -f2)
 
@@ -108,7 +131,7 @@ jobs:
               echo "❌ Failed (HTTP $STATUS)"
               exit 1
             else
-              echo "✅ Sent"
+              echo "✅ Alert sent successfully"
             fi
 
           done <<< "${{ steps.files.outputs.files }}"
