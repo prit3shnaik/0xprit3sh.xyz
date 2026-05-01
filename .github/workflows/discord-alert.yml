@@ -16,21 +16,27 @@ jobs:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
+      # 🔥 TEST webhook (remove later)
+      - name: Test Discord Webhook
+        run: |
+          curl -X POST -H "Content-Type: application/json" \
+          -d '{"content":"✅ Webhook test from GitHub Actions"}' \
+          "${{ secrets.DISCORD_WEBHOOK_URL }}"
+
       - name: Get Changed Alert Files
         id: files
         run: |
           FILES=$(jq -r '.commits[].added[]?, .commits[].modified[]?' "$GITHUB_EVENT_PATH" | grep '^content/alerts/' || true)
 
+          echo "Detected files:"
+          echo "$FILES"
+
           if [ -z "$FILES" ]; then
-            echo "No alert files changed."
+            echo "No alert files found."
             echo "files=" >> $GITHUB_OUTPUT
             exit 0
           fi
 
-          echo "Changed files:"
-          echo "$FILES"
-
-          # Save for next step
           echo "files<<EOF" >> $GITHUB_OUTPUT
           echo "$FILES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
@@ -39,22 +45,34 @@ jobs:
         if: steps.files.outputs.files != ''
         run: |
           while read -r FILE; do
+            echo "-----------------------------"
             echo "Processing: $FILE"
 
-            # --- Extract Frontmatter ---
-            TITLE=$(grep "^title:" "$FILE" | cut -d":" -f2- | sed 's/^ //;s/"//g')
-            SEV=$(grep "^severity:" "$FILE" | cut -d":" -f2 | xargs | tr '[:upper:]' '[:lower:]')
-            TARGET=$(grep "^affected_systems:" "$FILE" | cut -d":" -f2- | xargs)
-            TLP=$(grep "^tlp:" "$FILE" | cut -d":" -f2 | xargs)
-            ACTOR=$(grep "^alert_type:" "$FILE" | cut -d":" -f2- | xargs)
-            TLDR=$(grep "^tldr:" "$FILE" | cut -d":" -f2- | xargs)
+            # --- Extract fields (robust parsing) ---
+            TITLE=$(sed -n 's/^title:[[:space:]]*//p' "$FILE" | head -n1)
+            SEV=$(sed -n 's/^severity:[[:space:]]*//p' "$FILE" | tr '[:upper:]' '[:lower:]' | head -n1)
+            TARGET=$(sed -n 's/^affected_systems:[[:space:]]*//p' "$FILE" | head -n1)
+            TLP=$(sed -n 's/^tlp:[[:space:]]*//p' "$FILE" | head -n1)
+            ACTOR=$(sed -n 's/^alert_type:[[:space:]]*//p' "$FILE" | head -n1)
+            TLDR=$(sed -n 's/^tldr:[[:space:]]*//p' "$FILE" | head -n1)
+
+            # --- Defaults ---
+            TITLE=${TITLE:-"New Alert"}
+            SEV=${SEV:-"low"}
+            TARGET=${TARGET:-"Undisclosed"}
+            TLP=${TLP:-"N/A"}
+            ACTOR=${ACTOR:-"Undisclosed"}
 
             # --- Fallback TLDR ---
             if [ -z "$TLDR" ]; then
-              TLDR=$(sed '1,/---/d' "$FILE" | head -c 200 | tr '\n' ' ')
+              TLDR=$(sed '1,/---/d' "$FILE" | tr '\n' ' ' | head -c 300)
             fi
 
-            # --- Severity Color ---
+            # --- Trim to Discord limits ---
+            TITLE=$(echo "$TITLE" | head -c 200)
+            TLDR=$(echo "$TLDR" | head -c 300)
+
+            # --- Severity mapping ---
             case "$SEV" in
               "critical") COLOR=15548997; EMOJI="🚨";;
               "high")     COLOR=15105570; EMOJI="🟠";;
@@ -68,8 +86,8 @@ jobs:
             PAYLOAD=$(jq -n \
               --arg username "0xprit3sh Intel" \
               --arg avatar "https://0xprit3sh.xyz/logo.png" \
-              --arg content "$EMOJI ALERT ___ $TITLE ⚠️ >>>>" \
-              --arg desc "⚔️ Target: ${TARGET:-Undisclosed}\n\n📖 TL;DR:\n> $TLDR\n\n🌐 Full Details:\n$URL\n\n🔎 Severity: ${SEV^^} | TLP: $TLP\n\n📅 Date: $(date +'%d-%m-%y')\n\n⚔️ Threat Actor: ${ACTOR:-Undisclosed}" \
+              --arg content "$EMOJI ALERT: $TITLE" \
+              --arg desc "⚔️ Target: $TARGET\n\n📖 TL;DR:\n> $TLDR\n\n🌐 Full Details:\n$URL\n\n🔎 Severity: ${SEV^^} | TLP: $TLP\n\n📅 Date: $(date +'%d-%m-%y')\n\n⚔️ Threat Actor: $ACTOR" \
               --argjson color "$COLOR" \
               '{
                 username: $username,
@@ -82,24 +100,28 @@ jobs:
                 }]
               }')
 
-            echo "Sending alert for: $TITLE"
+            echo "---- PAYLOAD ----"
             echo "$PAYLOAD"
 
-            # --- Send with retry ---
-            for i in 1 2 3; do
-              RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
-                -X POST \
-                -H "Content-Type: application/json" \
-                -d "$PAYLOAD" \
-                "${{ secrets.DISCORD_WEBHOOK_URL }}")
+            # --- Send with FULL DEBUG ---
+            RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}\n" \
+              -X POST \
+              -H "Content-Type: application/json" \
+              -d "$PAYLOAD" \
+              "${{ secrets.DISCORD_WEBHOOK_URL }}")
 
-              if [ "$RESPONSE" -eq 204 ]; then
-                echo "✅ Sent successfully"
-                break
-              else
-                echo "⚠️ Failed (HTTP $RESPONSE), retry $i..."
-                sleep 2
-              fi
-            done
+            echo "---- DISCORD RESPONSE ----"
+            echo "$RESPONSE"
+            echo "--------------------------"
+
+            # --- Fail if not successful ---
+            STATUS=$(echo "$RESPONSE" | grep HTTP_STATUS | cut -d":" -f2)
+
+            if [ "$STATUS" -ne 204 ]; then
+              echo "❌ Failed to send alert (HTTP $STATUS)"
+              exit 1
+            else
+              echo "✅ Alert sent successfully"
+            fi
 
           done <<< "${{ steps.files.outputs.files }}"
