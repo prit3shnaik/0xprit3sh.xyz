@@ -2,9 +2,7 @@ backend:
   name: github
   repo: prit3shnaik/0xprit3sh.xyz
   branch: main
-  base_url: https://sveltia-cms-auth.prit3shnaik19.workers.dev
-  auth_endpoint: /callback
-
+  
 media_folder: "static/images/uploads"
 public_folder: "/images/uploads"
 
