@@ -1,94 +1,51 @@
-name: Discord Alert Dispatcher
+run: |
+  npm install axios
 
-on:
-  push:
-    paths:
-      - 'content/alerts/**'
+  node <<'EOF'
+  const fs = require('fs');
+  const matter = require('gray-matter');
+  const axios = require('axios');
 
-jobs:
-  notify:
-    runs-on: ubuntu-latest
+  (async () => {
+    const files = `${{ steps.files.outputs.files }}`.trim().split('\n');
 
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+    for (const file of files) {
+      console.log("Processing:", file);
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
+      const raw = fs.readFileSync(file, 'utf-8');
+      const { data, content } = matter(raw);
 
-      - name: Install gray-matter
-        run: npm install gray-matter
+      let title = data.title || "New Alert";
+      let sev = (data.severity || "low").toLowerCase();
+      let target = data.affected_systems || "Undisclosed";
+      let tlp = data.tlp || "N/A";
+      let actor = data.alert_type || "Undisclosed";
+      let tldr = data.tldr || "";
 
-      - name: Get Changed Files
-        id: files
-        run: |
-          FILES=$(jq -r '.commits[].added[]?, .commits[].modified[]?' "$GITHUB_EVENT_PATH" | grep '^content/alerts/' || true)
+      if (!tldr || tldr.trim() === "" || tldr === "...") {
+        tldr = content.replace(/\n/g, " ").slice(0, 300);
+      }
 
-          echo "FILES:"
-          echo "$FILES"
+      title = title.slice(0, 200);
+      tldr = tldr.slice(0, 300);
 
-          if [ -z "$FILES" ]; then
-            echo "files=" >> $GITHUB_OUTPUT
-            exit 0
-          fi
+      const severityMap = {
+        critical: [15548997, "🚨"],
+        high: [15105570, "🟠"],
+        medium: [15844367, "🟡"],
+        info: [3447003, "🔵"],
+        low: [3066993, "🔵"]
+      };
 
-          echo "files<<EOF" >> $GITHUB_OUTPUT
-          echo "$FILES" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+      const [color, emoji] = severityMap[sev] || severityMap["low"];
 
-      - name: Parse + Send
-        if: steps.files.outputs.files != ''
-        run: |
-          npm install axios
-
-          node <<'EOF'
-          const fs = require('fs');
-          const matter = require('gray-matter');
-          const axios = require('axios');
-
-          const files = `${{ steps.files.outputs.files }}`.trim().split('\n');
-
-          for (const file of files) {
-            console.log("Processing:", file);
-
-            const raw = fs.readFileSync(file, 'utf-8');
-            const { data, content } = matter(raw);
-
-            let title = data.title || "New Alert";
-            let sev = (data.severity || "low").toLowerCase();
-            let target = data.affected_systems || "Undisclosed";
-            let tlp = data.tlp || "N/A";
-            let actor = data.alert_type || "Undisclosed";
-            let tldr = data.tldr || "";
-
-            // 🔥 FIX: fallback TLDR properly
-            if (!tldr || tldr.trim() === "" || tldr === "...") {
-              tldr = content.replace(/\n/g, " ").slice(0, 300);
-            }
-
-            // Trim
-            title = title.slice(0, 200);
-            tldr = tldr.slice(0, 300);
-
-            const severityMap = {
-              critical: [15548997, "🚨"],
-              high: [15105570, "🟠"],
-              medium: [15844367, "🟡"],
-              info: [3447003, "🔵"],
-              low: [3066993, "🔵"]
-            };
-
-            const [color, emoji] = severityMap[sev] || severityMap["low"];
-
-            const payload = {
-              username: "0xprit3sh Intel",
-              avatar_url: "https://0xprit3sh.xyz/logo.png",
-              content: `${emoji} ALERT: ${title}`,
-              embeds: [{
-                color,
-                description:
+      const payload = {
+        username: "0xprit3sh Intel",
+        avatar_url: "https://0xprit3sh.xyz/logo.png",
+        content: `${emoji} ALERT: ${title}`,
+        embeds: [{
+          color,
+          description:
 `⚔️ Target: ${target}
 
 📖 TL;DR:
@@ -102,20 +59,19 @@ https://0xprit3sh.xyz
 📅 Date: ${new Date().toLocaleDateString()}
 
 ⚔️ Threat Actor: ${actor}`,
-                footer: {
-                  text: "Cyber Intelligence & Educational Purposes"
-                }
-              }]
-            };
-
-            try {
-              const res = await axios.post(process.env.DISCORD_WEBHOOK_URL, payload);
-              console.log("✅ Sent:", res.status);
-            } catch (err) {
-              console.error("❌ Error:", err.response?.data || err.message);
-              process.exit(1);
-            }
+          footer: {
+            text: "Cyber Intelligence & Educational Purposes"
           }
-          EOF
-        env:
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        }]
+      };
+
+      try {
+        const res = await axios.post(process.env.DISCORD_WEBHOOK_URL, payload);
+        console.log("✅ Sent:", res.status);
+      } catch (err) {
+        console.error("❌ Error:", err.response?.data || err.message);
+        process.exit(1);
+      }
+    }
+  })();
+  EOF
