@@ -13,26 +13,22 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
-
-      # 🔥 TEST webhook (remove later)
-      - name: Test Discord Webhook
+      - name: Install yq & jq
         run: |
-          curl -X POST -H "Content-Type: application/json" \
-          -d '{"content":"✅ Webhook test from GitHub Actions"}' \
-          "${{ secrets.DISCORD_WEBHOOK_URL }}"
+          sudo apt-get update
+          sudo apt-get install -y jq
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
 
-      - name: Get Changed Alert Files
+      - name: Get Changed Files
         id: files
         run: |
           FILES=$(jq -r '.commits[].added[]?, .commits[].modified[]?' "$GITHUB_EVENT_PATH" | grep '^content/alerts/' || true)
 
-          echo "Detected files:"
+          echo "FILES:"
           echo "$FILES"
 
           if [ -z "$FILES" ]; then
-            echo "No alert files found."
             echo "files=" >> $GITHUB_OUTPUT
             exit 0
           fi
@@ -41,42 +37,38 @@ jobs:
           echo "$FILES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Send Alerts to Discord
+      - name: Send Alerts
         if: steps.files.outputs.files != ''
         run: |
           while read -r FILE; do
-            echo "-----------------------------"
-            echo "Processing: $FILE"
+            echo "Processing $FILE"
 
-            # --- Extract fields (robust parsing) ---
-            TITLE=$(sed -n 's/^title:[[:space:]]*//p' "$FILE" | head -n1)
-            SEV=$(sed -n 's/^severity:[[:space:]]*//p' "$FILE" | tr '[:upper:]' '[:lower:]' | head -n1)
-            TARGET=$(sed -n 's/^affected_systems:[[:space:]]*//p' "$FILE" | head -n1)
-            TLP=$(sed -n 's/^tlp:[[:space:]]*//p' "$FILE" | head -n1)
-            ACTOR=$(sed -n 's/^alert_type:[[:space:]]*//p' "$FILE" | head -n1)
-            TLDR=$(sed -n 's/^tldr:[[:space:]]*//p' "$FILE" | head -n1)
+            # --- Extract FRONTMATTER only ---
+            FRONTMATTER=$(sed -n '/^---$/,/^---$/p' "$FILE" | sed '1d;$d')
 
-            # --- Defaults ---
-            TITLE=${TITLE:-"New Alert"}
-            SEV=${SEV:-"low"}
-            TARGET=${TARGET:-"Undisclosed"}
-            TLP=${TLP:-"N/A"}
-            ACTOR=${ACTOR:-"Undisclosed"}
+            # --- Parse safely using yq ---
+            TITLE=$(echo "$FRONTMATTER" | yq -r '.title // "New Alert"')
+            SEV=$(echo "$FRONTMATTER" | yq -r '.severity // "low"' | tr '[:upper:]' '[:lower:]')
+            TARGET=$(echo "$FRONTMATTER" | yq -r '.affected_systems // "Undisclosed"')
+            TLP=$(echo "$FRONTMATTER" | yq -r '.tlp // "N/A"')
+            ACTOR=$(echo "$FRONTMATTER" | yq -r '.alert_type // "Undisclosed"')
+            TLDR=$(echo "$FRONTMATTER" | yq -r '.tldr // ""')
 
-            # --- Fallback TLDR ---
-            if [ -z "$TLDR" ]; then
-              TLDR=$(sed '1,/---/d' "$FILE" | tr '\n' ' ' | head -c 300)
+            # --- Fallback TLDR from body ---
+            if [ -z "$TLDR" ] || [ "$TLDR" = "..." ]; then
+              TLDR=$(sed '1,/^---$/d' "$FILE" | sed '1,/^---$/d' | tr '\n' ' ' | head -c 300)
             fi
 
-            # --- Trim to Discord limits ---
+            # --- Trim for Discord limits ---
             TITLE=$(echo "$TITLE" | head -c 200)
             TLDR=$(echo "$TLDR" | head -c 300)
 
-            # --- Severity mapping ---
+            # --- Severity color ---
             case "$SEV" in
               "critical") COLOR=15548997; EMOJI="🚨";;
               "high")     COLOR=15105570; EMOJI="🟠";;
               "medium")   COLOR=15844367; EMOJI="🟡";;
+              "info")     COLOR=3447003;  EMOJI="🔵";;
               *)          COLOR=3066993;  EMOJI="🔵";;
             esac
 
@@ -100,28 +92,23 @@ jobs:
                 }]
               }')
 
-            echo "---- PAYLOAD ----"
-            echo "$PAYLOAD"
+            echo "Sending alert..."
 
-            # --- Send with FULL DEBUG ---
             RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}\n" \
               -X POST \
               -H "Content-Type: application/json" \
               -d "$PAYLOAD" \
               "${{ secrets.DISCORD_WEBHOOK_URL }}")
 
-            echo "---- DISCORD RESPONSE ----"
             echo "$RESPONSE"
-            echo "--------------------------"
 
-            # --- Fail if not successful ---
             STATUS=$(echo "$RESPONSE" | grep HTTP_STATUS | cut -d":" -f2)
 
             if [ "$STATUS" -ne 204 ]; then
-              echo "❌ Failed to send alert (HTTP $STATUS)"
+              echo "❌ Failed (HTTP $STATUS)"
               exit 1
             else
-              echo "✅ Alert sent successfully"
+              echo "✅ Sent"
             fi
 
           done <<< "${{ steps.files.outputs.files }}"
