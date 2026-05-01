@@ -13,12 +13,13 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Install yq & jq
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y jq
-          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-          sudo chmod +x /usr/local/bin/yq
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install gray-matter
+        run: npm install gray-matter
 
       - name: Get Changed Files
         id: files
@@ -37,101 +38,84 @@ jobs:
           echo "$FILES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Send Alerts
+      - name: Parse + Send
         if: steps.files.outputs.files != ''
         run: |
-          while read -r FILE; do
-            echo "-----------------------------"
-            echo "Processing: $FILE"
+          npm install axios
 
-            echo "------ RAW FILE ------"
-            cat "$FILE"
-            echo "----------------------"
+          node <<'EOF'
+          const fs = require('fs');
+          const matter = require('gray-matter');
+          const axios = require('axios');
 
-            # --- Extract FRONTMATTER safely ---
-            FRONTMATTER=$(awk 'BEGIN{p=0} /^---/{p++; next} p==1' "$FILE")
+          const files = `${{ steps.files.outputs.files }}`.trim().split('\n');
 
-            echo "------ FRONTMATTER ------"
-            echo "$FRONTMATTER"
-            echo "-------------------------"
+          for (const file of files) {
+            console.log("Processing:", file);
 
-            # --- Parse YAML ---
-            TITLE=$(echo "$FRONTMATTER" | yq -r '.title // "New Alert"')
-            SEV=$(echo "$FRONTMATTER" | yq -r '.severity // "low"' | tr '[:upper:]' '[:lower:]')
-            TARGET=$(echo "$FRONTMATTER" | yq -r '.affected_systems // "Undisclosed"')
-            TLP=$(echo "$FRONTMATTER" | yq -r '.tlp // "N/A"')
-            ACTOR=$(echo "$FRONTMATTER" | yq -r '.alert_type // "Undisclosed"')
-            TLDR=$(echo "$FRONTMATTER" | yq -r '.tldr // ""')
+            const raw = fs.readFileSync(file, 'utf-8');
+            const { data, content } = matter(raw);
 
-            # --- Normalize TLDR ---
-            TLDR=$(echo "$TLDR" | xargs)
+            let title = data.title || "New Alert";
+            let sev = (data.severity || "low").toLowerCase();
+            let target = data.affected_systems || "Undisclosed";
+            let tlp = data.tlp || "N/A";
+            let actor = data.alert_type || "Undisclosed";
+            let tldr = data.tldr || "";
 
-            # --- Fallback TLDR from body ---
-            if [ -z "$TLDR" ] || [ "$TLDR" = "null" ] || [ "$TLDR" = "..." ]; then
-              TLDR=$(awk 'BEGIN{p=0} /^---/{p++; next} p>=2' "$FILE" | tr '\n' ' ' | head -c 300)
-            fi
+            // 🔥 FIX: fallback TLDR properly
+            if (!tldr || tldr.trim() === "" || tldr === "...") {
+              tldr = content.replace(/\n/g, " ").slice(0, 300);
+            }
 
-            # --- Trim for Discord limits ---
-            TITLE=$(echo "$TITLE" | head -c 200)
-            TLDR=$(echo "$TLDR" | head -c 300)
+            // Trim
+            title = title.slice(0, 200);
+            tldr = tldr.slice(0, 300);
 
-            echo "Parsed TITLE: $TITLE"
-            echo "Parsed SEV: $SEV"
-            echo "Parsed TARGET: $TARGET"
-            echo "Parsed TLP: $TLP"
-            echo "Parsed ACTOR: $ACTOR"
-            echo "Parsed TLDR: $TLDR"
+            const severityMap = {
+              critical: [15548997, "🚨"],
+              high: [15105570, "🟠"],
+              medium: [15844367, "🟡"],
+              info: [3447003, "🔵"],
+              low: [3066993, "🔵"]
+            };
 
-            # --- Severity color ---
-            case "$SEV" in
-              "critical") COLOR=15548997; EMOJI="🚨";;
-              "high")     COLOR=15105570; EMOJI="🟠";;
-              "medium")   COLOR=15844367; EMOJI="🟡";;
-              "info")     COLOR=3447003;  EMOJI="🔵";;
-              *)          COLOR=3066993;  EMOJI="🔵";;
-            esac
+            const [color, emoji] = severityMap[sev] || severityMap["low"];
 
-            URL="https://0xprit3sh.xyz"
+            const payload = {
+              username: "0xprit3sh Intel",
+              avatar_url: "https://0xprit3sh.xyz/logo.png",
+              content: `${emoji} ALERT: ${title}`,
+              embeds: [{
+                color,
+                description:
+`⚔️ Target: ${target}
 
-            # --- Build JSON safely ---
-            PAYLOAD=$(jq -n \
-              --arg username "0xprit3sh Intel" \
-              --arg avatar "https://0xprit3sh.xyz/logo.png" \
-              --arg content "$EMOJI ALERT: $TITLE" \
-              --arg desc "⚔️ Target: $TARGET\n\n📖 TL;DR:\n> $TLDR\n\n🌐 Full Details:\n$URL\n\n🔎 Severity: ${SEV^^} | TLP: $TLP\n\n📅 Date: $(date +'%d-%m-%y')\n\n⚔️ Threat Actor: $ACTOR" \
-              --argjson color "$COLOR" \
-              '{
-                username: $username,
-                avatar_url: $avatar,
-                content: $content,
-                embeds: [{
-                  color: $color,
-                  description: $desc,
-                  footer: { text: "Cyber Intelligence & Educational Purposes" }
-                }]
-              }')
+📖 TL;DR:
+> ${tldr}
 
-            echo "---- PAYLOAD ----"
-            echo "$PAYLOAD"
+🌐 Full Details:
+https://0xprit3sh.xyz
 
-            # --- Send to Discord ---
-            RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}\n" \
-              -X POST \
-              -H "Content-Type: application/json" \
-              -d "$PAYLOAD" \
-              "${{ secrets.DISCORD_WEBHOOK_URL }}")
+🔎 Severity: ${sev.toUpperCase()} | TLP: ${tlp}
 
-            echo "---- DISCORD RESPONSE ----"
-            echo "$RESPONSE"
-            echo "--------------------------"
+📅 Date: ${new Date().toLocaleDateString()}
 
-            STATUS=$(echo "$RESPONSE" | grep HTTP_STATUS | cut -d":" -f2)
+⚔️ Threat Actor: ${actor}`,
+                footer: {
+                  text: "Cyber Intelligence & Educational Purposes"
+                }
+              }]
+            };
 
-            if [ "$STATUS" -ne 204 ]; then
-              echo "❌ Failed (HTTP $STATUS)"
-              exit 1
-            else
-              echo "✅ Alert sent successfully"
-            fi
-
-          done <<< "${{ steps.files.outputs.files }}"
+            try {
+              const res = await axios.post(process.env.DISCORD_WEBHOOK_URL, payload);
+              console.log("✅ Sent:", res.status);
+            } catch (err) {
+              console.error("❌ Error:", err.response?.data || err.message);
+              process.exit(1);
+            }
+          }
+          EOF
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
