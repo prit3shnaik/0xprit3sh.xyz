@@ -55,3 +55,136 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  notify-discord:
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: github.event_name == 'push'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Detect new alert and notify Discord
+        run: |
+          NEW=$(git diff HEAD~1 HEAD --name-only -- 'content/alerts/' | grep '\.md$' | grep -v '_index' | head -1)
+
+          if [ -z "$NEW" ]; then
+            echo "No new alert — skipping Discord notification"
+            exit 0
+          fi
+
+          echo "New alert: $NEW"
+
+          # Parse all frontmatter fields
+          TITLE=$(grep '^title:' "$NEW" | head -1 | sed 's/title:[[:space:]]*//' | tr -d '"'"'")
+          SEVERITY=$(grep '^severity:' "$NEW" | head -1 | sed 's/severity:[[:space:]]*//' | tr -d '"'"'")
+          TLDR=$(grep '^tldr:' "$NEW" | head -1 | sed 's/tldr:[[:space:]]*//' | tr -d '"'"'")
+          ALERT_TYPE=$(grep '^alert_type:' "$NEW" | head -1 | sed 's/alert_type:[[:space:]]*//' | tr -d '"'"'")
+          TLP=$(grep '^tlp:' "$NEW" | head -1 | sed 's/tlp:[[:space:]]*//' | tr -d '"'"'")
+          ACTIVE=$(grep '^active:' "$NEW" | head -1 | sed 's/active:[[:space:]]*//' | tr -d '"'"'")
+          TARGET=$(grep '^target:' "$NEW" | head -1 | sed 's/target:[[:space:]]*//' | tr -d '"'"'")
+          TARGET_LOC=$(grep '^target_location:' "$NEW" | head -1 | sed 's/target_location:[[:space:]]*//' | tr -d '"'"'")
+          TARGET_URL=$(grep '^target_url:' "$NEW" | head -1 | sed 's/target_url:[[:space:]]*//' | tr -d '"'"'")
+          THREAT_ACTOR=$(grep '^threat_actor:' "$NEW" | head -1 | sed 's/threat_actor:[[:space:]]*//' | tr -d '"'"'")
+          IOC=$(grep '^ioc:' "$NEW" | head -1 | sed 's/ioc:[[:space:]]*//' | tr -d '"'"'")
+          CVE=$(grep '^cve:' "$NEW" | head -1 | sed 's/cve:[[:space:]]*//' | tr -d '"'"'")
+          POC=$(grep '^poc_url:' "$NEW" | head -1 | sed 's/poc_url:[[:space:]]*//' | tr -d '"'"'")
+          SOURCE=$(grep '^source:' "$NEW" | head -1 | sed 's/source:[[:space:]]*//' | tr -d '"'"'")
+
+          SLUG=$(basename "$NEW" .md)
+          URL="https://0xprit3sh.xyz/alerts/${SLUG}/"
+
+          # Defaults
+          TITLE="${TITLE:-New Alert}"
+          SEVERITY="${SEVERITY:-info}"
+          TLP="${TLP:-WHITE}"
+          TLDR="${TLDR:-New threat intelligence alert posted.}"
+
+          # Severity → color + emoji
+          case "$(echo $SEVERITY | tr '[:upper:]' '[:lower:]')" in
+            critical) COLOR=16711748; EMOJI="🚨" ;;
+            high)     COLOR=15198183; EMOJI="⚠️" ;;
+            medium)   COLOR=52479;    EMOJI="🔔" ;;
+            *)        COLOR=6052956;  EMOJI="ℹ️" ;;
+          esac
+
+          # Build fields — Discord-style like your manual posts
+          FIELDS='[]'
+
+          if [ -n "$TARGET" ]; then
+            FIELDS=$(echo "$FIELDS" | jq --arg n "🎯 Target" --arg v "$TARGET" '. + [{"name":$n,"value":$v,"inline":true}]')
+          fi
+
+          if [ -n "$TARGET_LOC" ]; then
+            FIELDS=$(echo "$FIELDS" | jq --arg n "🌍 Location" --arg v "$TARGET_LOC" '. + [{"name":$n,"value":$v,"inline":true}]')
+          fi
+
+          if [ -n "$THREAT_ACTOR" ]; then
+            FIELDS=$(echo "$FIELDS" | jq --arg n "☠️ Threat Actor" --arg v "$THREAT_ACTOR" '. + [{"name":$n,"value":"**$THREAT_ACTOR**","inline":true}]')
+            FIELDS=$(echo "$FIELDS" | jq --arg n "☠️ Threat Actor" --arg v "$THREAT_ACTOR" 'map(if .name == "☠️ Threat Actor" then .value = $v else . end)')
+          fi
+
+          if [ -n "$IOC" ]; then
+            FIELDS=$(echo "$FIELDS" | jq --arg n "🎯 IOC" --arg v "\`$IOC\`" '. + [{"name":$n,"value":$v,"inline":true}]')
+          fi
+
+          if [ -n "$CVE" ]; then
+            FIELDS=$(echo "$FIELDS" | jq --arg n "⚡ CVE" --arg v "\`$CVE\`" '. + [{"name":$n,"value":$v,"inline":true}]')
+          fi
+
+          if [ -n "$TARGET_URL" ]; then
+            FIELDS=$(echo "$FIELDS" | jq --arg n "🌐 Target Website" --arg v "$TARGET_URL" '. + [{"name":$n,"value":$v,"inline":false}]')
+          fi
+
+          if [ -n "$POC" ]; then
+            FIELDS=$(echo "$FIELDS" | jq --arg n "🔍 POC / Mirror" --arg v "$POC" '. + [{"name":$n,"value":$v,"inline":false}]')
+          fi
+
+          if [ "$ACTIVE" = "true" ]; then
+            FIELDS=$(echo "$FIELDS" | jq '. + [{"name":"🔴 Status","value":"**ACTIVE THREAT**","inline":true}]')
+          fi
+
+          FIELDS=$(echo "$FIELDS" | jq --arg v "$URL" '. + [{"name":"📖 Read Full Alert","value":$v,"inline":false}]')
+
+          # Build payload
+          PAYLOAD=$(jq -n \
+            --arg username "0xprit3sh Intel" \
+            --arg avatar "https://0xprit3sh.xyz/images/logo.png" \
+            --arg title "$EMOJI $TITLE" \
+            --arg desc "$TLDR" \
+            --argjson color "$COLOR" \
+            --argjson fields "$FIELDS" \
+            --arg footer "$(echo $SEVERITY | tr '[:lower:]' '[:upper:]') · TLP:$TLP · ${ALERT_TYPE:-General} · 0xprit3sh.xyz" \
+            --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            '{
+              username: $username,
+              avatar_url: $avatar,
+              content: "@everyone",
+              embeds: [{
+                title: $title,
+                description: $desc,
+                color: $color,
+                fields: $fields,
+                footer: { text: $footer },
+                timestamp: $ts
+              }]
+            }')
+
+          echo "Sending to Discord..."
+          HTTP=$(curl -s -o /tmp/discord_resp.txt -w "%{http_code}" \
+            -X POST "${{ secrets.DISCORD_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD")
+
+          if [ "$HTTP" = "204" ]; then
+            echo "✓ Discord notification sent"
+          else
+            echo "✗ Failed: $HTTP"
+            cat /tmp/discord_resp.txt
+            exit 1
+          fi
