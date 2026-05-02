@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="en" id="html-root">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kitsune — CTI Investigation Platform</title>
+<meta name="description" content="Kitsune CTI Platform by 0xprit3sh — browser-based threat intelligence investigation tool">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+:root {
+  --bg:#090909;--bg2:#0f0f0f;--bg3:#161616;--bg4:#1c1c1c;
+  --border:#1e1e1e;--border2:#2a2a2a;
+  --text:#e6edf3;--text2:#8b949e;--dim:#484f58;
+  --accent:#00ff41;--adim:rgba(0,255,65,.08);
+  --accent2:#00d4ff;--red:#ff4444;--yellow:#e8c547;
+  --blue:#58a6ff;--purple:#bc8cff;--orange:#f0883e;
+  --font:'JetBrains Mono',monospace;
+  --hh:48px;--sw:240px;--dw:280px;
+}
+html.light {
+  --bg:#f0f0eb;--bg2:#fff;--bg3:#e8e8e2;--bg4:#ddd;
+  --border:#d0d0c8;--border2:#b8b8b0;
+  --text:#1a1a1a;--text2:#555;--dim:#888;
+  --accent:#007a1e;--adim:rgba(0,122,30,.08);--accent2:#0066cc;
+}
+*{box-sizing:border-box;margin:0;padding:0;transition:background .15s,color .15s,border-color .15s}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13px;height:100vh;overflow:hidden;display:grid;grid-template-rows:var(--hh) 1fr}
+a{color:var(--accent2);text-decoration:none}
+button{cursor:pointer;font-family:var(--font)}
+input,textarea,select{font-family:var(--font);background:var(--bg3);border:1px solid var(--border2);color:var(--text);border-radius:3px;outline:none;transition:border-color .15s}
+input:focus,textarea:focus,select:focus{border-color:var(--accent)}
+input::placeholder,textarea::placeholder{color:var(--dim)}
+select option{background:var(--bg2)}
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-thumb{background:var(--border2)}
+
+/* ── HEADER ── */
+.hdr{background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 12px;gap:8px;z-index:100}
+.hdr-logo{display:flex;align-items:center;gap:7px;color:var(--accent);font-weight:700;font-size:.85rem;margin-right:8px;flex-shrink:0}
+.hdr-logo-icon{font-size:1.1rem}
+.hdr-case-select{background:var(--bg3);border:1px solid var(--border2);color:var(--text);font-size:.72rem;padding:4px 8px;border-radius:3px;max-width:180px}
+.hdr-btn{background:none;border:1px solid var(--border2);color:var(--dim);font-size:.68rem;padding:4px 10px;border-radius:3px;transition:all .15s}
+.hdr-btn:hover{border-color:var(--accent);color:var(--accent)}
+.hdr-btn.primary{background:var(--accent);border-color:var(--accent);color:#000;font-weight:700}
+.hdr-btn.primary:hover{opacity:.85;color:#000}
+.hdr-btn.danger{border-color:var(--red);color:var(--red)}
+.hdr-sep{width:1px;height:20px;background:var(--border);margin:0 4px;flex-shrink:0}
+.hdr-right{margin-left:auto;display:flex;gap:6px;align-items:center}
+.hdr-status{font-size:.65rem;color:var(--dim);background:var(--bg3);border:1px solid var(--border);padding:3px 8px;border-radius:2px}
+.hdr-status.saved{color:var(--accent);border-color:rgba(0,255,65,.2)}
+
+/* ── MAIN ── */
+.main{display:grid;grid-template-columns:var(--sw) 1fr var(--dw);overflow:hidden}
+
+/* ── LEFT SIDEBAR ── */
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.sb-section{flex-shrink:0;border-bottom:1px solid var(--border)}
+.sb-title{padding:8px 10px;font-size:.65rem;color:var(--dim);letter-spacing:.06em;display:flex;align-items:center;justify-content:space-between}
+.sb-add{background:none;border:none;color:var(--dim);font-size:.8rem;line-height:1;padding:0 2px;transition:color .15s}
+.sb-add:hover{color:var(--accent)}
+.sb-list{overflow-y:auto;max-height:180px}
+.sb-item{display:flex;align-items:center;gap:6px;padding:6px 10px;font-size:.75rem;cursor:pointer;transition:background .1s;border-bottom:1px solid var(--border)}
+.sb-item:last-child{border-bottom:none}
+.sb-item:hover{background:var(--bg3)}
+.sb-item.active{background:var(--bg3);border-left:2px solid var(--accent)}
+.sb-item-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.sb-item-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
+.sb-item-badge{font-size:.58rem;color:var(--dim);background:var(--bg4);padding:1px 4px;border-radius:2px;flex-shrink:0}
+.sb-item-del{color:var(--dim);font-size:.7rem;padding:0 2px;background:none;border:none;opacity:0;transition:opacity .15s}
+.sb-item:hover .sb-item-del{opacity:1}
+.sb-item-del:hover{color:var(--red)}
+.entity-types{padding:8px 10px;display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.et-btn{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-size:.62rem;padding:5px 4px;border-radius:3px;text-align:center;transition:all .15s}
+.et-btn:hover{border-color:var(--accent2);color:var(--accent2)}
+.sb-entities{overflow-y:auto;flex:1}
+
+/* ── CANVAS ── */
+.canvas{display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+.canvas-tabs{background:var(--bg2);border-bottom:1px solid var(--border);display:flex;gap:0;flex-shrink:0}
+.cv-tab{background:none;border:none;border-bottom:2px solid transparent;color:var(--dim);font-size:.75rem;padding:10px 16px;transition:all .15s}
+.cv-tab:hover{color:var(--text)}
+.cv-tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+.cv-panel{display:none;flex:1;overflow:hidden;position:relative}
+.cv-panel.on{display:flex;flex-direction:column}
+
+/* Graph panel */
+.graph-toolbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:6px 10px;display:flex;gap:6px;align-items:center;flex-shrink:0;flex-wrap:wrap}
+.gt-btn{background:none;border:1px solid var(--border2);color:var(--dim);font-size:.65rem;padding:3px 8px;border-radius:3px;transition:all .15s}
+.gt-btn:hover{border-color:var(--accent);color:var(--accent)}
+.gt-btn.on{border-color:var(--accent2);color:var(--accent2);background:rgba(0,212,255,.06)}
+.graph-area{flex:1;position:relative;overflow:hidden}
+.graph-svg{width:100%;height:100%;cursor:grab}
+.graph-svg:active{cursor:grabbing}
+.graph-empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--dim);font-size:.8rem;pointer-events:none;gap:8px}
+.graph-empty-icon{font-size:2rem;opacity:.15}
+
+/* Timeline panel */
+.timeline-wrap{flex:1;overflow-y:auto;padding:1rem}
+.tl-add-form{background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:.75rem;margin-bottom:1rem;display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end}
+.tl-form-group{display:flex;flex-direction:column;gap:3px}
+.tl-label{font-size:.65rem;color:var(--dim)}
+.tl-input{padding:5px 8px;font-size:.75rem;border-radius:3px;width:100%}
+.tl-events{display:flex;flex-direction:column;gap:0}
+.tl-event{display:grid;grid-template-columns:100px 12px 1fr;gap:12px;padding:8px 0;align-items:start}
+.tl-date{font-size:.7rem;color:var(--dim);text-align:right;padding-top:2px}
+.tl-dot-col{display:flex;flex-direction:column;align-items:center;gap:0}
+.tl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.tl-line{width:1px;flex:1;background:var(--border);margin-top:2px;min-height:20px}
+.tl-card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:.5rem .75rem;margin-bottom:4px}
+.tl-card-title{font-size:.78rem;color:var(--text);font-weight:700;margin-bottom:2px}
+.tl-card-desc{font-size:.72rem;color:var(--text2)}
+.tl-card-type{font-size:.6rem;color:var(--dim);margin-top:4px}
+.tl-empty{color:var(--dim);font-size:.78rem;text-align:center;padding:2rem 0}
+
+/* Evidence panel */
+.evidence-wrap{flex:1;overflow-y:auto;padding:1rem}
+.ev-add-form{background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:.75rem;margin-bottom:1rem}
+.ev-form-row{display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:6px}
+.ev-textarea{width:100%;padding:6px 8px;font-size:.75rem;resize:vertical;min-height:60px;border-radius:3px}
+.ev-items{display:flex;flex-direction:column;gap:8px}
+.ev-item{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:.75rem}
+.ev-item-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem}
+.ev-item-tag{font-size:.6rem;padding:2px 6px;border-radius:2px;background:var(--bg3);color:var(--dim);border:1px solid var(--border2)}
+.ev-item-date{font-size:.62rem;color:var(--dim)}
+.ev-item-del{background:none;border:none;color:var(--dim);font-size:.7rem}
+.ev-item-del:hover{color:var(--red)}
+.ev-item-content{font-size:.75rem;color:var(--text2);line-height:1.6;white-space:pre-wrap;word-break:break-all}
+.ev-empty{color:var(--dim);font-size:.78rem;text-align:center;padding:2rem 0}
+
+/* Report panel */
+.report-wrap{flex:1;overflow-y:auto;padding:1rem}
+.report-preview{background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:1.5rem;margin-bottom:1rem;font-size:.78rem;line-height:1.8}
+.rp-title{font-size:1.1rem;font-weight:700;color:var(--accent);margin-bottom:.5rem}
+.rp-meta{font-size:.7rem;color:var(--dim);margin-bottom:1rem;padding-bottom:.75rem;border-bottom:1px solid var(--border)}
+.rp-section{margin-bottom:1rem}
+.rp-section-title{font-size:.75rem;color:var(--accent2);font-weight:700;margin-bottom:.4rem;letter-spacing:.05em}
+.rp-table{width:100%;border-collapse:collapse;font-size:.72rem}
+.rp-table th{background:var(--bg3);color:var(--dim);padding:4px 8px;text-align:left;font-size:.65rem;border:1px solid var(--border)}
+.rp-table td{padding:4px 8px;border:1px solid var(--border);color:var(--text2);word-break:break-all}
+.rp-ioc{background:var(--bg3);color:var(--orange);padding:1px 5px;border-radius:2px;font-size:.7rem}
+
+/* ── DETAIL PANEL ── */
+.detail{background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.detail-hdr{padding:10px 12px;border-bottom:1px solid var(--border);font-size:.72rem;color:var(--accent);font-weight:700;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.detail-body{flex:1;overflow-y:auto;padding:10px}
+.detail-empty{color:var(--dim);font-size:.75rem;padding:.5rem 0}
+.detail-type{font-size:.62rem;font-weight:700;padding:2px 6px;border-radius:2px;margin-bottom:.5rem;display:inline-block}
+.detail-name{font-size:.95rem;color:var(--text);font-weight:700;margin-bottom:.75rem;word-break:break-all}
+.detail-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:.72rem;gap:6px}
+.detail-row:last-of-type{border-bottom:none}
+.detail-key{color:var(--dim);flex-shrink:0}
+.detail-val{color:var(--text);text-align:right;word-break:break-all}
+.detail-notes{margin-top:.75rem;padding:.5rem;background:var(--bg3);border-radius:4px;font-size:.72rem;color:var(--text2);line-height:1.6}
+.detail-actions{padding:10px 12px;border-top:1px solid var(--border);display:flex;gap:6px;flex-shrink:0}
+.da-btn{flex:1;background:none;border:1px solid var(--border2);color:var(--dim);font-size:.68rem;padding:5px;border-radius:3px;transition:all .15s}
+.da-btn:hover{border-color:var(--accent);color:var(--accent)}
+.da-btn.red:hover{border-color:var(--red);color:var(--red)}
+
+/* ── MODALS ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:1.25rem;width:min(480px,90vw);box-shadow:0 20px 60px rgba(0,0,0,.6);max-height:85vh;overflow-y:auto}
+.modal-title{font-size:.9rem;font-weight:700;color:var(--text);margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center}
+.modal-close{background:none;border:none;color:var(--dim);font-size:1.1rem;line-height:1;padding:0 2px}
+.modal-close:hover{color:var(--text)}
+.form-group{margin-bottom:.75rem}
+.form-label{font-size:.7rem;color:var(--dim);margin-bottom:3px;display:block}
+.form-input{width:100%;padding:6px 9px;font-size:.78rem;border-radius:3px}
+.form-select{width:100%;padding:6px 9px;font-size:.78rem;border-radius:3px}
+.form-textarea{width:100%;padding:6px 9px;font-size:.78rem;border-radius:3px;resize:vertical;min-height:70px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.modal-actions{display:flex;gap:8px;margin-top:1rem}
+.modal-btn{flex:1;background:none;border:1px solid var(--border2);color:var(--dim);font-size:.75rem;padding:7px;border-radius:3px;transition:all .15s}
+.modal-btn:hover{border-color:var(--accent);color:var(--accent)}
+.modal-btn.primary{background:var(--accent);border-color:var(--accent);color:#000;font-weight:700}
+.modal-btn.primary:hover{opacity:.85;color:#000}
+.color-swatches{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px}
+.swatch{width:22px;height:22px;border-radius:3px;cursor:pointer;border:2px solid transparent;transition:border-color .15s}
+.swatch:hover,.swatch.on{border-color:var(--text)}
+
+/* ── TLP BADGES ── */
+.tlp-red{background:#ff4444;color:#fff;padding:1px 5px;border-radius:2px;font-size:.6rem;font-weight:700}
+.tlp-amber{background:#e8c547;color:#000;padding:1px 5px;border-radius:2px;font-size:.6rem;font-weight:700}
+.tlp-green{background:#27c93f;color:#000;padding:1px 5px;border-radius:2px;font-size:.6rem;font-weight:700}
+.tlp-white{background:var(--bg3);color:var(--text2);border:1px solid var(--border2);padding:1px 5px;border-radius:2px;font-size:.6rem;font-weight:700}
+
+/* ── ENTITY TYPE COLORS ── */
+.et-ip{color:#ff4444}.et-domain{color:#58a6ff}.et-wallet{color:#bc8cff}
+.et-actor{color:#e8c547}.et-email{color:#f0883e}.et-hash{color:#00d4ff}
+.et-url{color:#27c93f}.et-org{color:#8b949e}
+
+/* ── MINI STATS ── */
+.stats-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:4px 12px;display:flex;gap:12px;font-size:.65rem;color:var(--dim);flex-shrink:0}
+.stat-item{display:flex;align-items:center;gap:4px}
+.stat-n{color:var(--text2);font-weight:700}
+</style>
+</head>
+<body>
+
+<!-- ══ HEADER ══ -->
+<header class="hdr">
+  <div class="hdr-logo">
+    <span class="hdr-logo-icon">⬡</span>
+    <span>Kitsune</span>
+  </div>
+  <div class="hdr-sep"></div>
+  <select class="hdr-case-select" id="case-select" onchange="switchCase(this.value)">
+    <option value="">— select case —</option>
+  </select>
+  <button class="hdr-btn primary" onclick="openModal('case-modal')">+ new case</button>
+  <button class="hdr-btn" onclick="importData()">import</button>
+  <button class="hdr-btn" onclick="exportData()">export</button>
+  <div class="hdr-sep"></div>
+  <button class="hdr-btn" onclick="generateReport()">📄 report</button>
+  <div class="hdr-right">
+    <span class="hdr-status" id="save-status">ready</span>
+    <a href="/" style="font-size:.68rem;color:var(--dim);border:1px solid var(--border2);padding:3px 8px;border-radius:3px">← site</a>
+    <button class="hdr-btn" id="theme-btn" onclick="toggleTheme()">[ light ]</button>
+  </div>
+</header>
+
+<!-- ══ MAIN ══ -->
+<div class="main">
+
+  <!-- LEFT SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-section">
+      <div class="sb-title">
+        <span>CASES</span>
+        <button class="sb-add" onclick="openModal('case-modal')" title="New case">+</button>
+      </div>
+      <div class="sb-list" id="cases-list"></div>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-title"><span>ADD ENTITY</span></div>
+      <div class="entity-types">
+        <button class="et-btn" onclick="openEntityModal('ip')">● IP</button>
+        <button class="et-btn" onclick="openEntityModal('domain')">◎ Domain</button>
+        <button class="et-btn" onclick="openEntityModal('actor')">◈ Actor</button>
+        <button class="et-btn" onclick="openEntityModal('wallet')">⬡ Wallet</button>
+        <button class="et-btn" onclick="openEntityModal('email')">✉ Email</button>
+        <button class="et-btn" onclick="openEntityModal('hash')">⌗ Hash</button>
+        <button class="et-btn" onclick="openEntityModal('url')">↗ URL</button>
+        <button class="et-btn" onclick="openEntityModal('org')">🏢 Org</button>
+      </div>
+    </div>
+
+    <div class="sb-section" style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+      <div class="sb-title">
+        <span>ENTITIES (<span id="entity-count">0</span>)</span>
+        <input type="text" style="font-size:.62rem;padding:2px 5px;width:90px;border-radius:2px" placeholder="filter..." oninput="filterEntities(this.value)">
+      </div>
+      <div class="sb-entities" id="entities-list"></div>
+    </div>
+  </aside>
+
+  <!-- CANVAS -->
+  <main class="canvas">
+    <div class="stats-bar" id="stats-bar">
+      <span class="stat-item">case: <span class="stat-n" id="stat-case">none</span></span>
+      <span class="stat-item">entities: <span class="stat-n" id="stat-entities">0</span></span>
+      <span class="stat-item">nodes: <span class="stat-n" id="stat-nodes">0</span></span>
+      <span class="stat-item">edges: <span class="stat-n" id="stat-edges">0</span></span>
+      <span class="stat-item">timeline: <span class="stat-n" id="stat-events">0</span></span>
+      <span class="stat-item">evidence: <span class="stat-n" id="stat-evidence">0</span></span>
+    </div>
+    <div class="canvas-tabs">
+      <button class="cv-tab on" onclick="switchTab('graph',this)">⬡ Graph</button>
+      <button class="cv-tab" onclick="switchTab('timeline',this)">⏱ Timeline</button>
+      <button class="cv-tab" onclick="switchTab('evidence',this)">📋 Evidence</button>
+      <button class="cv-tab" onclick="switchTab('report',this)">📄 Report</button>
+    </div>
+
+    <!-- Graph -->
+    <div class="cv-panel on" id="panel-graph">
+      <div class="graph-toolbar">
+        <button class="gt-btn" onclick="addSelectedToGraph()">+ add to graph</button>
+        <button class="gt-btn" onclick="autoLayout()">auto layout</button>
+        <button class="gt-btn" onclick="resetZoom()">fit</button>
+        <button class="gt-btn" onclick="clearGraph()">clear graph</button>
+        <div class="hdr-sep"></div>
+        <button class="gt-btn on" id="mode-select" onclick="setGraphMode('select')">select</button>
+        <button class="gt-btn" id="mode-edge" onclick="setGraphMode('edge')">draw edge</button>
+        <div class="hdr-sep"></div>
+        <span style="font-size:.65rem;color:var(--dim)" id="graph-hint">add entities from sidebar → add to graph</span>
+      </div>
+      <div class="graph-area" id="graph-area">
+        <svg class="graph-svg" id="graph-svg"></svg>
+        <div class="graph-empty" id="graph-empty">
+          <div class="graph-empty-icon">⬡</div>
+          <div>select a case and add entities to start investigating</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timeline -->
+    <div class="cv-panel" id="panel-timeline">
+      <div class="timeline-wrap">
+        <div class="tl-add-form" id="tl-form">
+          <div class="tl-form-group">
+            <label class="tl-label">date</label>
+            <input type="date" class="tl-input form-input" id="tl-date">
+          </div>
+          <div class="tl-form-group">
+            <label class="tl-label">event type</label>
+            <select class="tl-input form-select" id="tl-type">
+              <option>IOC Detected</option>
+              <option>Infrastructure</option>
+              <option>Actor Activity</option>
+              <option>Financial</option>
+              <option>Malware</option>
+              <option>Attribution</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="tl-form-group" style="grid-column:1/-1">
+            <label class="tl-label">description</label>
+            <input type="text" class="tl-input form-input" id="tl-desc" placeholder="What happened?">
+          </div>
+          <button class="modal-btn primary" style="grid-column:1/-1" onclick="addTimelineEvent()">+ add event</button>
+        </div>
+        <div class="tl-events" id="tl-events">
+          <div class="tl-empty">no events yet — add the first timeline entry above</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Evidence -->
+    <div class="cv-panel" id="panel-evidence">
+      <div class="evidence-wrap">
+        <div class="ev-add-form">
+          <div class="ev-form-row">
+            <select class="form-select" id="ev-tag" style="font-size:.75rem;padding:5px 8px">
+              <option>Raw IOC</option>
+              <option>WHOIS Data</option>
+              <option>Shodan Result</option>
+              <option>Paste/Forum</option>
+              <option>Screenshot URL</option>
+              <option>Network Log</option>
+              <option>Stealer Log</option>
+              <option>Note</option>
+            </select>
+            <button class="modal-btn primary" onclick="addEvidence()" style="flex:none;padding:5px 14px">+ add</button>
+          </div>
+          <textarea class="ev-textarea form-input" id="ev-content" placeholder="paste raw data, notes, IOCs, WHOIS output, URLs..."></textarea>
+        </div>
+        <div class="ev-items" id="ev-items">
+          <div class="ev-empty">no evidence yet — paste raw data above</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Report -->
+    <div class="cv-panel" id="panel-report">
+      <div class="report-wrap">
+        <div style="display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap">
+          <button class="hdr-btn primary" onclick="downloadReport()">download HTML report</button>
+          <button class="hdr-btn" onclick="copyReport()">copy as markdown</button>
+        </div>
+        <div class="report-preview" id="report-preview">
+          <div style="color:var(--dim);font-size:.78rem">select a case to generate report</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- DETAIL PANEL -->
+  <aside class="detail">
+    <div class="detail-hdr">
+      <span>// entity detail</span>
+      <button class="hdr-btn" onclick="closeDetail()" style="font-size:.65rem">×</button>
+    </div>
+    <div class="detail-body" id="detail-body">
+      <div class="detail-empty">click any entity or graph node to inspect</div>
+    </div>
+    <div class="detail-actions" id="detail-actions" style="display:none">
+      <button class="da-btn" onclick="addDetailToGraph()">add to graph</button>
+      <button class="da-btn" onclick="editDetailEntity()">edit</button>
+      <button class="da-btn red" onclick="deleteDetailEntity()">delete</button>
+    </div>
+  </aside>
+</div>
+
+<!-- ══ MODALS ══ -->
+
+<!-- New Case -->
+<div class="modal-overlay" id="case-modal">
+  <div class="modal">
+    <div class="modal-title">
+      <span>New Investigation Case</span>
+      <button class="modal-close" onclick="closeModal('case-modal')">×</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">case name</label>
+      <input class="form-input" id="case-name" placeholder="e.g. C2 Infrastructure Mapping — APT29">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">priority</label>
+        <select class="form-select" id="case-priority">
+          <option value="critical">Critical</option>
+          <option value="high">High</option>
+          <option value="medium" selected>Medium</option>
+          <option value="low">Low</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">status</label>
+        <select class="form-select" id="case-status">
+          <option value="active">Active</option>
+          <option value="monitoring">Monitoring</option>
+          <option value="closed">Closed</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">description</label>
+      <textarea class="form-textarea" id="case-desc" placeholder="Brief description of the investigation..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">tags (comma separated)</label>
+      <input class="form-input" id="case-tags" placeholder="APT, C2, ransomware, defi...">
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn" onclick="closeModal('case-modal')">cancel</button>
+      <button class="modal-btn primary" onclick="createCase()">create case</button>
+    </div>
+  </div>
+</div>
+
+<!-- New Entity -->
+<div class="modal-overlay" id="entity-modal">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="entity-modal-title">Add Entity</span>
+      <button class="modal-close" onclick="closeModal('entity-modal')">×</button>
+    </div>
+    <input type="hidden" id="entity-type-hidden">
+    <input type="hidden" id="entity-edit-id">
+    <div class="form-group">
+      <label class="form-label">value / label</label>
+      <input class="form-input" id="entity-value" placeholder="e.g. 192.168.1.1 or c2.evil.com">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">TLP</label>
+        <select class="form-select" id="entity-tlp">
+          <option value="WHITE">WHITE</option>
+          <option value="GREEN">GREEN</option>
+          <option value="AMBER">AMBER</option>
+          <option value="RED">RED</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">IOC?</label>
+        <select class="form-select" id="entity-ioc">
+          <option value="yes">Yes — confirmed IOC</option>
+          <option value="suspected">Suspected</option>
+          <option value="no">No</option>
+        </select>
+      </div>
+    </div>
+    <div id="entity-extra-fields"></div>
+    <div class="form-group">
+      <label class="form-label">confidence (0-100)</label>
+      <input class="form-input" id="entity-confidence" type="number" min="0" max="100" value="80" placeholder="80">
+    </div>
+    <div class="form-group">
+      <label class="form-label">notes</label>
+      <textarea class="form-textarea" id="entity-notes" placeholder="Investigation notes about this entity..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">node color</label>
+      <div class="color-swatches" id="color-swatches">
+        <div class="swatch on" style="background:#ff4444" data-color="#ff4444" onclick="selectColor(this)"></div>
+        <div class="swatch" style="background:#58a6ff" data-color="#58a6ff" onclick="selectColor(this)"></div>
+        <div class="swatch" style="background:#bc8cff" data-color="#bc8cff" onclick="selectColor(this)"></div>
+        <div class="swatch" style="background:#e8c547" data-color="#e8c547" onclick="selectColor(this)"></div>
+        <div class="swatch" style="background:#f0883e" data-color="#f0883e" onclick="selectColor(this)"></div>
+        <div class="swatch" style="background:#00d4ff" data-color="#00d4ff" onclick="selectColor(this)"></div>
+        <div class="swatch" style="background:#00ff41" data-color="#00ff41" onclick="selectColor(this)"></div>
+        <div class="swatch" style="background:#484f58" data-color="#484f58" onclick="selectColor(this)"></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn" onclick="closeModal('entity-modal')">cancel</button>
+      <button class="modal-btn primary" onclick="saveEntity()">save entity</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+let state = {
+  cases: {},
+  currentCase: null,
+  selectedEntity: null,
+  graphMode: 'select',
+  edgeFrom: null,
+};
+
+const TYPE_COLORS = {
+  ip:'#ff4444', domain:'#58a6ff', wallet:'#bc8cff', actor:'#e8c547',
+  email:'#f0883e', hash:'#00d4ff', url:'#27c93f', org:'#8b949e'
+};
+const TYPE_EXTRA = {
+  ip: [['asn','ASN','AS14618'],['country','Country','US'],['org','Organization','']],
+  domain: [['registrar','Registrar',''],['created','Created',''],['ns','Nameserver','']],
+  wallet: [['chain','Chain','ETH'],['balance','Balance',''],['exchange','Exchange','']],
+  actor: [['aliases','Aliases',''],['origin','Origin',''],['motivation','Motivation','']],
+  email: [['provider','Provider',''],['breach','Found in breach?','']],
+  hash: [['algo','Algorithm','SHA256'],['malware','Malware family',''],['vt','VT detections','']],
+  url: [['status','Status',''],['redirect','Redirects to','']],
+  org: [['industry','Industry',''],['country','Country','']],
+};
+
+// ═══════════════════════════════════════════════════════════
+// PERSISTENCE
+// ═══════════════════════════════════════════════════════════
+function save() {
+  try {
+    localStorage.setItem('kitsune_state', JSON.stringify(state));
+    const el = document.getElementById('save-status');
+    el.textContent = 'saved ' + new Date().toLocaleTimeString();
+    el.className = 'hdr-status saved';
+    setTimeout(() => { el.textContent = 'ready'; el.className = 'hdr-status'; }, 2000);
+  } catch(e) { console.error('save error', e); }
+}
+function load() {
+  try {
+    const raw = localStorage.getItem('kitsune_state');
+    if (raw) {
+      const loaded = JSON.parse(raw);
+      state.cases = loaded.cases || {};
+      state.currentCase = loaded.currentCase || null;
+    }
+  } catch(e) { state.cases = {}; }
+}
+
+// ═══════════════════════════════════════════════════════════
+// THEME
+// ═══════════════════════════════════════════════════════════
+function toggleTheme() {
+  const light = document.getElementById('html-root').classList.toggle('light');
+  document.getElementById('theme-btn').textContent = light ? '[ dark ]' : '[ light ]';
+  localStorage.setItem('kitsune_theme', light ? 'light' : 'dark');
+  renderGraph();
+}
+if (localStorage.getItem('kitsune_theme') === 'light') {
+  document.getElementById('html-root').classList.add('light');
+  document.getElementById('theme-btn').textContent = '[ dark ]';
+}
+
+// ═══════════════════════════════════════════════════════════
+// MODALS
+// ═══════════════════════════════════════════════════════════
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.open').forEach(o => o.classList.remove('open'));
+});
+
+// ═══════════════════════════════════════════════════════════
+// CASES
+// ═══════════════════════════════════════════════════════════
+function createCase() {
+  const name = document.getElementById('case-name').value.trim();
+  if (!name) { alert('Enter a case name'); return; }
+  const id = 'case_' + Date.now();
+  state.cases[id] = {
+    id, name,
+    priority: document.getElementById('case-priority').value,
+    status: document.getElementById('case-status').value,
+    desc: document.getElementById('case-desc').value.trim(),
+    tags: document.getElementById('case-tags').value.split(',').map(t=>t.trim()).filter(Boolean),
+    created: new Date().toISOString(),
+    entities: {},
+    graph: { nodes: [], edges: [] },
+    timeline: [],
+    evidence: [],
+  };
+  state.currentCase = id;
+  closeModal('case-modal');
+  document.getElementById('case-name').value = '';
+  document.getElementById('case-desc').value = '';
+  document.getElementById('case-tags').value = '';
+  save();
+  renderAll();
+}
+function switchCase(id) {
+  state.currentCase = id || null;
+  state.selectedEntity = null;
+  save();
+  renderAll();
+}
+function deleteCase(id, e) {
+  e.stopPropagation();
+  if (!confirm('Delete this case and all its data?')) return;
+  delete state.cases[id];
+  if (state.currentCase === id) state.currentCase = null;
+  save(); renderAll();
+}
+
+function getCase() { return state.currentCase ? state.cases[state.currentCase] : null; }
+
+// ═══════════════════════════════════════════════════════════
+// ENTITIES
+// ═══════════════════════════════════════════════════════════
+let selectedColor = '#ff4444';
+function selectColor(el) {
+  document.querySelectorAll('.swatch').forEach(s => s.classList.remove('on'));
+  el.classList.add('on');
+  selectedColor = el.dataset.color;
+}
+function openEntityModal(type) {
+  if (!getCase()) { alert('Select or create a case first'); return; }
+  document.getElementById('entity-modal-title').textContent = 'Add ' + type.charAt(0).toUpperCase() + type.slice(1);
+  document.getElementById('entity-type-hidden').value = type;
+  document.getElementById('entity-edit-id').value = '';
+  document.getElementById('entity-value').value = '';
+  document.getElementById('entity-tlp').value = 'WHITE';
+  document.getElementById('entity-ioc').value = 'suspected';
+  document.getElementById('entity-notes').value = '';
+  document.getElementById('entity-confidence').value = '80';
+  // Set default color for type
+  const defaultColor = TYPE_COLORS[type] || '#484f58';
+  selectedColor = defaultColor;
+  document.querySelectorAll('.swatch').forEach(s => {
+    s.classList.toggle('on', s.dataset.color === defaultColor);
+  });
+  // Extra fields
+  const extras = TYPE_EXTRA[type] || [];
+  document.getElementById('entity-extra-fields').innerHTML = extras.map(([key,label,ph]) => `
+    <div class="form-group">
+      <label class="form-label">${label}</label>
+      <input class="form-input" id="ef-${key}" placeholder="${ph}">
+    </div>`).join('');
+  openModal('entity-modal');
+  setTimeout(() => document.getElementById('entity-value').focus(), 100);
+}
+function saveEntity() {
+  const c = getCase(); if (!c) return;
+  const value = document.getElementById('entity-value').value.trim();
+  if (!value) { alert('Enter a value'); return; }
+  const type = document.getElementById('entity-type-hidden').value;
+  const editId = document.getElementById('entity-edit-id').value;
+  const extras = {};
+  (TYPE_EXTRA[type] || []).forEach(([key]) => {
+    const el = document.getElementById('ef-' + key);
+    if (el && el.value.trim()) extras[key] = el.value.trim();
+  });
+  const entity = {
+    id: editId || 'e_' + Date.now(),
+    type, value, color: selectedColor,
+    tlp: document.getElementById('entity-tlp').value,
+    ioc: document.getElementById('entity-ioc').value,
+    confidence: parseInt(document.getElementById('entity-confidence').value) || 80,
+    notes: document.getElementById('entity-notes').value.trim(),
+    created: new Date().toISOString(),
+    ...extras,
+  };
+  c.entities[entity.id] = entity;
+  state.selectedEntity = entity.id;
+  closeModal('entity-modal');
+  save(); renderAll();
+  showDetail(entity.id);
+}
+function filterEntities(q) {
+  q = q.toLowerCase();
+  document.querySelectorAll('#entities-list .sb-item').forEach(el => {
+    el.style.display = !q || el.dataset.val.includes(q) ? '' : 'none';
+  });
+}
+function deleteDetailEntity() {
+  const c = getCase(); if (!c || !state.selectedEntity) return;
+  if (!confirm('Delete this entity?')) return;
+  delete c.entities[state.selectedEntity];
+  // Remove from graph
+  c.graph.nodes = c.graph.nodes.filter(n => n.id !== state.selectedEntity);
+  c.graph.edges = c.graph.edges.filter(e => e.source !== state.selectedEntity && e.target !== state.selectedEntity);
+  state.selectedEntity = null;
+  closeDetail();
+  save(); renderAll();
+}
+function editDetailEntity() {
+  const c = getCase(); if (!c || !state.selectedEntity) return;
+  const entity = c.entities[state.selectedEntity];
+  if (!entity) return;
+  openEntityModal(entity.type);
+  setTimeout(() => {
+    document.getElementById('entity-modal-title').textContent = 'Edit ' + entity.type;
+    document.getElementById('entity-edit-id').value = entity.id;
+    document.getElementById('entity-value').value = entity.value;
+    document.getElementById('entity-tlp').value = entity.tlp || 'WHITE';
+    document.getElementById('entity-ioc').value = entity.ioc || 'suspected';
+    document.getElementById('entity-notes').value = entity.notes || '';
+    document.getElementById('entity-confidence').value = entity.confidence || 80;
+    selectedColor = entity.color || TYPE_COLORS[entity.type] || '#484f58';
+    document.querySelectorAll('.swatch').forEach(s => s.classList.toggle('on', s.dataset.color === selectedColor));
+    (TYPE_EXTRA[entity.type] || []).forEach(([key]) => {
+      const el = document.getElementById('ef-' + key);
+      if (el && entity[key]) el.value = entity[key];
+    });
+  }, 50);
+}
+
+// ═══════════════════════════════════════════════════════════
+// DETAIL PANEL
+// ═══════════════════════════════════════════════════════════
+function showDetail(entityId) {
+  const c = getCase(); if (!c) return;
+  const entity = c.entities[entityId];
+  if (!entity) return;
+  state.selectedEntity = entityId;
+  const col = entity.color || TYPE_COLORS[entity.type] || '#484f58';
+  const tlpClass = 'tlp-' + (entity.tlp || 'white').toLowerCase();
+  const extras = TYPE_EXTRA[entity.type] || [];
+  document.getElementById('detail-body').innerHTML = `
+    <div class="detail-type et-${entity.type}" style="background:${col}22;border:1px solid ${col}44;padding:2px 7px;border-radius:2px;font-size:.6rem;font-weight:700;color:${col};margin-bottom:.6rem;display:inline-block">${entity.type.toUpperCase()}</div>
+    <div class="detail-name">${entity.value}</div>
+    <div class="detail-row"><span class="detail-key">IOC</span><span class="detail-val">${entity.ioc || '—'}</span></div>
+    <div class="detail-row"><span class="detail-key">TLP</span><span class="detail-val"><span class="${tlpClass}">TLP:${entity.tlp || 'WHITE'}</span></span></div>
+    <div class="detail-row"><span class="detail-key">confidence</span><span class="detail-val">${entity.confidence || 80}%</span></div>
+    ${extras.filter(([k]) => entity[k]).map(([k,label]) => `<div class="detail-row"><span class="detail-key">${label}</span><span class="detail-val">${entity[k]}</span></div>`).join('')}
+    <div class="detail-row"><span class="detail-key">added</span><span class="detail-val">${new Date(entity.created).toLocaleDateString()}</span></div>
+    ${entity.notes ? `<div class="detail-notes">${entity.notes}</div>` : ''}
+  `;
+  document.getElementById('detail-actions').style.display = 'flex';
+}
+function closeDetail() {
+  state.selectedEntity = null;
+  document.getElementById('detail-body').innerHTML = '<div class="detail-empty">click any entity or graph node to inspect</div>';
+  document.getElementById('detail-actions').style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════════════════
+// GRAPH (D3)
+// ═══════════════════════════════════════════════════════════
+let simulation = null;
+
+function setGraphMode(mode) {
+  state.graphMode = mode;
+  state.edgeFrom = null;
+  document.getElementById('mode-select').classList.toggle('on', mode === 'select');
+  document.getElementById('mode-edge').classList.toggle('on', mode === 'edge');
+  document.getElementById('graph-hint').textContent = mode === 'edge'
+    ? 'click source node → click target node → type edge label'
+    : 'drag nodes · scroll to zoom · click to inspect';
+}
+
+function addSelectedToGraph() {
+  const c = getCase(); if (!c) return;
+  const entities = Object.values(c.entities);
+  if (!entities.length) { alert('Add entities first'); return; }
+  // Add all entities not already in graph
+  const existing = new Set(c.graph.nodes.map(n => n.id));
+  const svg = document.getElementById('graph-svg');
+  const W = svg.clientWidth || 800, H = svg.clientHeight || 500;
+  entities.forEach((entity, i) => {
+    if (!existing.has(entity.id)) {
+      const angle = (i / entities.length) * Math.PI * 2;
+      const R = Math.min(W, H) * 0.28;
+      c.graph.nodes.push({
+        id: entity.id,
+        x: W/2 + R * Math.cos(angle),
+        y: H/2 + R * Math.sin(angle),
+      });
+    }
+  });
+  save(); renderGraph();
+}
+
+function addDetailToGraph() {
+  const c = getCase(); if (!c || !state.selectedEntity) return;
+  const existing = c.graph.nodes.find(n => n.id === state.selectedEntity);
+  if (existing) { alert('Already in graph'); return; }
+  const svg = document.getElementById('graph-svg');
+  const W = svg.clientWidth || 800, H = svg.clientHeight || 500;
+  c.graph.nodes.push({ id: state.selectedEntity, x: W/2 + (Math.random()-0.5)*100, y: H/2 + (Math.random()-0.5)*100 });
+  save(); renderGraph();
+}
+
+function autoLayout() {
+  const c = getCase(); if (!c) return;
+  const svg = document.getElementById('graph-svg');
+  const W = svg.clientWidth || 800, H = svg.clientHeight || 500;
+  const n = c.graph.nodes.length;
+  c.graph.nodes.forEach((node, i) => {
+    const angle = (i / n) * Math.PI * 2 - Math.PI/2;
+    const R = Math.min(W, H) * 0.3;
+    node.x = W/2 + R * Math.cos(angle);
+    node.y = H/2 + R * Math.sin(angle);
+  });
+  save(); renderGraph();
+}
+
+function clearGraph() {
+  const c = getCase(); if (!c) return;
+  if (!confirm('Clear the graph? Entities will remain.')) return;
+  c.graph = { nodes: [], edges: [] };
+  save(); renderGraph();
+}
+
+function resetZoom() {
+  const svg = d3.select('#graph-svg');
+  svg.transition().duration(300).call(
+    d3.zoom().transform, d3.zoomIdentity
+  );
+}
+
+function renderGraph() {
+  const c = getCase();
+  const svgEl = document.getElementById('graph-svg');
+  const emptyEl = document.getElementById('graph-empty');
+  d3.select(svgEl).selectAll('*').remove();
+  if (!c || !c.graph.nodes.length) {
+    emptyEl.style.display = 'flex';
+    return;
+  }
+  emptyEl.style.display = 'none';
+
+  const W = svgEl.clientWidth || 800;
+  const H = svgEl.clientHeight || 500;
+  const isDark = !document.getElementById('html-root').classList.contains('light');
+  const textColor = isDark ? '#8b949e' : '#555';
+  const edgeColor = isDark ? '#2a2a2a' : '#cccccc';
+  const bgColor = isDark ? '#090909' : '#f0f0eb';
+
+  const svg = d3.select(svgEl);
+  const defs = svg.append('defs');
+  defs.append('marker').attr('id','arr').attr('viewBox','0 0 10 10')
+    .attr('refX',20).attr('refY',5).attr('markerWidth',6).attr('markerHeight',6)
+    .attr('orient','auto').append('path').attr('d','M0,0 L10,5 L0,10 Z').attr('fill',edgeColor);
+
+  const g = svg.append('g');
+  const zoom = d3.zoom().scaleExtent([0.1,5]).on('zoom', e => g.attr('transform', e.transform));
+  svg.call(zoom);
+
+  // Build node map
+  const nodeMap = {};
+  c.graph.nodes.forEach(n => nodeMap[n.id] = n);
+
+  // Edges
+  const edgeG = g.append('g');
+  c.graph.edges.forEach(edge => {
+    const src = nodeMap[edge.source], tgt = nodeMap[edge.target];
+    if (!src || !tgt) return;
+    edgeG.append('line')
+      .attr('x1', src.x).attr('y1', src.y).attr('x2', tgt.x).attr('y2', tgt.y)
+      .attr('stroke', edgeColor).attr('stroke-width', 1.2)
+      .attr('marker-end','url(#arr)').style('cursor','pointer')
+      .on('click', () => { if (confirm('Delete this edge?')) { c.graph.edges = c.graph.edges.filter(e => e !== edge); save(); renderGraph(); } });
+    if (edge.label) {
+      const mx = (src.x + tgt.x)/2, my = (src.y + tgt.y)/2;
+      edgeG.append('rect').attr('x',mx-28).attr('y',my-7).attr('width',56).attr('height',13).attr('rx',2).attr('fill',bgColor).attr('opacity',.9);
+      edgeG.append('text').attr('x',mx).attr('y',my+3).attr('text-anchor','middle')
+        .attr('fill',textColor).attr('font-size',8).attr('font-family','monospace')
+        .attr('pointer-events','none').text(edge.label);
+    }
+  });
+
+  // Nodes
+  c.graph.nodes.forEach(node => {
+    const entity = c.entities[node.id];
+    if (!entity) return;
+    const col = entity.color || TYPE_COLORS[entity.type] || '#484f58';
+    const r = 12;
+    const ng = g.append('g').attr('cursor', state.graphMode === 'edge' ? 'crosshair' : 'grab');
+
+    // Glow
+    if (state.selectedEntity === node.id) {
+      ng.append('circle').attr('cx',node.x).attr('cy',node.y).attr('r',r+7)
+        .attr('fill',col).attr('opacity',.15).attr('pointer-events','none');
+    }
+
+    // Shape based on type
+    if (entity.type === 'wallet') {
+      const s = r*1.3;
+      ng.append('polygon')
+        .attr('points',`${node.x},${node.y-s} ${node.x+s},${node.y} ${node.x},${node.y+s} ${node.x-s},${node.y}`)
+        .attr('fill',col).attr('opacity',.9);
+    } else if (entity.type === 'org') {
+      ng.append('rect').attr('x',node.x-r).attr('y',node.y-r).attr('width',r*2).attr('height',r*2)
+        .attr('rx',3).attr('fill',col).attr('opacity',.9);
+    } else {
+      ng.append('circle').attr('cx',node.x).attr('cy',node.y).attr('r',r).attr('fill',col).attr('opacity',.9);
+    }
+
+    // IOC ring
+    if (entity.ioc === 'yes') {
+      ng.append('circle').attr('cx',node.x).attr('cy',node.y).attr('r',r+3)
+        .attr('fill','none').attr('stroke',col).attr('stroke-width',1.5)
+        .attr('stroke-dasharray','3 2').attr('pointer-events','none');
+    }
+
+    // Label
+    const sl = entity.value.length > 16 ? entity.value.slice(0,14)+'…' : entity.value;
+    ng.append('text').attr('x',node.x).attr('y',node.y+r+11)
+      .attr('text-anchor','middle').attr('fill',textColor).attr('font-size',9)
+      .attr('font-family','monospace').attr('pointer-events','none').text(sl);
+
+    // Drag
+    const drag = d3.drag()
+      .on('start', function() { d3.select(this).raise(); })
+      .on('drag', function(event) {
+        node.x = event.x; node.y = event.y;
+        renderGraph(); // re-render for simplicity
+      })
+      .on('end', () => save());
+
+    // Click
+    ng.on('click', (event) => {
+      event.stopPropagation();
+      if (state.graphMode === 'edge') {
+        if (!state.edgeFrom) {
+          state.edgeFrom = node.id;
+          document.getElementById('graph-hint').textContent = 'now click target node';
+        } else if (state.edgeFrom !== node.id) {
+          const label = prompt('Edge label (e.g. RESOLVES, CONNECTS, OWNS):','RESOLVES');
+          if (label !== null) {
+            c.graph.edges.push({ source: state.edgeFrom, target: node.id, label: label.trim() });
+            save();
+          }
+          state.edgeFrom = null;
+          document.getElementById('graph-hint').textContent = 'click source node → click target node';
+          renderGraph();
+        }
+        return;
+      }
+      state.selectedEntity = node.id;
+      showDetail(node.id);
+      renderGraph();
+    }).call(drag);
+
+    g.node().appendChild(ng.node());
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// TIMELINE
+// ═══════════════════════════════════════════════════════════
+function addTimelineEvent() {
+  const c = getCase(); if (!c) { alert('Select a case first'); return; }
+  const desc = document.getElementById('tl-desc').value.trim();
+  if (!desc) { alert('Enter event description'); return; }
+  c.timeline.push({
+    id: 't_' + Date.now(),
+    date: document.getElementById('tl-date').value || new Date().toISOString().split('T')[0],
+    type: document.getElementById('tl-type').value,
+    desc, created: new Date().toISOString(),
+  });
+  document.getElementById('tl-desc').value = '';
+  c.timeline.sort((a,b) => a.date.localeCompare(b.date));
+  save(); renderTimeline();
+}
+function renderTimeline() {
+  const c = getCase();
+  const el = document.getElementById('tl-events');
+  if (!c || !c.timeline.length) { el.innerHTML = '<div class="tl-empty">no events yet — add the first timeline entry above</div>'; return; }
+  const typeColors = {'IOC Detected':'#ff4444','Infrastructure':'#00d4ff','Actor Activity':'#e8c547','Financial':'#bc8cff','Malware':'#f0883e','Attribution':'#00ff41','Other':'#484f58'};
+  el.innerHTML = c.timeline.map(ev => `
+    <div class="tl-event">
+      <div class="tl-date">${ev.date}</div>
+      <div class="tl-dot-col">
+        <div class="tl-dot" style="background:${typeColors[ev.type]||'#484f58'}"></div>
+        <div class="tl-line"></div>
+      </div>
+      <div>
+        <div class="tl-card">
+          <div class="tl-card-title">${ev.desc}</div>
+          <div class="tl-card-type" style="color:${typeColors[ev.type]||'#484f58'}">${ev.type}</div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// EVIDENCE
+// ═══════════════════════════════════════════════════════════
+function addEvidence() {
+  const c = getCase(); if (!c) { alert('Select a case first'); return; }
+  const content = document.getElementById('ev-content').value.trim();
+  if (!content) { alert('Enter evidence content'); return; }
+  c.evidence.push({
+    id: 'ev_' + Date.now(),
+    tag: document.getElementById('ev-tag').value,
+    content, created: new Date().toISOString(),
+  });
+  document.getElementById('ev-content').value = '';
+  save(); renderEvidence();
+}
+function deleteEvidence(id) {
+  const c = getCase(); if (!c) return;
+  c.evidence = c.evidence.filter(e => e.id !== id);
+  save(); renderEvidence();
+}
+function renderEvidence() {
+  const c = getCase();
+  const el = document.getElementById('ev-items');
+  if (!c || !c.evidence.length) { el.innerHTML = '<div class="ev-empty">no evidence yet — paste raw data above</div>'; return; }
+  el.innerHTML = [...c.evidence].reverse().map(ev => `
+    <div class="ev-item">
+      <div class="ev-item-hdr">
+        <span class="ev-item-tag">${ev.tag}</span>
+        <span class="ev-item-date">${new Date(ev.created).toLocaleString()}</span>
+        <button class="ev-item-del" onclick="deleteEvidence('${ev.id}')">×</button>
+      </div>
+      <div class="ev-item-content">${escHtml(ev.content)}</div>
+    </div>`).join('');
+}
+function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ═══════════════════════════════════════════════════════════
+// REPORT
+// ═══════════════════════════════════════════════════════════
+function generateReport() { switchTab('report', document.querySelectorAll('.cv-tab')[3]); renderReport(); }
+function renderReport() {
+  const c = getCase();
+  const el = document.getElementById('report-preview');
+  if (!c) { el.innerHTML = '<div style="color:var(--dim);font-size:.78rem">select a case to generate report</div>'; return; }
+  const entities = Object.values(c.entities);
+  const iocs = entities.filter(e => e.ioc === 'yes');
+  el.innerHTML = `
+    <div class="rp-title">⬡ Kitsune — CTI Investigation Report</div>
+    <div class="rp-meta">
+      Case: ${c.name} · Priority: ${c.priority} · Status: ${c.status}<br>
+      Generated: ${new Date().toLocaleString()} · Analyst: 0xprit3sh
+    </div>
+    <div class="rp-section">
+      <div class="rp-section-title">// EXECUTIVE SUMMARY</div>
+      <p style="font-size:.78rem;color:var(--text2);line-height:1.7">${c.desc || 'No description provided.'}</p>
+    </div>
+    <div class="rp-section">
+      <div class="rp-section-title">// STATISTICS</div>
+      <table class="rp-table">
+        <tr><td>Total Entities</td><td>${entities.length}</td><td>Confirmed IOCs</td><td>${iocs.length}</td></tr>
+        <tr><td>Timeline Events</td><td>${c.timeline.length}</td><td>Evidence Items</td><td>${c.evidence.length}</td></tr>
+        <tr><td>Graph Nodes</td><td>${c.graph.nodes.length}</td><td>Graph Edges</td><td>${c.graph.edges.length}</td></tr>
+      </table>
+    </div>
+    ${iocs.length ? `
+    <div class="rp-section">
+      <div class="rp-section-title">// IOC TABLE</div>
+      <table class="rp-table">
+        <tr><th>Type</th><th>Indicator</th><th>TLP</th><th>Confidence</th></tr>
+        ${iocs.map(e => `<tr><td>${e.type}</td><td><span class="rp-ioc">${escHtml(e.value)}</span></td><td>TLP:${e.tlp||'WHITE'}</td><td>${e.confidence||80}%</td></tr>`).join('')}
+      </table>
+    </div>` : ''}
+    ${c.timeline.length ? `
+    <div class="rp-section">
+      <div class="rp-section-title">// TIMELINE</div>
+      <table class="rp-table">
+        <tr><th>Date</th><th>Type</th><th>Event</th></tr>
+        ${c.timeline.map(ev => `<tr><td>${ev.date}</td><td>${ev.type}</td><td>${escHtml(ev.desc)}</td></tr>`).join('')}
+      </table>
+    </div>` : ''}
+    <div class="rp-section">
+      <div class="rp-section-title">// ALL ENTITIES</div>
+      <table class="rp-table">
+        <tr><th>Type</th><th>Value</th><th>IOC</th><th>TLP</th><th>Notes</th></tr>
+        ${entities.map(e => `<tr><td>${e.type}</td><td><span class="rp-ioc">${escHtml(e.value)}</span></td><td>${e.ioc||'—'}</td><td>TLP:${e.tlp||'WHITE'}</td><td style="max-width:150px">${escHtml(e.notes||'—')}</td></tr>`).join('')}
+      </table>
+    </div>
+    <div style="font-size:.65rem;color:var(--dim);margin-top:1rem;border-top:1px solid var(--border);padding-top:.75rem">
+      Generated by Kitsune CTI Platform · 0xprit3sh.xyz · ${new Date().toISOString()}
+    </div>`;
+}
+function downloadReport() {
+  const c = getCase(); if (!c) return;
+  renderReport();
+  const content = document.getElementById('report-preview').innerHTML;
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Kitsune Report — ${c.name}</title><style>body{font-family:monospace;background:#090909;color:#e6edf3;padding:2rem;max-width:900px;margin:0 auto}.rp-title{color:#00ff41;font-size:1.2rem;font-weight:700;margin-bottom:.5rem}.rp-section-title{color:#00d4ff;font-size:.8rem;font-weight:700;margin:1rem 0 .4rem;letter-spacing:.05em}.rp-table{width:100%;border-collapse:collapse;margin:.5rem 0;font-size:.8rem}.rp-table th{background:#161616;color:#484f58;padding:5px 10px;text-align:left;border:1px solid #1e1e1e}.rp-table td{padding:5px 10px;border:1px solid #1e1e1e;color:#8b949e}.rp-ioc{background:#1c1c1c;color:#f0883e;padding:1px 5px;border-radius:2px}.rp-meta{font-size:.72rem;color:#484f58;margin-bottom:1rem;padding-bottom:.75rem;border-bottom:1px solid #1e1e1e}</style></head><body>${content}</body></html>`;
+  const blob = new Blob([html], {type:'text/html'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `kitsune-${c.name.replace(/\s+/g,'-').toLowerCase()}-${Date.now()}.html`;
+  a.click();
+}
+function copyReport() {
+  const c = getCase(); if (!c) return;
+  const entities = Object.values(c.entities);
+  const iocs = entities.filter(e => e.ioc === 'yes');
+  const md = `# CTI Report — ${c.name}\n\n**Priority:** ${c.priority} | **Status:** ${c.status}\n**Generated:** ${new Date().toLocaleString()}\n\n## Summary\n${c.desc||'N/A'}\n\n## IOCs\n${iocs.map(e=>`- \`${e.value}\` (${e.type}, TLP:${e.tlp||'WHITE'}, ${e.confidence||80}%)`).join('\n')||'None confirmed'}\n\n## Timeline\n${c.timeline.map(ev=>`- **${ev.date}** [${ev.type}] ${ev.desc}`).join('\n')||'No events'}\n\n## Entities\n${entities.map(e=>`| ${e.type} | ${e.value} | ${e.ioc} | TLP:${e.tlp||'WHITE'} |`).join('\n')}`;
+  navigator.clipboard.writeText(md);
+  alert('Markdown copied to clipboard');
+}
+
+// ═══════════════════════════════════════════════════════════
+// IMPORT / EXPORT
+// ═══════════════════════════════════════════════════════════
+function exportData() {
+  const blob = new Blob([JSON.stringify(state.cases, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `kitsune-backup-${Date.now()}.json`;
+  a.click();
+}
+function importData() {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = '.json';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        Object.assign(state.cases, data);
+        save(); renderAll();
+        alert('Import successful');
+      } catch(err) { alert('Invalid JSON file'); }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+// ═══════════════════════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════════════════════
+function switchTab(id, btn) {
+  document.querySelectorAll('.cv-tab').forEach(b => b.classList.remove('on'));
+  document.querySelectorAll('.cv-panel').forEach(p => p.classList.remove('on'));
+  if (btn) btn.classList.add('on');
+  document.getElementById('panel-' + id).classList.add('on');
+  if (id === 'report') renderReport();
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER ALL
+// ═══════════════════════════════════════════════════════════
+function renderAll() {
+  renderCasesList();
+  renderEntitiesList();
+  renderGraph();
+  renderTimeline();
+  renderEvidence();
+  updateStats();
+}
+function renderCasesList() {
+  const el = document.getElementById('cases-list');
+  const sel = document.getElementById('case-select');
+  const cases = Object.values(state.cases).sort((a,b) => b.created.localeCompare(a.created));
+  const priorityColors = {critical:'#ff4444',high:'#e8c547',medium:'#00d4ff',low:'#484f58'};
+  el.innerHTML = cases.map(c => `
+    <div class="sb-item ${state.currentCase === c.id ? 'active':''}" onclick="switchCase('${c.id}')">
+      <div class="sb-item-dot" style="background:${priorityColors[c.priority]||'#484f58'}"></div>
+      <span class="sb-item-name">${c.name}</span>
+      <span class="sb-item-badge">${c.status}</span>
+      <button class="sb-item-del" onclick="deleteCase('${c.id}',event)">×</button>
+    </div>`).join('') || '<div style="padding:8px 10px;font-size:.72rem;color:var(--dim)">no cases yet</div>';
+  sel.innerHTML = '<option value="">— select case —</option>' +
+    cases.map(c => `<option value="${c.id}" ${state.currentCase===c.id?'selected':''}>${c.name}</option>`).join('');
+}
+function renderEntitiesList() {
+  const c = getCase();
+  const el = document.getElementById('entities-list');
+  if (!c) { el.innerHTML = '<div style="padding:8px 10px;font-size:.72rem;color:var(--dim)">select a case</div>'; return; }
+  const entities = Object.values(c.entities).sort((a,b) => b.created.localeCompare(a.created));
+  document.getElementById('entity-count').textContent = entities.length;
+  el.innerHTML = entities.map(e => `
+    <div class="sb-item ${state.selectedEntity===e.id?'active':''}" onclick="showDetail('${e.id}')" data-val="${e.value.toLowerCase()}">
+      <div class="sb-item-dot" style="background:${e.color||TYPE_COLORS[e.type]||'#484f58'}"></div>
+      <span class="sb-item-name">${e.value}</span>
+      <span class="sb-item-badge et-${e.type}">${e.type}</span>
+      <button class="sb-item-del" onclick="event.stopPropagation();state.selectedEntity='${e.id}';deleteDetailEntity()">×</button>
+    </div>`).join('') || '<div style="padding:8px 10px;font-size:.72rem;color:var(--dim)">no entities — add above</div>';
+}
+function updateStats() {
+  const c = getCase();
+  document.getElementById('stat-case').textContent = c ? c.name.slice(0,20) : 'none';
+  document.getElementById('stat-entities').textContent = c ? Object.keys(c.entities).length : 0;
+  document.getElementById('stat-nodes').textContent = c ? c.graph.nodes.length : 0;
+  document.getElementById('stat-edges').textContent = c ? c.graph.edges.length : 0;
+  document.getElementById('stat-events').textContent = c ? c.timeline.length : 0;
+  document.getElementById('stat-evidence').textContent = c ? c.evidence.length : 0;
+}
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+load();
+renderAll();
+setGraphMode('select');
+document.getElementById('tl-date').value = new Date().toISOString().split('T')[0];
+window.addEventListener('resize', renderGraph);
+</script>
+</body>
+</html>
