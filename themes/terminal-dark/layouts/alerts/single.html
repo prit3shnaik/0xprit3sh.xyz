@@ -3,66 +3,120 @@
   <div class="post-main">
 
     <div class="post-eyebrow">
-      <a href="/">~/home</a>
-      <span class="sep">/</span>
-      <a href="/alerts/">alerts</a>
-      <span class="sep">/</span>
+      <a href="/">~/home</a><span class="sep">/</span>
+      <a href="/alerts/">alerts</a><span class="sep">/</span>
       <span>{{ .File.BaseFileName }}</span>
     </div>
 
-    {{/* Alert header block */}}
+    {{/* Alert header */}}
     <div class="alert-single-header">
       <div class="alert-single-badges">
         <span class="alert-severity sev-{{ .Params.severity | default "info" }}">
           {{ .Params.severity | default "INFO" | upper }}
         </span>
         {{ with .Params.alert_type }}<span class="alert-type-badge">{{ . }}</span>{{ end }}
-        {{ if .Params.active }}<span class="alert-active-badge">ACTIVE</span>{{ end }}
+        {{ if .Params.active }}<span class="alert-active-badge">⚡ ACTIVE</span>{{ end }}
         {{ with .Params.tlp }}<span class="alert-tlp tlp-{{ . | lower }}">TLP:{{ . | upper }}</span>{{ end }}
       </div>
-      <time style="font-size:0.72rem;color:var(--dim)">{{ .Date.Format "2006-01-02 15:04" }} UTC</time>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <time style="font-size:.72rem;color:var(--dim)">{{ .Date.Format "2006-01-02 15:04" }} UTC</time>
+        <a href="/admin/#/collections/alerts/entries/{{ .File.BaseFileName }}" class="edit-btn" style="font-size:.68rem">edit</a>
+      </div>
     </div>
 
     <h1 class="post-title">{{ .Title }}</h1>
 
     <div class="post-meta-row">
-      <span>{{ .Date.Format "2006-01-02" }}</span>
-      {{ with .ReadingTime }}<span>{{ . }} min read</span>{{ end }}
       {{ with .Params.tags }}{{ range . }}<span class="tag">{{ . }}</span>{{ end }}{{ end }}
-      <a href="/admin/#/collections/alerts/entries/{{ .File.BaseFileName }}" class="edit-btn" style="margin-left:auto;font-size:0.68rem;">edit alert</a>
     </div>
 
-    {{/* IOC / CVE quick reference */}}
-    {{ if or .Params.ioc .Params.cve .Params.affected_systems }}
-    <div class="alert-ref-box">
-      <div class="alert-ref-title">// quick reference</div>
+    {{/* Cover image / screenshot */}}
+    {{ with .Params.og_image }}
+    <div class="post-cover">
+      <img src="{{ . | relURL }}" alt="{{ $.Title }}" loading="lazy">
+    </div>
+    {{ end }}
+
+    {{/* Discord-style intel card */}}
+    {{ if or .Params.target .Params.threat_actor .Params.ioc .Params.cve .Params.poc_url .Params.target_url }}
+    <div class="alert-intel-card">
+      <div class="alert-intel-title">// intel summary</div>
+
+      {{ with .Params.target }}
+      <div class="alert-intel-row">
+        <span class="aic-icon">🎯</span>
+        <span class="aic-key">Target</span>
+        <span class="aic-val">{{ . }}</span>
+      </div>
+      {{ end }}
+
+      {{ with .Params.target_location }}
+      <div class="alert-intel-row">
+        <span class="aic-icon">🌍</span>
+        <span class="aic-key">Location</span>
+        <span class="aic-val">{{ . }}</span>
+      </div>
+      {{ end }}
+
+      {{ with .Params.target_url }}
+      <div class="alert-intel-row">
+        <span class="aic-icon">🌐</span>
+        <span class="aic-key">Target URL</span>
+        <a class="aic-val" href="{{ . }}" target="_blank" rel="noopener">{{ . }}</a>
+      </div>
+      {{ end }}
+
+      {{ with .Params.threat_actor }}
+      <div class="alert-intel-row">
+        <span class="aic-icon">☠️</span>
+        <span class="aic-key">Threat Actor</span>
+        <span class="aic-val" style="color:var(--yellow);font-weight:700">{{ . }}</span>
+      </div>
+      {{ end }}
+
       {{ with .Params.ioc }}
-      <div class="alert-ref-row">
-        <span class="alert-ref-key">IOC</span>
+      <div class="alert-intel-row">
+        <span class="aic-icon">🎯</span>
+        <span class="aic-key">IOC</span>
         <code class="alert-ioc">{{ . }}</code>
       </div>
       {{ end }}
+
       {{ with .Params.cve }}
-      <div class="alert-ref-row">
-        <span class="alert-ref-key" style="color:var(--orange)">CVE</span>
-        <code class="alert-ioc">{{ . }}</code>
+      <div class="alert-intel-row">
+        <span class="aic-icon">⚡</span>
+        <span class="aic-key">CVE</span>
+        <code class="alert-ioc" style="color:var(--orange)">{{ . }}</code>
       </div>
       {{ end }}
+
       {{ with .Params.affected_systems }}
-      <div class="alert-ref-row">
-        <span class="alert-ref-key">AFFECTS</span>
-        <span style="font-size:0.78rem;color:var(--text2)">{{ . }}</span>
+      <div class="alert-intel-row">
+        <span class="aic-icon">🖥️</span>
+        <span class="aic-key">Affects</span>
+        <span class="aic-val">{{ . }}</span>
       </div>
       {{ end }}
+
+      {{ with .Params.poc_url }}
+      <div class="alert-intel-row">
+        <span class="aic-icon">🔍</span>
+        <span class="aic-key">POC / Mirror</span>
+        <a class="aic-val" href="{{ . }}" target="_blank" rel="noopener" style="color:var(--accent2);word-break:break-all">{{ . }}</a>
+      </div>
+      {{ end }}
+
       {{ with .Params.source }}
-      <div class="alert-ref-row">
-        <span class="alert-ref-key">SOURCE</span>
-        <a href="{{ . }}" target="_blank" style="font-size:0.75rem;color:var(--accent2);word-break:break-all">{{ . }}</a>
+      <div class="alert-intel-row">
+        <span class="aic-icon">🔗</span>
+        <span class="aic-key">Source</span>
+        <a class="aic-val" href="{{ . }}" target="_blank" rel="noopener" style="color:var(--accent2);word-break:break-all">{{ . }}</a>
       </div>
       {{ end }}
     </div>
     {{ end }}
 
+    {{/* TL;DR */}}
     {{ with .Params.tldr }}
     <div class="tldr-box">
       <strong>// TL;DR</strong>
@@ -70,9 +124,8 @@
     </div>
     {{ end }}
 
-    <div class="post-content">
-      {{ .Content }}
-    </div>
+    {{/* Body */}}
+    <div class="post-content">{{ .Content }}</div>
 
     <nav class="post-nav">
       {{ with .PrevInSection }}<a href="{{ .Permalink }}">← {{ .Title }}</a>{{ else }}<span></span>{{ end }}
@@ -81,66 +134,80 @@
   </div>
 
   <div class="post-sidebar">
-    {{/* Share */}}
-    <div class="sidebar-box">
-      <div class="sidebar-box-title" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleShare()">
-        <span>// share alert</span>
-        <span id="share-toggle-icon" style="font-size:0.8rem;color:var(--dim)">▾</span>
-      </div>
-      <div id="share-content">
-        <div class="share-row" style="margin-top:0.5rem;">
-          <a class="share-btn" href="https://twitter.com/intent/tweet?text=🚨 {{ .Params.severity | default "INFO" | upper }}: {{ .Title | urlize }}&url={{ .Permalink }}" target="_blank">
-            <span class="share-icon">𝕏</span> post on X
-          </a>
-          <a class="share-btn" href="https://t.me/share/url?url={{ .Permalink }}&text=🚨 {{ .Title | urlize }}" target="_blank">
-            <span class="share-icon">✈</span> Telegram
-          </a>
-          <button class="share-btn" onclick="copyLink('{{ .Permalink }}')">
-            <span class="share-icon">#</span> <span id="copy-label">copy link</span>
-          </button>
-        </div>
-      </div>
-    </div>
-
     {{/* Alert metadata */}}
     <div class="sidebar-box">
       <div class="sidebar-box-title">// alert info</div>
-      <div class="contact-item"><span class="k">severity</span><span class="alert-severity sev-{{ .Params.severity | default "info" }}" style="font-size:0.65rem">{{ .Params.severity | default "info" | upper }}</span></div>
+      <div class="contact-item"><span class="k">severity</span><span class="alert-severity sev-{{ .Params.severity | default "info" }}" style="font-size:.65rem">{{ .Params.severity | default "info" | upper }}</span></div>
       {{ with .Params.alert_type }}<div class="contact-item"><span class="k">type</span><span>{{ . }}</span></div>{{ end }}
       {{ with .Params.tlp }}<div class="contact-item"><span class="k">TLP</span><span class="alert-tlp tlp-{{ . | lower }}">TLP:{{ . | upper }}</span></div>{{ end }}
       <div class="contact-item"><span class="k">posted</span><span>{{ .Date.Format "2006-01-02" }}</span></div>
-      {{ with .Params.active }}<div class="contact-item"><span class="k">status</span><span style="color:var(--red)">⚡ ACTIVE</span></div>{{ end }}
+      {{ if .Params.active }}<div class="contact-item"><span class="k">status</span><span style="color:var(--red)">⚡ ACTIVE</span></div>{{ end }}
+      {{ with .Params.threat_actor }}<div class="contact-item"><span class="k">actor</span><span style="color:var(--yellow)">{{ . }}</span></div>{{ end }}
+      {{ with .Params.target }}<div class="contact-item"><span class="k">target</span><span>{{ . }}</span></div>{{ end }}
+      {{ with .Params.target_location }}<div class="contact-item"><span class="k">location</span><span>{{ . }}</span></div>{{ end }}
+    </div>
+
+    {{/* Share */}}
+    <div class="sidebar-box">
+      <div class="sidebar-box-title" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between" onclick="toggleShare()">
+        <span>// share alert</span>
+        <span id="share-toggle-icon" style="font-size:.8rem;color:var(--dim)">▾</span>
+      </div>
+      <div id="share-content">
+        <div class="share-row" style="margin-top:.5rem">
+          <a class="share-btn" href="https://twitter.com/intent/tweet?text=🚨 {{ .Params.severity | default "INFO" | upper }}: {{ .Title | urlize }}&url={{ .Permalink }}" target="_blank"><span class="share-icon">𝕏</span> post on X</a>
+          <a class="share-btn" href="https://t.me/share/url?url={{ .Permalink }}&text=🚨 {{ .Title | urlize }}" target="_blank"><span class="share-icon">✈</span> Telegram</a>
+          <button class="share-btn" onclick="navigator.clipboard.writeText('{{ .Permalink }}')"><span class="share-icon">#</span> copy link</button>
+        </div>
+      </div>
     </div>
 
     {{ with .Params.tags }}
     <div class="sidebar-box">
       <div class="sidebar-box-title">// tags</div>
-      <div>{{ range . }}<span class="tag" style="margin:2px;display:inline-block;">{{ . }}</span>{{ end }}</div>
+      <div>{{ range . }}<span class="tag" style="margin:2px;display:inline-block">{{ . }}</span>{{ end }}</div>
     </div>
     {{ end }}
 
     {{ $related := .Site.RegularPages.Related . | first 3 }}
     {{ with $related }}
     <div class="sidebar-box">
-      <div class="sidebar-box-title">// related alerts</div>
-      {{ range . }}
-      <div style="padding:5px 0;border-bottom:1px solid var(--border);">
-        <a href="{{ .Permalink }}" style="font-size:0.78rem;color:var(--text2);">{{ .Title }}</a>
-      </div>
-      {{ end }}
+      <div class="sidebar-box-title">// related</div>
+      {{ range . }}<div style="padding:5px 0;border-bottom:1px solid var(--border)"><a href="{{ .Permalink }}" style="font-size:.78rem;color:var(--text2)">{{ .Title }}</a></div>{{ end }}
     </div>
     {{ end }}
   </div>
 </div>
 
-<script>
-function copyLink(url) {
-  navigator.clipboard.writeText(url).then(() => {
-    const el = document.getElementById('copy-label');
-    el.textContent = 'copied!';
-    setTimeout(() => el.textContent = 'copy link', 2000);
-  });
+<style>
+.alert-intel-card {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
+  margin: 1rem 0 1.5rem;
 }
+.alert-intel-title {
+  font-size: .7rem;
+  color: var(--accent);
+  margin-bottom: .75rem;
+  font-weight: 700;
+}
+.alert-intel-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: .78rem;
+}
+.alert-intel-row:last-child { border-bottom: none; }
+.aic-icon { font-size: .85rem; flex-shrink: 0; }
+.aic-key  { color: var(--dim); flex-shrink: 0; min-width: 90px; font-size: .72rem; }
+.aic-val  { color: var(--text); word-break: break-all; }
+</style>
+
+<script>
 let shareOpen = true;
 function toggleShare() {
   shareOpen = !shareOpen;
