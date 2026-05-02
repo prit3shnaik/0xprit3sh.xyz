@@ -17,12 +17,7 @@
   --font:'JetBrains Mono',monospace;
   --hh:52px;--sw:250px;--dw:290px;
 }
-html.light{
-  --bg:#f0f0eb;--bg2:#fff;--bg3:#e8e8e2;--bg4:#ddd;
-  --border:#d0d0c8;--border2:#b8b8b0;
-  --text:#1a1a1a;--text2:#555;--dim:#888;
-  --accent:#007a1e;--adim:rgba(0,122,30,.08);--accent2:#0066cc;
-}
+html.light{--bg:#f0f0eb;--bg2:#fff;--bg3:#e8e8e2;--bg4:#ddd;--border:#d0d0c8;--border2:#b8b8b0;--text:#1a1a1a;--text2:#555;--dim:#888;--accent:#007a1e;--adim:rgba(0,122,30,.08);--accent2:#0066cc;}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13px;height:100vh;overflow:hidden;display:grid;grid-template-rows:var(--hh) 1fr}
 button{cursor:pointer;font-family:var(--font)}
@@ -32,50 +27,53 @@ input::placeholder,textarea::placeholder{color:var(--dim)}
 select option{background:var(--bg2)}
 ::-webkit-scrollbar{width:3px;height:3px}
 ::-webkit-scrollbar-thumb{background:var(--border2)}
+a{color:var(--accent2);text-decoration:none}
 
 /* HEADER */
 .hdr{background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 12px;gap:8px;z-index:100}
-.logo{color:var(--accent);font-weight:700;font-size:.9rem;display:flex;align-items:center;gap:6px;flex-shrink:0}
-.logo-sub{color:var(--dim);font-size:.65rem;font-weight:400}
-.sep{width:1px;height:20px;background:var(--border);flex-shrink:0}
+.logo{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.logo-img{width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0}
+.logo-img-placeholder{width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;color:#000}
+.logo-text{color:var(--accent);font-weight:700;font-size:.9rem}
+.logo-sub{color:var(--dim);font-size:.62rem}
+.sep{width:1px;height:20px;background:var(--border);flex-shrink:0;margin:0 2px}
 .hbtn{background:none;border:1px solid var(--border2);color:var(--dim);font-size:.68rem;padding:4px 10px;border-radius:3px;transition:all .15s}
 .hbtn:hover{border-color:var(--accent);color:var(--accent)}
 .hbtn.p{background:var(--accent);border-color:var(--accent);color:#000;font-weight:700}
 .hbtn.p:hover{opacity:.85;color:#000}
-.hbtn.r{border-color:var(--red);color:var(--red)}
 .hdr-right{margin-left:auto;display:flex;gap:6px;align-items:center}
-.save-st{font-size:.62rem;color:var(--dim);background:var(--bg3);border:1px solid var(--border);padding:3px 8px;border-radius:2px}
+.save-st{font-size:.6rem;color:var(--dim);background:var(--bg3);border:1px solid var(--border);padding:2px 7px;border-radius:2px}
 .save-st.ok{color:var(--accent);border-color:rgba(0,255,65,.2)}
 
-/* LAYOUT */
+/* MAIN LAYOUT */
 .main{display:grid;grid-template-columns:var(--sw) 1fr var(--dw);overflow:hidden}
 
 /* SIDEBAR */
 .sb{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
 .sb-sec{flex-shrink:0;border-bottom:1px solid var(--border)}
-.sb-hdr{padding:7px 10px;font-size:.62rem;color:var(--dim);letter-spacing:.06em;display:flex;align-items:center;justify-content:space-between;text-transform:uppercase}
+.sb-hdr{padding:7px 10px;font-size:.6rem;color:var(--dim);letter-spacing:.06em;display:flex;align-items:center;justify-content:space-between;text-transform:uppercase}
 .sb-add{background:none;border:none;color:var(--dim);font-size:.9rem;line-height:1;padding:0 2px;transition:color .15s}
 .sb-add:hover{color:var(--accent)}
-.sb-list{overflow-y:auto;max-height:160px}
-.si{display:flex;align-items:center;gap:6px;padding:6px 10px;font-size:.75rem;cursor:pointer;transition:background .1s;border-bottom:1px solid var(--border)}
+.sb-list{overflow-y:auto;max-height:150px}
+.si{display:flex;align-items:center;gap:6px;padding:6px 10px;font-size:.74rem;cursor:pointer;transition:background .1s;border-bottom:1px solid var(--border)}
 .si:last-child{border-bottom:none}
 .si:hover{background:var(--bg3)}
 .si.on{background:var(--bg3);border-left:2px solid var(--accent)}
 .si-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 .si-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
-.si-badge{font-size:.58rem;color:var(--dim);background:var(--bg4);padding:1px 4px;border-radius:2px;flex-shrink:0}
-.si-del{color:var(--dim);font-size:.7rem;padding:0 2px;background:none;border:none;opacity:0;transition:opacity .15s}
+.si-badge{font-size:.56rem;color:var(--dim);background:var(--bg4);padding:1px 4px;border-radius:2px;flex-shrink:0}
+.si-del{color:var(--dim);font-size:.7rem;padding:0 2px;background:none;border:none;opacity:0}
 .si:hover .si-del{opacity:1}
 .si-del:hover{color:var(--red)}
-.et-grid{padding:8px 10px;display:grid;grid-template-columns:1fr 1fr;gap:4px}
-.et{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-size:.62rem;padding:5px 4px;border-radius:3px;text-align:center;transition:all .15s}
+.et-grid{padding:7px 10px;display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.et{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-size:.6rem;padding:5px 4px;border-radius:3px;text-align:center;transition:all .15s}
 .et:hover{border-color:var(--accent2);color:var(--accent2)}
 .sb-ents{overflow-y:auto;flex:1}
 
 /* CANVAS */
 .canvas{display:flex;flex-direction:column;overflow:hidden}
-.cv-tabs{background:var(--bg2);border-bottom:1px solid var(--border);display:flex;flex-shrink:0}
-.cvt{background:none;border:none;border-bottom:2px solid transparent;color:var(--dim);font-size:.75rem;padding:10px 14px;transition:all .15s}
+.cv-tabs{background:var(--bg2);border-bottom:1px solid var(--border);display:flex;flex-shrink:0;overflow-x:auto}
+.cvt{background:none;border:none;border-bottom:2px solid transparent;color:var(--dim);font-size:.72rem;padding:9px 13px;transition:all .15s;white-space:nowrap}
 .cvt:hover{color:var(--text)}
 .cvt.on{color:var(--accent);border-bottom-color:var(--accent)}
 .cv-panel{display:none;flex:1;overflow:hidden;flex-direction:column}
@@ -83,158 +81,160 @@ select option{background:var(--bg2)}
 
 /* GRAPH */
 .gtb{background:var(--bg2);border-bottom:1px solid var(--border);padding:6px 10px;display:flex;gap:5px;align-items:center;flex-shrink:0;flex-wrap:wrap}
-.gtbtn{background:none;border:1px solid var(--border2);color:var(--dim);font-size:.62rem;padding:3px 7px;border-radius:3px;transition:all .15s}
+.gtbtn{background:none;border:1px solid var(--border2);color:var(--dim);font-size:.6rem;padding:3px 7px;border-radius:3px;transition:all .15s}
 .gtbtn:hover{border-color:var(--accent);color:var(--accent)}
 .gtbtn.on{border-color:var(--accent2);color:var(--accent2)}
 .g-area{flex:1;position:relative;overflow:hidden}
 .g-svg{width:100%;height:100%;cursor:grab}
 .g-svg:active{cursor:grabbing}
-.g-empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--dim);font-size:.78rem;pointer-events:none;gap:8px;opacity:.6}
+.g-empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--dim);font-size:.76rem;pointer-events:none;gap:8px;opacity:.5}
 
-/* INTEL FEED */
-.feed-wrap{flex:1;overflow:hidden;display:flex;flex-direction:column}
-.feed-toolbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 10px;display:flex;gap:6px;align-items:center;flex-shrink:0;flex-wrap:wrap}
-.feed-search{flex:1;padding:5px 9px;font-size:.75rem;border-radius:3px;min-width:120px}
-.feed-type-btn{background:none;border:1px solid var(--border2);color:var(--dim);font-size:.62rem;padding:3px 8px;border-radius:10px;transition:all .15s}
-.feed-type-btn:hover{border-color:var(--accent2);color:var(--accent2)}
-.feed-type-btn.on{border-color:var(--accent2);color:var(--accent2);background:rgba(0,212,255,.06)}
-.feed-list{flex:1;overflow-y:auto;padding:.5rem}
-.feed-item{background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:.75rem 1rem;margin-bottom:6px;cursor:pointer;transition:all .15s}
-.feed-item:hover{border-color:var(--border2)}
-.feed-item.critical{border-left:3px solid var(--red)}
-.feed-item.high{border-left:3px solid var(--yellow)}
-.feed-item.medium{border-left:3px solid var(--accent2)}
-.feed-item.info{border-left:3px solid var(--blue)}
-.fi-hdr{display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap}
-.fi-sev{font-size:.6rem;font-weight:700;padding:1px 6px;border-radius:2px}
+/* FEED */
+.feed-tb{background:var(--bg2);border-bottom:1px solid var(--border);padding:7px 10px;display:flex;gap:5px;align-items:center;flex-shrink:0;flex-wrap:wrap}
+.ftbtn{background:none;border:1px solid var(--border2);color:var(--dim);font-size:.6rem;padding:2px 8px;border-radius:10px;transition:all .15s}
+.ftbtn:hover{border-color:var(--accent2);color:var(--accent2)}
+.ftbtn.on{border-color:var(--accent2);color:var(--accent2);background:rgba(0,212,255,.06)}
+.feed-search{flex:1;padding:4px 8px;font-size:.72rem;border-radius:3px;min-width:100px}
+.feed-list{flex:1;overflow-y:auto;padding:.4rem}
+.fi{background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:.65rem .9rem;margin-bottom:5px;cursor:pointer;transition:border-color .15s}
+.fi:hover{border-color:var(--border2)}
+.fi.critical{border-left:3px solid var(--red)}
+.fi.high{border-left:3px solid var(--yellow)}
+.fi.medium{border-left:3px solid var(--accent2)}
+.fi.info{border-left:3px solid var(--blue)}
+.fi-hdr{display:flex;align-items:center;gap:5px;margin-bottom:3px;flex-wrap:wrap}
+.fi-sev{font-size:.58rem;font-weight:700;padding:1px 5px;border-radius:2px}
 .sev-critical{background:rgba(255,68,68,.15);color:var(--red);border:1px solid rgba(255,68,68,.3)}
 .sev-high{background:rgba(232,197,71,.12);color:var(--yellow);border:1px solid rgba(232,197,71,.3)}
 .sev-medium{background:rgba(0,212,255,.1);color:var(--accent2);border:1px solid rgba(0,212,255,.25)}
 .sev-info{background:rgba(88,166,255,.1);color:var(--blue);border:1px solid rgba(88,166,255,.25)}
-.fi-source{font-size:.6rem;color:var(--dim);background:var(--bg3);border:1px solid var(--border2);padding:1px 5px;border-radius:2px}
-.fi-date{font-size:.6rem;color:var(--dim);margin-left:auto}
-.fi-title{font-size:.8rem;color:var(--text);margin-bottom:3px;font-weight:600;line-height:1.4}
-.fi-ioc{font-size:.7rem;color:var(--orange);background:var(--bg3);padding:1px 6px;border-radius:2px;display:inline-block;margin-bottom:3px}
-.fi-desc{font-size:.72rem;color:var(--text2);line-height:1.5}
-.fi-actions{display:flex;gap:5px;margin-top:6px}
-.fi-btn{background:none;border:1px solid var(--border2);color:var(--dim);font-size:.62rem;padding:2px 8px;border-radius:3px;transition:all .15s}
+.fi-src{font-size:.58rem;color:var(--dim);background:var(--bg3);border:1px solid var(--border2);padding:1px 5px;border-radius:2px}
+.fi-date{font-size:.58rem;color:var(--dim);margin-left:auto}
+.fi-title{font-size:.78rem;color:var(--text);margin-bottom:2px;font-weight:600;line-height:1.4}
+.fi-ioc{font-size:.68rem;color:var(--orange);background:var(--bg3);padding:1px 6px;border-radius:2px;display:inline-block;margin-bottom:2px;font-family:monospace;word-break:break-all}
+.fi-desc{font-size:.7rem;color:var(--text2);line-height:1.5}
+.fi-acts{display:flex;gap:4px;margin-top:5px}
+.fi-btn{background:none;border:1px solid var(--border2);color:var(--dim);font-size:.6rem;padding:2px 7px;border-radius:3px;transition:all .15s}
 .fi-btn:hover{border-color:var(--accent);color:var(--accent)}
-.feed-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--dim);font-size:.78rem;gap:8px}
-.feed-loading{display:flex;align-items:center;gap:8px;color:var(--dim);font-size:.78rem;padding:1rem}
-.feed-loading::before{content:'';width:12px;height:12px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
+.feed-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--dim);font-size:.76rem;gap:8px}
+.feed-loading{display:flex;align-items:center;gap:8px;color:var(--dim);font-size:.76rem;padding:1rem}
+.feed-loading::before{content:'';width:11px;height:11px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
 @keyframes spin{to{transform:rotate(360deg)}}
+.feed-error{padding:.75rem;background:rgba(255,68,68,.06);border:1px solid rgba(255,68,68,.2);border-radius:4px;font-size:.72rem;color:var(--red);margin:.4rem}
 
 /* ENRICH */
-.enrich-wrap{flex:1;overflow-y:auto;padding:1rem}
-.enrich-search-row{display:flex;gap:8px;margin-bottom:1rem}
-.enrich-input{flex:1;padding:7px 10px;font-size:.82rem;border-radius:4px}
-.enrich-results{display:flex;flex-direction:column;gap:10px}
-.enrich-card{background:var(--bg2);border:1px solid var(--border);border-radius:5px;overflow:hidden}
-.ec-hdr{padding:8px 12px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-.ec-source{font-size:.7rem;color:var(--accent2);font-weight:700}
-.ec-status{font-size:.65rem;padding:2px 6px;border-radius:2px}
-.ec-status.ok{background:rgba(0,255,65,.1);color:var(--accent);border:1px solid rgba(0,255,65,.2)}
-.ec-status.bad{background:rgba(255,68,68,.1);color:var(--red);border:1px solid rgba(255,68,68,.2)}
-.ec-status.warn{background:rgba(232,197,71,.1);color:var(--yellow);border:1px solid rgba(232,197,71,.2)}
-.ec-body{padding:.75rem 1rem}
-.ec-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:.72rem;gap:8px}
+.enrich-wrap{flex:1;overflow-y:auto;padding:.75rem}
+.enrich-row{display:flex;gap:7px;margin-bottom:.75rem}
+.enrich-input{flex:1;padding:6px 9px;font-size:.8rem;border-radius:3px}
+.ec{background:var(--bg2);border:1px solid var(--border);border-radius:5px;overflow:hidden;margin-bottom:8px}
+.ec-hdr{padding:7px 11px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.ec-src{font-size:.68rem;color:var(--accent2);font-weight:700}
+.ec-st{font-size:.62rem;padding:2px 6px;border-radius:2px}
+.ec-st.ok{background:rgba(0,255,65,.1);color:var(--accent);border:1px solid rgba(0,255,65,.2)}
+.ec-st.bad{background:rgba(255,68,68,.1);color:var(--red);border:1px solid rgba(255,68,68,.2)}
+.ec-st.warn{background:rgba(232,197,71,.1);color:var(--yellow);border:1px solid rgba(232,197,71,.2)}
+.ec-st.nokey{background:var(--bg3);color:var(--dim);border:1px solid var(--border2)}
+.ec-body{padding:.65rem .9rem}
+.ec-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:.7rem;gap:8px}
 .ec-row:last-child{border-bottom:none}
 .ec-k{color:var(--dim);flex-shrink:0}
 .ec-v{color:var(--text);text-align:right;word-break:break-all}
 
-/* TIMELINE */
-.tl-wrap{flex:1;overflow-y:auto;padding:1rem}
-.tl-add{background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:.75rem;margin-bottom:1rem;display:grid;grid-template-columns:1fr 1fr auto;gap:6px;align-items:end}
-.tl-input{padding:5px 8px;font-size:.75rem;border-radius:3px;width:100%}
-.tl-events{display:flex;flex-direction:column;gap:0}
-.tl-ev{display:grid;grid-template-columns:90px 12px 1fr;gap:10px;padding:6px 0;align-items:start}
-.tl-dt{font-size:.68rem;color:var(--dim);text-align:right;padding-top:2px}
+/* TIMELINE + EVIDENCE (simple) */
+.wrap{flex:1;overflow-y:auto;padding:.75rem}
+.form-card{background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:.7rem;margin-bottom:.75rem}
+.tl-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px}
+.fl{font-size:.65rem;color:var(--dim);margin-bottom:2px;display:block}
+.fi2{width:100%;padding:5px 8px;font-size:.74rem;border-radius:3px}
+.fs2{width:100%;padding:5px 8px;font-size:.74rem;border-radius:3px}
+.fta{width:100%;padding:5px 8px;font-size:.74rem;border-radius:3px;resize:vertical;min-height:55px}
+.tl-events{display:flex;flex-direction:column}
+.tl-ev{display:grid;grid-template-columns:85px 12px 1fr;gap:8px;padding:5px 0;align-items:start}
+.tl-dt{font-size:.66rem;color:var(--dim);text-align:right;padding-top:2px}
 .tl-col{display:flex;flex-direction:column;align-items:center}
-.tl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px}
-.tl-line{width:1px;flex:1;background:var(--border);margin-top:2px;min-height:20px}
-.tl-card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:.5rem .75rem;margin-bottom:4px}
-.tl-ct{font-size:.78rem;color:var(--text);font-weight:700;margin-bottom:2px}
-.tl-cm{font-size:.65rem}
-
-/* EVIDENCE */
-.ev-wrap{flex:1;overflow-y:auto;padding:1rem}
-.ev-form{background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:.75rem;margin-bottom:1rem}
-.ev-row{display:grid;grid-template-columns:1fr auto;gap:6px;margin-bottom:6px}
-.ev-ta{width:100%;padding:6px 8px;font-size:.75rem;resize:vertical;min-height:55px;border-radius:3px}
-.ev-items{display:flex;flex-direction:column;gap:6px}
-.ev-item{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:.6rem .75rem}
-.ev-ih{display:flex;align-items:center;justify-content:space-between;margin-bottom:.35rem}
-.ev-tag{font-size:.6rem;padding:1px 5px;border-radius:2px;background:var(--bg3);color:var(--dim);border:1px solid var(--border2)}
-.ev-del{background:none;border:none;color:var(--dim);font-size:.7rem}
+.tl-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.tl-line{width:1px;flex:1;background:var(--border);margin-top:2px;min-height:18px}
+.tl-card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:.45rem .65rem;margin-bottom:3px}
+.tl-ct{font-size:.76rem;color:var(--text);font-weight:700;margin-bottom:2px}
+.tl-cm{font-size:.62rem}
+.ev-item{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:.6rem .75rem;margin-bottom:6px}
+.ev-ih{display:flex;align-items:center;justify-content:space-between;margin-bottom:.3rem}
+.ev-tag{font-size:.58rem;padding:1px 5px;border-radius:2px;background:var(--bg3);color:var(--dim);border:1px solid var(--border2)}
+.ev-del{background:none;border:none;color:var(--dim);font-size:.68rem}
 .ev-del:hover{color:var(--red)}
-.ev-content{font-size:.72rem;color:var(--text2);line-height:1.5;white-space:pre-wrap;word-break:break-all}
+.ev-content{font-size:.7rem;color:var(--text2);line-height:1.5;white-space:pre-wrap;word-break:break-all}
 
 /* REPORT */
-.rp-wrap{flex:1;overflow-y:auto;padding:1rem}
-.rp-preview{background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:1.25rem}
-.rp-t{font-size:1.05rem;font-weight:700;color:var(--accent);margin-bottom:.4rem}
-.rp-m{font-size:.68rem;color:var(--dim);margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)}
-.rp-s{margin-bottom:.75rem}
-.rp-sh{font-size:.72rem;color:var(--accent2);font-weight:700;margin-bottom:.35rem;letter-spacing:.04em}
-.rp-table{width:100%;border-collapse:collapse;font-size:.7rem}
-.rp-table th{background:var(--bg3);color:var(--dim);padding:4px 8px;border:1px solid var(--border);text-align:left;font-size:.62rem}
-.rp-table td{padding:4px 8px;border:1px solid var(--border);color:var(--text2);word-break:break-all}
+.rp-wrap{flex:1;overflow-y:auto;padding:.75rem}
+.rp-preview{background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:1.1rem}
+.rp-t{font-size:1rem;font-weight:700;color:var(--accent);margin-bottom:.35rem}
+.rp-m{font-size:.66rem;color:var(--dim);margin-bottom:.7rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)}
+.rp-sh{font-size:.7rem;color:var(--accent2);font-weight:700;margin:.65rem 0 .3rem;letter-spacing:.04em}
+.rp-table{width:100%;border-collapse:collapse;font-size:.68rem;margin:.35rem 0}
+.rp-table th{background:var(--bg3);color:var(--dim);padding:4px 7px;border:1px solid var(--border);text-align:left;font-size:.6rem}
+.rp-table td{padding:4px 7px;border:1px solid var(--border);color:var(--text2);word-break:break-all}
 
-/* DETAIL PANEL */
+/* DETAIL */
 .detail{background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
-.dp-hdr{padding:9px 12px;border-bottom:1px solid var(--border);font-size:.7rem;color:var(--accent);font-weight:700;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.dp-hdr{padding:8px 12px;border-bottom:1px solid var(--border);font-size:.68rem;color:var(--accent);font-weight:700;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .dp-body{flex:1;overflow-y:auto;padding:10px}
-.dp-empty{color:var(--dim);font-size:.72rem;padding:.5rem 0;line-height:1.6}
-.dp-name{font-size:.9rem;color:var(--text);font-weight:700;margin-bottom:.6rem;word-break:break-all}
-.dp-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:.7rem;gap:6px}
+.dp-empty{color:var(--dim);font-size:.7rem;line-height:1.6}
+.dp-name{font-size:.88rem;color:var(--text);font-weight:700;margin-bottom:.55rem;word-break:break-all}
+.dp-row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);font-size:.68rem;gap:6px}
 .dp-row:last-of-type{border-bottom:none}
 .dp-k{color:var(--dim);flex-shrink:0}
 .dp-v{color:var(--text);text-align:right;word-break:break-all}
-.dp-notes{margin-top:.6rem;padding:.5rem;background:var(--bg3);border-radius:4px;font-size:.7rem;color:var(--text2);line-height:1.5}
-.dp-actions{padding:9px 12px;border-top:1px solid var(--border);display:flex;gap:5px;flex-shrink:0}
-.dpa{flex:1;background:none;border:1px solid var(--border2);color:var(--dim);font-size:.65rem;padding:5px;border-radius:3px;transition:all .15s}
+.dp-notes{margin-top:.5rem;padding:.4rem .5rem;background:var(--bg3);border-radius:3px;font-size:.68rem;color:var(--text2);line-height:1.5}
+.dp-acts{padding:8px 12px;border-top:1px solid var(--border);display:flex;gap:5px;flex-shrink:0}
+.dpa{flex:1;background:none;border:1px solid var(--border2);color:var(--dim);font-size:.63rem;padding:5px;border-radius:3px;transition:all .15s}
 .dpa:hover{border-color:var(--accent);color:var(--accent)}
 .dpa.r:hover{border-color:var(--red);color:var(--red)}
 
-/* STATS */
-.stats{background:var(--bg2);border-bottom:1px solid var(--border);padding:4px 12px;display:flex;gap:12px;font-size:.62rem;color:var(--dim);flex-shrink:0;flex-wrap:wrap}
-.stat{display:flex;align-items:center;gap:4px}
-.stat-n{color:var(--text2);font-weight:700}
+/* STATS BAR */
+.stats{background:var(--bg2);border-bottom:1px solid var(--border);padding:3px 12px;display:flex;gap:10px;font-size:.6rem;color:var(--dim);flex-shrink:0;flex-wrap:wrap}
+.stat{display:flex;align-items:center;gap:3px}
+.stn{color:var(--text2);font-weight:700}
 
 /* MODALS */
 .mo{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:1000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
 .mo.open{display:flex}
-.md{background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:1.25rem;width:min(480px,92vw);box-shadow:0 20px 60px rgba(0,0,0,.6);max-height:88vh;overflow-y:auto}
-.md-t{font-size:.88rem;font-weight:700;color:var(--text);margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center}
+.md{background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:1.1rem;width:min(500px,92vw);box-shadow:0 20px 60px rgba(0,0,0,.6);max-height:90vh;overflow-y:auto}
+.md-t{font-size:.85rem;font-weight:700;color:var(--text);margin-bottom:.9rem;display:flex;justify-content:space-between;align-items:center}
 .md-x{background:none;border:none;color:var(--dim);font-size:1.1rem;line-height:1}
 .md-x:hover{color:var(--text)}
-.fg{margin-bottom:.7rem}
-.fl{font-size:.68rem;color:var(--dim);margin-bottom:3px;display:block}
-.fi{width:100%;padding:6px 9px;font-size:.78rem;border-radius:3px}
-.fs{width:100%;padding:6px 9px;font-size:.78rem;border-radius:3px}
-.fta{width:100%;padding:6px 9px;font-size:.78rem;border-radius:3px;resize:vertical;min-height:65px}
+.fg{margin-bottom:.65rem}
+.fl2{font-size:.66rem;color:var(--dim);margin-bottom:2px;display:block}
+.fi3{width:100%;padding:5px 8px;font-size:.76rem;border-radius:3px}
+.fs3{width:100%;padding:5px 8px;font-size:.76rem;border-radius:3px}
+.fta2{width:100%;padding:5px 8px;font-size:.76rem;border-radius:3px;resize:vertical;min-height:60px}
 .fr{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.ma{display:flex;gap:8px;margin-top:1rem}
-.mb{flex:1;background:none;border:1px solid var(--border2);color:var(--dim);font-size:.75rem;padding:7px;border-radius:3px;transition:all .15s}
+.ma{display:flex;gap:8px;margin-top:.9rem}
+.mb{flex:1;background:none;border:1px solid var(--border2);color:var(--dim);font-size:.73rem;padding:6px;border-radius:3px;transition:all .15s}
 .mb:hover{border-color:var(--accent);color:var(--accent)}
 .mb.p{background:var(--accent);border-color:var(--accent);color:#000;font-weight:700}
 .mb.p:hover{opacity:.85;color:#000}
-.swatches{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px}
-.sw{width:22px;height:22px;border-radius:3px;cursor:pointer;border:2px solid transparent;transition:border-color .15s}
+.swatches{display:flex;gap:5px;flex-wrap:wrap;margin-top:3px}
+.sw{width:20px;height:20px;border-radius:3px;cursor:pointer;border:2px solid transparent;transition:border-color .15s}
 .sw:hover,.sw.on{border-color:var(--text)}
-.api-keys-grid{display:flex;flex-direction:column;gap:8px}
-.ak-row{display:grid;grid-template-columns:100px 1fr;gap:8px;align-items:center;font-size:.72rem}
+.ak-note{font-size:.63rem;color:var(--dim);margin-top:.5rem;padding:5px 7px;background:var(--bg3);border-radius:3px;line-height:1.55}
+.ak-note a{color:var(--accent2)}
+.ak-row{display:grid;grid-template-columns:110px 1fr;gap:8px;align-items:center;margin-bottom:6px;font-size:.7rem}
 .ak-label{color:var(--dim)}
-.ak-note{font-size:.65rem;color:var(--dim);margin-top:4px;padding:4px 6px;background:var(--bg3);border-radius:3px;line-height:1.5}
 </style>
 </head>
 <body>
 
 <!-- HEADER -->
 <header class="hdr">
-  <div class="logo">⬡ <span>Kitsune</span> <span class="logo-sub">CTI Platform</span></div>
+  <div class="logo">
+    <div class="logo-img-placeholder" id="logo-container">⬡</div>
+    <div>
+      <div class="logo-text">Kitsune</div>
+      <div class="logo-sub">CTI Platform</div>
+    </div>
+  </div>
   <div class="sep"></div>
-  <select class="hbtn" id="case-sel" style="padding:4px 8px;max-width:180px" onchange="switchCase(this.value)">
+  <select class="hbtn" id="case-sel" style="padding:4px 8px;max-width:170px" onchange="switchCase(this.value)">
     <option value="">— select case —</option>
   </select>
   <button class="hbtn p" onclick="openModal('case-modal')">+ new case</button>
@@ -245,13 +245,12 @@ select option{background:var(--bg2)}
   <button class="hbtn" onclick="generateReport()">📄 report</button>
   <div class="hdr-right">
     <span class="save-st" id="save-st">ready</span>
-    <a href="/" style="font-size:.65rem;color:var(--dim);border:1px solid var(--border2);padding:3px 8px;border-radius:3px">← site</a>
+    <a href="/" style="font-size:.62rem;color:var(--dim);border:1px solid var(--border2);padding:3px 7px;border-radius:3px">← site</a>
     <button class="hbtn" id="theme-btn" onclick="toggleTheme()">[ light ]</button>
   </div>
 </header>
 
 <div class="main">
-
   <!-- SIDEBAR -->
   <aside class="sb">
     <div class="sb-sec">
@@ -274,7 +273,7 @@ select option{background:var(--bg2)}
     <div class="sb-sec" style="flex:1;display:flex;flex-direction:column;overflow:hidden">
       <div class="sb-hdr">
         <span>Entities (<span id="ent-count">0</span>)</span>
-        <input style="font-size:.6rem;padding:2px 5px;width:85px;border-radius:2px" placeholder="filter..." oninput="filterEnts(this.value)">
+        <input style="font-size:.58rem;padding:2px 5px;width:82px;border-radius:2px" placeholder="filter..." oninput="filterEnts(this.value)">
       </div>
       <div class="sb-ents" id="ents-list"></div>
     </div>
@@ -282,156 +281,135 @@ select option{background:var(--bg2)}
 
   <!-- CANVAS -->
   <main class="canvas">
-    <div class="stats" id="stats-bar">
-      <span class="stat">case: <span class="stat-n" id="st-case">none</span></span>
-      <span class="stat">entities: <span class="stat-n" id="st-ents">0</span></span>
-      <span class="stat">graph: <span class="stat-n" id="st-nodes">0</span>n/<span class="stat-n" id="st-edges">0</span>e</span>
-      <span class="stat">timeline: <span class="stat-n" id="st-tl">0</span></span>
-      <span class="stat">evidence: <span class="stat-n" id="st-ev">0</span></span>
+    <div class="stats">
+      <span class="stat">case: <span class="stn" id="st-case">none</span></span>
+      <span class="stat">entities: <span class="stn" id="st-ents">0</span></span>
+      <span class="stat">graph: <span class="stn" id="st-nodes">0</span>n/<span class="stn" id="st-edges">0</span>e</span>
+      <span class="stat">timeline: <span class="stn" id="st-tl">0</span></span>
+      <span class="stat">evidence: <span class="stn" id="st-ev">0</span></span>
     </div>
     <div class="cv-tabs">
       <button class="cvt on" onclick="switchTab('graph',this)">⬡ Graph</button>
-      <button class="cvt" onclick="switchTab('feed',this)">📡 Live Feed</button>
+      <button class="cvt" onclick="switchTab('feed',this);refreshFeed()">📡 Live Feed</button>
       <button class="cvt" onclick="switchTab('enrich',this)">🔍 Enrich IOC</button>
       <button class="cvt" onclick="switchTab('timeline',this)">⏱ Timeline</button>
       <button class="cvt" onclick="switchTab('evidence',this)">📋 Evidence</button>
       <button class="cvt" onclick="switchTab('report',this)">📄 Report</button>
     </div>
 
-    <!-- GRAPH -->
+    <!-- GRAPH TAB -->
     <div class="cv-panel on" id="panel-graph">
       <div class="gtb">
-        <button class="gtbtn" onclick="addAllToGraph()">+ all entities</button>
+        <button class="gtbtn" onclick="addAllToGraph()">+ all to graph</button>
         <button class="gtbtn" onclick="autoLayout()">auto layout</button>
         <button class="gtbtn" onclick="fitGraph()">fit</button>
         <button class="gtbtn" onclick="clearGraph()">clear</button>
         <div class="sep"></div>
         <button class="gtbtn on" id="m-sel" onclick="setMode('select')">select</button>
         <button class="gtbtn" id="m-edge" onclick="setMode('edge')">draw edge</button>
-        <span style="font-size:.62rem;color:var(--dim);margin-left:4px" id="g-hint">add entities → add to graph</span>
+        <span style="font-size:.6rem;color:var(--dim);margin-left:4px" id="g-hint">add entities then add to graph</span>
       </div>
       <div class="g-area" id="g-area">
         <svg class="g-svg" id="g-svg"></svg>
-        <div class="g-empty" id="g-empty"><span style="font-size:2rem;opacity:.15">⬡</span><span>select a case and add entities</span></div>
+        <div class="g-empty" id="g-empty"><span style="font-size:2rem;opacity:.1">⬡</span><span>select a case and add entities to start</span></div>
       </div>
     </div>
 
-    <!-- LIVE FEED -->
+    <!-- LIVE FEED TAB -->
     <div class="cv-panel" id="panel-feed">
-      <div class="feed-toolbar">
-        <button class="feed-type-btn on" onclick="setFeedFilter('all',this)">all</button>
-        <button class="feed-type-btn" onclick="setFeedFilter('malware',this)">malware</button>
-        <button class="feed-type-btn" onclick="setFeedFilter('c2',this)">C2</button>
-        <button class="feed-type-btn" onclick="setFeedFilter('phishing',this)">phishing</button>
-        <button class="feed-type-btn" onclick="setFeedFilter('ransomware',this)">ransomware</button>
-        <input class="feed-search" placeholder="search feed..." oninput="searchFeed(this.value)">
+      <div class="feed-tb">
+        <button class="ftbtn on" onclick="setFeedFilter('all',this)">all</button>
+        <button class="ftbtn" onclick="setFeedFilter('c2',this)">C2 / Botnet</button>
+        <button class="ftbtn" onclick="setFeedFilter('malware',this)">malware</button>
+        <button class="ftbtn" onclick="setFeedFilter('phishing',this)">phishing/URL</button>
+        <button class="ftbtn" onclick="setFeedFilter('ransomware',this)">ransomware</button>
+        <input class="feed-search" placeholder="search..." oninput="searchFeed(this.value)">
         <button class="hbtn" onclick="refreshFeed()">↻ refresh</button>
-        <span style="font-size:.62rem;color:var(--dim)" id="feed-updated"></span>
+        <span style="font-size:.6rem;color:var(--dim)" id="feed-ts"></span>
       </div>
       <div class="feed-list" id="feed-list">
         <div class="feed-empty">
-          <span style="font-size:1.5rem;opacity:.2">📡</span>
+          <span style="font-size:1.5rem;opacity:.15">📡</span>
           <span>click refresh to load live threat feeds</span>
-          <span style="font-size:.7rem;color:var(--dim)">(no API keys needed for basic feeds)</span>
+          <span style="font-size:.68rem;color:var(--dim)">requires abuse.ch Auth-Key (free) — set in ⚙ API Keys</span>
         </div>
       </div>
     </div>
 
-    <!-- ENRICH IOC -->
+    <!-- ENRICH TAB -->
     <div class="cv-panel" id="panel-enrich">
       <div class="enrich-wrap">
-        <div class="enrich-search-row">
-          <input class="enrich-input form-input" id="enrich-val" placeholder="Enter IP, domain, hash, or URL to enrich...">
-          <select class="hbtn" id="enrich-type" style="padding:6px 8px">
+        <div class="enrich-row">
+          <input class="enrich-input" id="enrich-val" placeholder="IP, domain, hash, or URL..." onkeydown="if(event.key==='Enter')enrichIOC()">
+          <select class="hbtn" id="enrich-type" style="padding:5px 8px">
             <option value="auto">auto-detect</option>
-            <option value="ip">IP address</option>
+            <option value="ip">IP</option>
             <option value="domain">domain</option>
-            <option value="hash">file hash</option>
+            <option value="hash">hash</option>
             <option value="url">URL</option>
           </select>
           <button class="hbtn p" onclick="enrichIOC()">enrich →</button>
         </div>
-        <div class="ak-note" style="margin-bottom:1rem">
-          ⚙️ Configure API keys via <strong>API Keys</strong> button in header for more data sources.
-          URLhaus and IP-API work without any key.
+        <div class="ak-note" style="margin-bottom:.75rem">
+          ⚙️ Add API keys via <strong>API Keys</strong> button for full enrichment.<br>
+          <strong>No key needed:</strong> ip-api.com (geo) · GreyNoise community · URLhaus lookup
         </div>
-        <div class="enrich-results" id="enrich-results"></div>
+        <div id="enrich-results"></div>
       </div>
     </div>
 
-    <!-- TIMELINE -->
+    <!-- TIMELINE TAB -->
     <div class="cv-panel" id="panel-timeline">
-      <div class="tl-wrap">
-        <div class="tl-add">
-          <div style="display:flex;flex-direction:column;gap:3px">
-            <label style="font-size:.65rem;color:var(--dim)">date</label>
-            <input type="date" class="tl-input fi" id="tl-date">
+      <div class="wrap">
+        <div class="form-card">
+          <div class="tl-grid">
+            <div><label class="fl">date</label><input type="date" class="fi2" id="tl-date"></div>
+            <div><label class="fl">type</label><select class="fs2" id="tl-type"><option>IOC Detected</option><option>Infrastructure</option><option>Actor Activity</option><option>Financial</option><option>Malware</option><option>Attribution</option><option>Data Breach</option><option>Defacement</option><option>Other</option></select></div>
           </div>
-          <div style="display:flex;flex-direction:column;gap:3px">
-            <label style="font-size:.65rem;color:var(--dim)">type</label>
-            <select class="tl-input fs" id="tl-type">
-              <option>IOC Detected</option><option>Infrastructure</option><option>Actor Activity</option>
-              <option>Financial</option><option>Malware</option><option>Attribution</option><option>Other</option>
-            </select>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:3px;grid-column:1/-1">
-            <label style="font-size:.65rem;color:var(--dim)">description</label>
-            <input class="tl-input fi" id="tl-desc" placeholder="What happened?">
-          </div>
-          <button class="mb p" style="grid-column:1/-1" onclick="addTLEvent()">+ add event</button>
+          <div><label class="fl">description</label><input class="fi2" style="width:100%;margin-bottom:6px" id="tl-desc" placeholder="What happened?"></div>
+          <button class="mb p" style="width:100%" onclick="addTLEvent()">+ add event</button>
         </div>
-        <div class="tl-events" id="tl-events">
-          <div style="color:var(--dim);font-size:.75rem;text-align:center;padding:1.5rem">no events yet</div>
-        </div>
+        <div class="tl-events" id="tl-events"><div style="color:var(--dim);font-size:.74rem;text-align:center;padding:1.5rem">no events yet</div></div>
       </div>
     </div>
 
-    <!-- EVIDENCE -->
+    <!-- EVIDENCE TAB -->
     <div class="cv-panel" id="panel-evidence">
-      <div class="ev-wrap">
-        <div class="ev-form">
-          <div class="ev-row">
-            <select class="fs" id="ev-tag" style="font-size:.75rem;padding:5px 8px">
-              <option>Raw IOC</option><option>WHOIS Data</option><option>Shodan Result</option>
-              <option>Paste/Forum</option><option>Screenshot URL</option><option>Network Log</option>
-              <option>Stealer Log</option><option>Note</option>
-            </select>
+      <div class="wrap">
+        <div class="form-card">
+          <div style="display:flex;gap:6px;margin-bottom:6px">
+            <select class="fs2" style="flex:1" id="ev-tag"><option>Raw IOC</option><option>WHOIS Data</option><option>Shodan Result</option><option>Paste/Forum</option><option>Screenshot URL</option><option>Network Log</option><option>Stealer Log</option><option>Telegram Intel</option><option>Note</option></select>
             <button class="mb p" onclick="addEvidence()" style="flex:none;padding:5px 14px">+ add</button>
           </div>
-          <textarea class="ev-ta fi" id="ev-content" placeholder="paste raw data, IOCs, notes, WHOIS output, URLs..."></textarea>
+          <textarea class="fta" style="width:100%;padding:5px 8px;font-size:.74px;resize:vertical;min-height:55px;border-radius:3px" id="ev-content" placeholder="paste raw data, IOCs, WHOIS, notes, Telegram channel posts..."></textarea>
         </div>
-        <div class="ev-items" id="ev-items">
-          <div style="color:var(--dim);font-size:.75rem;text-align:center;padding:1.5rem">no evidence yet</div>
-        </div>
+        <div id="ev-items"><div style="color:var(--dim);font-size:.74rem;text-align:center;padding:1.5rem">no evidence yet</div></div>
       </div>
     </div>
 
-    <!-- REPORT -->
+    <!-- REPORT TAB -->
     <div class="cv-panel" id="panel-report">
       <div class="rp-wrap">
-        <div style="display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap">
+        <div style="display:flex;gap:8px;margin-bottom:.75rem;flex-wrap:wrap">
           <button class="hbtn p" onclick="downloadReport()">⬇ download HTML</button>
           <button class="hbtn" onclick="copyMarkdown()">copy markdown</button>
         </div>
-        <div class="rp-preview" id="rp-preview">
-          <div style="color:var(--dim);font-size:.78rem">select a case to generate report</div>
-        </div>
+        <div class="rp-preview" id="rp-preview"><div style="color:var(--dim);font-size:.76rem">select a case to preview report</div></div>
       </div>
     </div>
-
   </main>
 
   <!-- DETAIL PANEL -->
   <aside class="detail">
     <div class="dp-hdr">
-      <span>// detail</span>
-      <button class="hbtn" onclick="closeDetail()" style="font-size:.62rem;padding:2px 7px">×</button>
+      <span>// entity detail</span>
+      <button class="hbtn" onclick="closeDetail()" style="font-size:.6rem;padding:2px 6px">×</button>
     </div>
     <div class="dp-body" id="dp-body">
-      <div class="dp-empty">click any entity or graph node to inspect · use Enrich tab to query live threat intel</div>
+      <div class="dp-empty">click any entity or node to inspect<br><br>use <strong>Enrich IOC</strong> tab to query live threat intel sources</div>
     </div>
-    <div class="dp-actions" id="dp-actions" style="display:none">
-      <button class="dpa" onclick="addDetailToGraph()">graph</button>
+    <div class="dp-acts" id="dp-acts" style="display:none">
+      <button class="dpa" onclick="addDetailToGraph()">+graph</button>
       <button class="dpa" onclick="enrichSelected()">enrich</button>
       <button class="dpa" onclick="editDetail()">edit</button>
       <button class="dpa r" onclick="deleteDetail()">del</button>
@@ -443,13 +421,13 @@ select option{background:var(--bg2)}
 <div class="mo" id="case-modal">
   <div class="md">
     <div class="md-t"><span>New Investigation Case</span><button class="md-x" onclick="closeModal('case-modal')">×</button></div>
-    <div class="fg"><label class="fl">case name</label><input class="fi" id="c-name" placeholder="e.g. APT29 C2 Infrastructure Mapping"></div>
+    <div class="fg"><label class="fl2">case name *</label><input class="fi3" id="c-name" placeholder="e.g. APT29 C2 Infrastructure"></div>
     <div class="fr">
-      <div class="fg"><label class="fl">priority</label><select class="fs" id="c-pri"><option value="critical">Critical</option><option value="high">High</option><option value="medium" selected>Medium</option><option value="low">Low</option></select></div>
-      <div class="fg"><label class="fl">status</label><select class="fs" id="c-st"><option value="active">Active</option><option value="monitoring">Monitoring</option><option value="closed">Closed</option></select></div>
+      <div class="fg"><label class="fl2">priority</label><select class="fs3" id="c-pri"><option value="critical">🚨 Critical</option><option value="high">⚠️ High</option><option value="medium" selected>🔔 Medium</option><option value="low">ℹ️ Low</option></select></div>
+      <div class="fg"><label class="fl2">status</label><select class="fs3" id="c-st"><option value="active">Active</option><option value="monitoring">Monitoring</option><option value="closed">Closed</option></select></div>
     </div>
-    <div class="fg"><label class="fl">description</label><textarea class="fta" id="c-desc" placeholder="Brief investigation description..."></textarea></div>
-    <div class="fg"><label class="fl">tags (comma separated)</label><input class="fi" id="c-tags" placeholder="APT, C2, ransomware..."></div>
+    <div class="fg"><label class="fl2">description</label><textarea class="fta2" id="c-desc" placeholder="Investigation brief..."></textarea></div>
+    <div class="fg"><label class="fl2">tags (comma separated)</label><input class="fi3" id="c-tags" placeholder="APT, C2, ransomware, India..."></div>
     <div class="ma"><button class="mb" onclick="closeModal('case-modal')">cancel</button><button class="mb p" onclick="createCase()">create case</button></div>
   </div>
 </div>
@@ -458,15 +436,15 @@ select option{background:var(--bg2)}
   <div class="md">
     <div class="md-t"><span id="ent-modal-title">Add Entity</span><button class="md-x" onclick="closeModal('ent-modal')">×</button></div>
     <input type="hidden" id="ent-type"><input type="hidden" id="ent-edit-id">
-    <div class="fg"><label class="fl">value / indicator</label><input class="fi" id="ent-val" placeholder="e.g. 192.168.1.1 or evil.com"></div>
+    <div class="fg"><label class="fl2">value / indicator *</label><input class="fi3" id="ent-val" placeholder="e.g. 192.168.1.1"></div>
     <div class="fr">
-      <div class="fg"><label class="fl">TLP</label><select class="fs" id="ent-tlp"><option value="WHITE">WHITE</option><option value="GREEN">GREEN</option><option value="AMBER">AMBER</option><option value="RED">RED</option></select></div>
-      <div class="fg"><label class="fl">IOC?</label><select class="fs" id="ent-ioc"><option value="yes">Yes — confirmed</option><option value="suspected">Suspected</option><option value="no">No</option></select></div>
+      <div class="fg"><label class="fl2">TLP</label><select class="fs3" id="ent-tlp"><option value="WHITE">⚪ WHITE</option><option value="GREEN">🟢 GREEN</option><option value="AMBER">🟠 AMBER</option><option value="RED">🔴 RED</option></select></div>
+      <div class="fg"><label class="fl2">IOC?</label><select class="fs3" id="ent-ioc"><option value="yes">✓ Yes — confirmed</option><option value="suspected">? Suspected</option><option value="no">✗ No</option></select></div>
     </div>
     <div id="ent-extras"></div>
-    <div class="fg"><label class="fl">confidence (0-100)</label><input class="fi" id="ent-conf" type="number" min="0" max="100" value="80"></div>
-    <div class="fg"><label class="fl">notes</label><textarea class="fta" id="ent-notes" placeholder="Investigation notes..."></textarea></div>
-    <div class="fg"><label class="fl">node color</label>
+    <div class="fg"><label class="fl2">confidence (0–100)</label><input class="fi3" id="ent-conf" type="number" min="0" max="100" value="80"></div>
+    <div class="fg"><label class="fl2">notes</label><textarea class="fta2" id="ent-notes" placeholder="Investigation notes..."></textarea></div>
+    <div class="fg"><label class="fl2">node color</label>
       <div class="swatches" id="swatches">
         <div class="sw on" style="background:#ff4444" data-c="#ff4444" onclick="pickColor(this)"></div>
         <div class="sw" style="background:#58a6ff" data-c="#58a6ff" onclick="pickColor(this)"></div>
@@ -484,51 +462,82 @@ select option{background:var(--bg2)}
 
 <div class="mo" id="keys-modal">
   <div class="md">
-    <div class="md-t"><span>⚙ API Keys</span><button class="md-x" onclick="closeModal('keys-modal')">×</button></div>
-    <div style="font-size:.72rem;color:var(--text2);margin-bottom:.75rem;line-height:1.6">Keys are stored locally in your browser only. Never sent anywhere except the respective API provider.</div>
-    <div class="api-keys-grid">
-      <div class="ak-row"><span class="ak-label">VirusTotal</span><input class="fi" id="k-vt" type="password" placeholder="VT API key (free tier ok)"></div>
-      <div class="ak-row"><span class="ak-label">AbuseIPDB</span><input class="fi" id="k-abuse" type="password" placeholder="AbuseIPDB key (free)"></div>
-      <div class="ak-row"><span class="ak-label">AlienVault OTX</span><input class="fi" id="k-otx" type="password" placeholder="OTX API key (free)"></div>
-      <div class="ak-row"><span class="ak-label">Shodan</span><input class="fi" id="k-shodan" type="password" placeholder="Shodan key (paid)"></div>
+    <div class="md-t"><span>⚙ API Keys + Settings</span><button class="md-x" onclick="closeModal('keys-modal')">×</button></div>
+    <p style="font-size:.7rem;color:var(--text2);margin-bottom:.75rem;line-height:1.6">Keys stored locally in browser only. Never sent anywhere except the API provider.</p>
+
+    <div style="font-size:.68rem;color:var(--accent);margin-bottom:.5rem;font-weight:700">// abuse.ch (required for live feeds)</div>
+    <div class="ak-row"><span class="ak-label">abuse.ch Auth-Key</span><input class="fi3" id="k-abusech" type="password" placeholder="get free at auth.abuse.ch"></div>
+    <div class="ak-note" style="margin-bottom:.75rem">
+      Free: <a href="https://auth.abuse.ch/" target="_blank">auth.abuse.ch</a> → sign in with GitHub/Google → generate Auth-Key.<br>
+      Unlocks: URLhaus, MalwareBazaar, FeodoTracker, ThreatFox feeds.
     </div>
-    <div class="ak-note" style="margin-top:.75rem">
-      Free keys:<br>
-      • <strong>VirusTotal</strong>: virustotal.com → join community → API key<br>
-      • <strong>AbuseIPDB</strong>: abuseipdb.com → create account → API key<br>
-      • <strong>OTX</strong>: otx.alienvault.com → sign up → API key<br>
-      • <strong>IP-API &amp; URLhaus</strong>: no key needed — always available
+
+    <div style="font-size:.68rem;color:var(--accent);margin-bottom:.5rem;font-weight:700">// enrichment APIs</div>
+    <div class="ak-row"><span class="ak-label">VirusTotal</span><input class="fi3" id="k-vt" type="password" placeholder="virustotal.com free tier"></div>
+    <div class="ak-row"><span class="ak-label">AbuseIPDB</span><input class="fi3" id="k-abuse" type="password" placeholder="abuseipdb.com free"></div>
+    <div class="ak-row"><span class="ak-label">AlienVault OTX</span><input class="fi3" id="k-otx" type="password" placeholder="otx.alienvault.com free"></div>
+    <div class="ak-row"><span class="ak-label">Shodan</span><input class="fi3" id="k-shodan" type="password" placeholder="shodan.io (paid)"></div>
+
+    <div style="font-size:.68rem;color:var(--accent);margin:.75rem 0 .5rem;font-weight:700">// custom logo</div>
+    <div class="ak-row"><span class="ak-label">Logo URL</span><input class="fi3" id="k-logo" placeholder="https://0xprit3sh.xyz/images/logo.png"></div>
+    <div class="ak-note" style="margin-bottom:.75rem">
+      Paste URL to your site logo. Use: <code>https://0xprit3sh.xyz/images/logo.png</code><br>
+      Or any direct image URL. Shows in header replacing the ⬡ icon.
     </div>
-    <div class="ma"><button class="mb" onclick="closeModal('keys-modal')">cancel</button><button class="mb p" onclick="saveKeys()">save keys</button></div>
+
+    <div style="font-size:.68rem;color:var(--accent);margin:.75rem 0 .5rem;font-weight:700">// telegram/RSS intel feeds (no key needed)</div>
+    <div class="ak-note">
+      These public RSS/JSON feeds load automatically with no key:<br>
+      • <strong>CISA Alerts</strong> — us-cert.gov advisories<br>
+      • <strong>NCSC UK</strong> — ncsc.gov.uk advisories<br>
+      • <strong>CVE NVD</strong> — recent CVEs from NIST<br>
+      • <strong>Cert-In</strong> — India CERT advisories<br>
+      • <strong>ThreatFox IOCs</strong> — abuse.ch (needs Auth-Key)<br>
+      <br>
+      Telegram channels (view only, no API key needed via RSS bridges):<br>
+      • t.me/cybersecuritynews_official → RSS via rsshub.app<br>
+      • t.me/hackread → RSS via rsshub.app
+    </div>
+
+    <div class="ma"><button class="mb" onclick="closeModal('keys-modal')">cancel</button><button class="mb p" onclick="saveKeys()">save all</button></div>
   </div>
 </div>
 
 <script>
 // ═══════════════════════════════════════════════════
-// STATE + PERSISTENCE
+// STATE
 // ═══════════════════════════════════════════════════
-let S = { cases:{}, cur:null, selEnt:null, gMode:'select', eFrm:null };
-const TC = {ip:'#ff4444',domain:'#58a6ff',wallet:'#bc8cff',actor:'#e8c547',email:'#f0883e',hash:'#00d4ff',url:'#27c93f',org:'#8b949e'};
-const TE = {ip:[['asn','ASN'],['country','Country'],['org','Organization']],domain:[['registrar','Registrar'],['ns','Nameserver']],wallet:[['chain','Chain'],['exchange','Exchange']],actor:[['aliases','Aliases'],['origin','Origin'],['motivation','Motivation']],email:[['provider','Provider']],hash:[['algo','Algorithm'],['malware','Malware family'],['vt_hits','VT detections']],url:[['status','Status']],org:[['industry','Industry'],['country','Country']]};
-let selColor = '#ff4444';
-let feedData = [];
-let feedFilter = 'all';
+let S={cases:{},cur:null,selEnt:null,gMode:'select',eFrm:null};
+const TC={ip:'#ff4444',domain:'#58a6ff',wallet:'#bc8cff',actor:'#e8c547',email:'#f0883e',hash:'#00d4ff',url:'#27c93f',org:'#8b949e'};
+const TE={ip:[['asn','ASN'],['country','Country'],['org','Org']],domain:[['registrar','Registrar'],['ns','Nameserver']],wallet:[['chain','Chain'],['exchange','Exchange']],actor:[['aliases','Aliases'],['origin','Origin'],['motivation','Motivation']],email:[['provider','Provider']],hash:[['algo','Algorithm'],['malware','Malware'],['vt_hits','VT hits']],url:[['status','Status']],org:[['industry','Industry'],['country','Country']]};
+let selColor='#ff4444';
+let feedData=[];
+let feedFilter='all';
+let feedQ='';
 
-function save() {
-  try{localStorage.setItem('kitsune_v2',JSON.stringify(S));const e=document.getElementById('save-st');e.textContent='saved '+new Date().toLocaleTimeString();e.className='save-st ok';setTimeout(()=>{e.textContent='ready';e.className='save-st';},2000);}catch(e){}
-}
-function load() {
-  try{const r=localStorage.getItem('kitsune_v2');if(r){const d=JSON.parse(r);S.cases=d.cases||{};S.cur=d.cur||null;}}catch(e){S.cases={};}
-}
-function loadKeys() {
-  ['vt','abuse','otx','shodan'].forEach(k=>{const v=localStorage.getItem('kitsune_key_'+k);if(v&&document.getElementById('k-'+k))document.getElementById('k-'+k).value=v;});
-}
-function saveKeys() {
-  ['vt','abuse','otx','shodan'].forEach(k=>{const v=document.getElementById('k-'+k).value.trim();if(v)localStorage.setItem('kitsune_key_'+k,v);else localStorage.removeItem('kitsune_key_'+k);});
-  closeModal('keys-modal');
-  showToast('API keys saved');
-}
+// ═══════════════════════════════════════════════════
+// PERSIST
+// ═══════════════════════════════════════════════════
+function save(){try{localStorage.setItem('kitsune_v3',JSON.stringify(S));const e=document.getElementById('save-st');e.textContent='saved '+new Date().toLocaleTimeString();e.className='save-st ok';setTimeout(()=>{e.textContent='ready';e.className='save-st';},2000);}catch(e){}}
+function load(){try{const r=localStorage.getItem('kitsune_v3');if(r){const d=JSON.parse(r);S.cases=d.cases||{};S.cur=d.cur||null;}}catch(e){S.cases={};}}
 function getKey(k){return localStorage.getItem('kitsune_key_'+k)||'';}
+function loadKeys(){['abusech','vt','abuse','otx','shodan','logo'].forEach(k=>{const v=getKey(k);const el=document.getElementById('k-'+k);if(el&&v)el.value=v;});applyLogo();}
+function saveKeys(){
+  ['abusech','vt','abuse','otx','shodan','logo'].forEach(k=>{
+    const el=document.getElementById('k-'+k);
+    if(!el)return;
+    const v=el.value.trim();
+    if(v)localStorage.setItem('kitsune_key_'+k,v);
+    else localStorage.removeItem('kitsune_key_'+k);
+  });
+  applyLogo();closeModal('keys-modal');showToast('Settings saved');
+}
+function applyLogo(){
+  const url=getKey('logo');
+  const c=document.getElementById('logo-container');
+  if(url){c.innerHTML=`<img src="${url}" style="width:28px;height:28px;border-radius:50%;object-fit:cover" onerror="this.style.display='none'">`;c.style.background='transparent';}
+  else{c.innerHTML='⬡';c.style.background='var(--accent)';}
+}
 
 // ═══════════════════════════════════════════════════
 // THEME
@@ -556,7 +565,7 @@ function createCase(){
   save();renderAll();
 }
 function switchCase(id){S.cur=id||null;S.selEnt=null;save();renderAll();}
-function delCase(id,e){e.stopPropagation();if(!confirm('Delete this case and all data?'))return;delete S.cases[id];if(S.cur===id)S.cur=null;save();renderAll();}
+function delCase(id,e){e.stopPropagation();if(!confirm('Delete case and all data?'))return;delete S.cases[id];if(S.cur===id)S.cur=null;save();renderAll();}
 function getC(){return S.cur?S.cases[S.cur]:null;}
 
 // ═══════════════════════════════════════════════════
@@ -572,7 +581,7 @@ function openEnt(type){
   document.getElementById('ent-conf').value='80';
   selColor=TC[type]||'#484f58';
   document.querySelectorAll('.sw').forEach(s=>s.classList.toggle('on',s.dataset.c===selColor));
-  document.getElementById('ent-extras').innerHTML=(TE[type]||[]).map(([k,l])=>`<div class="fg"><label class="fl">${l}</label><input class="fi" id="ef-${k}" placeholder=""></div>`).join('');
+  document.getElementById('ent-extras').innerHTML=(TE[type]||[]).map(([k,l])=>`<div class="fg"><label class="fl2">${l}</label><input class="fi3" id="ef-${k}" placeholder=""></div>`).join('');
   openModal('ent-modal');setTimeout(()=>document.getElementById('ent-val').focus(),80);
 }
 function saveEnt(){
@@ -586,7 +595,7 @@ function saveEnt(){
   closeModal('ent-modal');save();renderAll();showDetail(ent.id);
 }
 function filterEnts(q){q=q.toLowerCase();document.querySelectorAll('#ents-list .si').forEach(el=>{el.style.display=!q||el.dataset.v.includes(q)?'':'none';});}
-function deleteDetail(){const c=getC();if(!c||!S.selEnt)return;if(!confirm('Delete?'))return;delete c.entities[S.selEnt];c.graph.nodes=c.graph.nodes.filter(n=>n.id!==S.selEnt);c.graph.edges=c.graph.edges.filter(e=>e.s!==S.selEnt&&e.t!==S.selEnt);S.selEnt=null;closeDetail();save();renderAll();}
+function deleteDetail(){const c=getC();if(!c||!S.selEnt)return;if(!confirm('Delete entity?'))return;delete c.entities[S.selEnt];c.graph.nodes=c.graph.nodes.filter(n=>n.id!==S.selEnt);c.graph.edges=c.graph.edges.filter(e=>e.s!==S.selEnt&&e.t!==S.selEnt);S.selEnt=null;closeDetail();save();renderAll();}
 function editDetail(){const c=getC();if(!c||!S.selEnt)return;const ent=c.entities[S.selEnt];if(!ent)return;openEnt(ent.type);setTimeout(()=>{document.getElementById('ent-modal-title').textContent='Edit '+ent.type;document.getElementById('ent-edit-id').value=ent.id;document.getElementById('ent-val').value=ent.value;document.getElementById('ent-tlp').value=ent.tlp||'WHITE';document.getElementById('ent-ioc').value=ent.ioc||'suspected';document.getElementById('ent-notes').value=ent.notes||'';document.getElementById('ent-conf').value=ent.confidence||80;selColor=ent.color||TC[ent.type]||'#484f58';document.querySelectorAll('.sw').forEach(s=>s.classList.toggle('on',s.dataset.c===selColor));(TE[ent.type]||[]).forEach(([k])=>{const el=document.getElementById('ef-'+k);if(el&&ent[k])el.value=ent[k];});},60);}
 
 // ═══════════════════════════════════════════════════
@@ -595,28 +604,27 @@ function editDetail(){const c=getC();if(!c||!S.selEnt)return;const ent=c.entitie
 function showDetail(id){
   const c=getC();if(!c)return;const ent=c.entities[id];if(!ent)return;
   S.selEnt=id;const col=ent.color||TC[ent.type]||'#484f58';
-  const extras=TE[ent.type]||[];
   document.getElementById('dp-body').innerHTML=`
-    <div style="background:${col}22;border:1px solid ${col}44;display:inline-block;padding:1px 7px;border-radius:2px;font-size:.6rem;font-weight:700;color:${col};margin-bottom:.5rem">${ent.type.toUpperCase()}</div>
+    <div style="background:${col}22;border:1px solid ${col}44;display:inline-block;padding:1px 7px;border-radius:2px;font-size:.58rem;font-weight:700;color:${col};margin-bottom:.5rem">${ent.type.toUpperCase()}</div>
     <div class="dp-name">${ent.value}</div>
     <div class="dp-row"><span class="dp-k">IOC</span><span class="dp-v">${ent.ioc||'—'}</span></div>
     <div class="dp-row"><span class="dp-k">TLP</span><span class="dp-v">TLP:${ent.tlp||'WHITE'}</span></div>
     <div class="dp-row"><span class="dp-k">confidence</span><span class="dp-v">${ent.confidence||80}%</span></div>
-    ${extras.filter(([k])=>ent[k]).map(([k,l])=>`<div class="dp-row"><span class="dp-k">${l}</span><span class="dp-v">${ent[k]}</span></div>`).join('')}
+    ${(TE[ent.type]||[]).filter(([k])=>ent[k]).map(([k,l])=>`<div class="dp-row"><span class="dp-k">${l}</span><span class="dp-v">${ent[k]}</span></div>`).join('')}
     <div class="dp-row"><span class="dp-k">added</span><span class="dp-v">${new Date(ent.created).toLocaleDateString()}</span></div>
     ${ent.notes?`<div class="dp-notes">${ent.notes}</div>`:''}`;
-  document.getElementById('dp-actions').style.display='flex';
+  document.getElementById('dp-acts').style.display='flex';
 }
-function closeDetail(){S.selEnt=null;document.getElementById('dp-body').innerHTML='<div class="dp-empty">click any entity or graph node to inspect · use Enrich tab to query live threat intel</div>';document.getElementById('dp-actions').style.display='none';}
-function addDetailToGraph(){const c=getC();if(!c||!S.selEnt)return;if(c.graph.nodes.find(n=>n.id===S.selEnt)){showToast('Already in graph');return;}const svg=document.getElementById('g-svg');const W=svg.clientWidth||700,H=svg.clientHeight||450;c.graph.nodes.push({id:S.selEnt,x:W/2+(Math.random()-.5)*100,y:H/2+(Math.random()-.5)*100});save();renderGraph();}
+function closeDetail(){S.selEnt=null;document.getElementById('dp-body').innerHTML='<div class="dp-empty">click any entity or node to inspect<br><br>use <strong>Enrich IOC</strong> tab for live intel</div>';document.getElementById('dp-acts').style.display='none';}
+function addDetailToGraph(){const c=getC();if(!c||!S.selEnt)return;if(c.graph.nodes.find(n=>n.id===S.selEnt)){showToast('Already in graph');return;}const svg=document.getElementById('g-svg');const W=svg.clientWidth||700,H=svg.clientHeight||450;c.graph.nodes.push({id:S.selEnt,x:W/2+(Math.random()-.5)*120,y:H/2+(Math.random()-.5)*120});save();renderGraph();}
 function enrichSelected(){if(!S.selEnt)return;const c=getC();if(!c)return;const ent=c.entities[S.selEnt];document.getElementById('enrich-val').value=ent.value;switchTab('enrich',document.querySelectorAll('.cvt')[2]);enrichIOC();}
 
 // ═══════════════════════════════════════════════════
-// GRAPH
+// GRAPH (D3)
 // ═══════════════════════════════════════════════════
-function setMode(m){S.gMode=m;S.eFrm=null;document.getElementById('m-sel').classList.toggle('on',m==='select');document.getElementById('m-edge').classList.toggle('on',m==='edge');document.getElementById('g-hint').textContent=m==='edge'?'click source → click target → type label':'drag nodes · scroll zoom · click inspect';}
+function setMode(m){S.gMode=m;S.eFrm=null;document.getElementById('m-sel').classList.toggle('on',m==='select');document.getElementById('m-edge').classList.toggle('on',m==='edge');document.getElementById('g-hint').textContent=m==='edge'?'click source → click target → type label':'drag nodes · scroll zoom · click to inspect';}
 function addAllToGraph(){const c=getC();if(!c)return;const svg=document.getElementById('g-svg');const W=svg.clientWidth||700,H=svg.clientHeight||450;const exist=new Set(c.graph.nodes.map(n=>n.id));Object.values(c.entities).forEach((ent,i)=>{if(!exist.has(ent.id)){const a=(i/Math.max(1,Object.keys(c.entities).length))*Math.PI*2;const R=Math.min(W,H)*.28;c.graph.nodes.push({id:ent.id,x:W/2+R*Math.cos(a),y:H/2+R*Math.sin(a)});}});save();renderGraph();}
-function autoLayout(){const c=getC();if(!c)return;const svg=document.getElementById('g-svg');const W=svg.clientWidth||700,H=svg.clientHeight||450;const n=c.graph.nodes.length;c.graph.nodes.forEach((node,i)=>{const a=(i/Math.max(1,n))*Math.PI*2-Math.PI/2;const R=Math.min(W,H)*.3;node.x=W/2+R*Math.cos(a);node.y=H/2+R*Math.sin(a);});save();renderGraph();}
+function autoLayout(){const c=getC();if(!c||!c.graph.nodes.length)return;const svg=document.getElementById('g-svg');const W=svg.clientWidth||700,H=svg.clientHeight||450;const n=c.graph.nodes.length;c.graph.nodes.forEach((node,i)=>{const a=(i/n)*Math.PI*2-Math.PI/2;const R=Math.min(W,H)*.3;node.x=W/2+R*Math.cos(a);node.y=H/2+R*Math.sin(a);});save();renderGraph();}
 function clearGraph(){const c=getC();if(!c)return;if(!confirm('Clear graph? Entities remain.'))return;c.graph={nodes:[],edges:[]};save();renderGraph();}
 function fitGraph(){const svg=d3.select('#g-svg');svg.transition().duration(300).call(d3.zoom().transform,d3.zoomIdentity);}
 
@@ -630,20 +638,17 @@ function renderGraph(){
   const tc=dark?'#8b949e':'#555';const ec=dark?'#2a2a2a':'#ccc';const bgc=dark?'#090909':'#f0f0eb';
   const svg=d3.select(svgEl);
   const defs=svg.append('defs');
-  const mk=defs.append('marker').attr('id','arr').attr('viewBox','0 0 10 10').attr('refX',22).attr('refY',5).attr('markerWidth',6).attr('markerHeight',6).attr('orient','auto');
+  const mk=defs.append('marker').attr('id','arr').attr('viewBox','0 0 10 10').attr('refX',22).attr('refY',5).attr('markerWidth',5).attr('markerHeight',5).attr('orient','auto');
   mk.append('path').attr('d','M0,0 L10,5 L0,10 Z').attr('fill',ec);
   const g=svg.append('g');
   const zoom=d3.zoom().scaleExtent([.1,5]).on('zoom',e=>g.attr('transform',e.transform));
   svg.call(zoom);
   const nm={};c.graph.nodes.forEach(n=>nm[n.id]=n);
-  // edges
-  const eg=g.append('g');
   c.graph.edges.forEach(edge=>{
     const a=nm[edge.s],b=nm[edge.t];if(!a||!b)return;
-    eg.append('line').attr('x1',a.x).attr('y1',a.y).attr('x2',b.x).attr('y2',b.y).attr('stroke',ec).attr('stroke-width',1.2).attr('marker-end','url(#arr)').style('cursor','pointer').on('click',()=>{if(confirm('Delete edge?')){c.graph.edges=c.graph.edges.filter(e=>e!==edge);save();renderGraph();}});
-    if(edge.label){const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;eg.append('rect').attr('x',mx-28).attr('y',my-7).attr('width',56).attr('height',13).attr('rx',2).attr('fill',bgc).attr('opacity',.9);eg.append('text').attr('x',mx).attr('y',my+3).attr('text-anchor','middle').attr('fill',tc).attr('font-size',8).attr('font-family','monospace').attr('pointer-events','none').text(edge.label);}
+    g.append('line').attr('x1',a.x).attr('y1',a.y).attr('x2',b.x).attr('y2',b.y).attr('stroke',ec).attr('stroke-width',1.2).attr('marker-end','url(#arr)').style('cursor','pointer').on('click',()=>{if(confirm('Delete edge?')){c.graph.edges=c.graph.edges.filter(e=>e!==edge);save();renderGraph();}});
+    if(edge.label){const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;g.append('rect').attr('x',mx-26).attr('y',my-6).attr('width',52).attr('height',12).attr('rx',2).attr('fill',bgc).attr('opacity',.92);g.append('text').attr('x',mx).attr('y',my+3).attr('text-anchor','middle').attr('fill',tc).attr('font-size',8).attr('font-family','monospace').attr('pointer-events','none').text(edge.label);}
   });
-  // nodes
   c.graph.nodes.forEach(node=>{
     const ent=c.entities[node.id];if(!ent)return;
     const col=ent.color||TC[ent.type]||'#484f58';const r=12;
@@ -655,102 +660,180 @@ function renderGraph(){
     if(ent.ioc==='yes')ng.append('circle').attr('cx',node.x).attr('cy',node.y).attr('r',r+4).attr('fill','none').attr('stroke',col).attr('stroke-width',1.5).attr('stroke-dasharray','3 2').attr('pointer-events','none');
     const sl=ent.value.length>16?ent.value.slice(0,14)+'…':ent.value;
     ng.append('text').attr('x',node.x).attr('y',node.y+r+11).attr('text-anchor','middle').attr('fill',tc).attr('font-size',9).attr('font-family','monospace').attr('pointer-events','none').text(sl);
-    ng.on('click',ev=>{ev.stopPropagation();if(S.gMode==='edge'){if(!S.eFrm){S.eFrm=node.id;document.getElementById('g-hint').textContent='now click target node';}else if(S.eFrm!==node.id){const lbl=prompt('Edge label:','RESOLVES');if(lbl!==null){c.graph.edges.push({s:S.eFrm,t:node.id,label:lbl.trim()});save();}S.eFrm=null;document.getElementById('g-hint').textContent='click source → click target → type label';renderGraph();}return;}S.selEnt=node.id;showDetail(node.id);renderGraph();});
+    ng.on('click',ev=>{ev.stopPropagation();if(S.gMode==='edge'){if(!S.eFrm){S.eFrm=node.id;document.getElementById('g-hint').textContent='now click target node';}else if(S.eFrm!==node.id){const lbl=prompt('Edge label (RESOLVES/CONNECTS/OWNS/etc):','RESOLVES');if(lbl!==null){c.graph.edges.push({s:S.eFrm,t:node.id,label:lbl.trim()});save();}S.eFrm=null;document.getElementById('g-hint').textContent='click source → click target → type label';renderGraph();}return;}S.selEnt=node.id;showDetail(node.id);renderGraph();});
     ng.call(d3.drag().on('drag',ev=>{node.x=ev.x;node.y=ev.y;renderGraph();}).on('end',()=>save()));
   });
 }
 
 // ═══════════════════════════════════════════════════
-// LIVE FEED — abuse.ch + URLhaus + feodotracker (no key needed)
+// LIVE FEED — abuse.ch APIs (now require Auth-Key)
+// + public RSS feeds via CORS proxy
 // ═══════════════════════════════════════════════════
 async function refreshFeed(){
   const el=document.getElementById('feed-list');
-  el.innerHTML='<div class="feed-loading">fetching live threat intelligence feeds...</div>';
+  const authKey=getKey('abusech');
+  el.innerHTML='<div class="feed-loading">fetching live threat intelligence...</div>';
   feedData=[];
+
   const results=await Promise.allSettled([
-    fetchURLhaus(),
-    fetchFeodoTracker(),
-    fetchMalwareBazaarRecent(),
+    fetchThreatFox(authKey),
+    fetchMalwareBazaar(authKey),
+    fetchFeodoTracker(authKey),
+    fetchCISA(),
+    fetchNVDRecent(),
   ]);
-  results.forEach(r=>{if(r.status==='fulfilled'&&r.value)feedData.push(...r.value);});
-  feedData.sort((a,b)=>new Date(b.date)-new Date(a.date));
-  document.getElementById('feed-updated').textContent='updated '+new Date().toLocaleTimeString();
+
+  results.forEach(r=>{if(r.status==='fulfilled'&&Array.isArray(r.value))feedData.push(...r.value);});
+
+  if(!feedData.length){
+    el.innerHTML=`<div class="feed-error">
+      No data returned. If you haven't set an abuse.ch Auth-Key, only CISA/NVD feeds load.<br><br>
+      <strong>Fix:</strong> Click ⚙ API Keys → get free Auth-Key at <a href="https://auth.abuse.ch" target="_blank">auth.abuse.ch</a> → save.
+    </div>`;
+    return;
+  }
+
+  feedData.sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
+  document.getElementById('feed-ts').textContent=`updated ${new Date().toLocaleTimeString()} · ${feedData.length} items`;
   renderFeed();
 }
 
-async function fetchURLhaus(){
+async function fetchThreatFox(authKey){
+  if(!authKey)return[];
   try{
-    const res=await fetch('https://urlhaus-api.abuse.ch/v1/urls/recent/',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'limit=30'});
-    const data=await res.json();
-    return (data.urls||[]).map(u=>({
-      id:'urlhaus_'+u.id,source:'URLhaus',category:'phishing',
-      severity:u.threat==='malware_download'?'high':'medium',
-      title:'Malicious URL: '+u.url.slice(0,60),
-      ioc:u.url,desc:`Host: ${u.host} · Tags: ${(u.tags||[]).join(', ')||'none'} · Status: ${u.url_status}`,
-      date:u.date_added,link:'https://urlhaus.abuse.ch/url/'+u.id,
-      tags:u.tags||[],
+    const res=await fetch('https://threatfox-api.abuse.ch/api/v1/',{
+      method:'POST',
+      headers:{'Auth-Key':authKey,'Content-Type':'application/json'},
+      body:JSON.stringify({query:'get_iocs',days:1})
+    });
+    const d=await res.json();
+    if(d.query_status!=='ok')return[];
+    return(d.data||[]).slice(0,30).map(ioc=>({
+      id:'tf_'+ioc.id,source:'ThreatFox',category:ioc.ioc_type==='ip:port'?'c2':'malware',
+      severity:ioc.confidence_level>75?'high':'medium',
+      title:`${ioc.malware} IOC: ${ioc.ioc}`,
+      ioc:ioc.ioc,
+      desc:`Type: ${ioc.ioc_type} · Malware: ${ioc.malware} · Tags: ${(ioc.tags||[]).join(', ')||'none'} · Confidence: ${ioc.confidence_level}%`,
+      date:ioc.first_seen,link:'https://threatfox.abuse.ch/ioc/'+ioc.id,
+      tags:[ioc.malware,...(ioc.tags||[])].filter(Boolean),
     }));
-  }catch(e){console.warn('URLhaus failed',e);return[];}
+  }catch(e){console.warn('ThreatFox error',e);return[];}
 }
 
-async function fetchFeodoTracker(){
+async function fetchMalwareBazaar(authKey){
+  if(!authKey)return[];
   try{
-    const res=await fetch('https://feodotracker.abuse.ch/downloads/ipblocklist_recent.json');
-    const data=await res.json();
-    return (data.blocklist||[]).slice(0,20).map(e=>({
-      id:'feodo_'+e.ip_address,source:'Feodo Tracker',category:'c2',severity:'critical',
-      title:'C2 Server: '+e.ip_address+' ['+e.malware+']',
-      ioc:e.ip_address,
-      desc:`Malware: ${e.malware} · Port: ${e.dst_port} · Country: ${e.country}`,
-      date:e.first_seen,link:'https://feodotracker.abuse.ch/browse/host/'+e.ip_address,
-      tags:[e.malware,'C2'],
-    }));
-  }catch(e){console.warn('Feodo failed',e);return[];}
-}
-
-async function fetchMalwareBazaarRecent(){
-  try{
-    const res=await fetch('https://mb-api.abuse.ch/api/v1/',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'query=get_recent&selector=time'});
-    const data=await res.json();
-    return (data.data||[]).slice(0,20).map(s=>({
+    const res=await fetch('https://mb-api.abuse.ch/api/v1/',{
+      method:'POST',
+      headers:{'Auth-Key':authKey,'Content-Type':'application/x-www-form-urlencoded'},
+      body:'query=get_recent&selector=time'
+    });
+    const d=await res.json();
+    if(d.query_status!=='ok')return[];
+    return(d.data||[]).slice(0,20).map(s=>({
       id:'mbz_'+s.sha256_hash,source:'MalwareBazaar',category:'malware',severity:'high',
-      title:'Malware Sample: '+(s.file_name||'unnamed')+' ['+s.signature+']',
+      title:`Malware: ${s.signature||s.file_name||'unnamed'} [${s.file_type}]`,
       ioc:s.sha256_hash,
-      desc:`Type: ${s.file_type} · Size: ${s.file_size}B · Tags: ${(s.tags||[]).join(', ')||'none'}`,
+      desc:`File: ${s.file_name||'—'} · Size: ${s.file_size}B · Tags: ${(s.tags||[]).join(', ')||'none'}`,
       date:s.first_seen,link:'https://bazaar.abuse.ch/sample/'+s.sha256_hash,
-      tags:s.tags||[s.signature].filter(Boolean),
+      tags:(s.tags||[s.signature]).filter(Boolean),
     }));
-  }catch(e){console.warn('MalwareBazaar failed',e);return[];}
+  }catch(e){console.warn('MalwareBazaar error',e);return[];}
 }
 
-function setFeedFilter(f,btn){feedFilter=f;document.querySelectorAll('.feed-type-btn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderFeed();}
-function searchFeed(q){renderFeed(q);}
+async function fetchFeodoTracker(authKey){
+  if(!authKey)return[];
+  try{
+    // FeodoTracker JSON feed — requires Auth-Key since June 2025
+    const res=await fetch('https://feodotracker.abuse.ch/downloads/ipblocklist.json',{
+      headers:{'Auth-Key':authKey}
+    });
+    const data=await res.json();
+    return(data.blocklist||data||[]).slice(0,20).map(e=>({
+      id:'feodo_'+(e.ip_address||e.dst_ip),source:'FeodoTracker',category:'c2',severity:'critical',
+      title:`C2 Server: ${e.ip_address||e.dst_ip} [${e.malware||e.malware_malpedia||'botnet'}]`,
+      ioc:e.ip_address||e.dst_ip,
+      desc:`Malware: ${e.malware||e.malware_malpedia||'—'} · Port: ${e.dst_port||'—'} · Country: ${e.country||'—'} · ASN: ${e.asn||'—'}`,
+      date:e.first_seen||(new Date().toISOString()),link:'https://feodotracker.abuse.ch/browse/host/'+(e.ip_address||e.dst_ip),
+      tags:[e.malware||'botnet','C2'].filter(Boolean),
+    }));
+  }catch(e){console.warn('FeodoTracker error',e);return[];}
+}
 
-function renderFeed(q=''){
+async function fetchCISA(){
+  // CISA publishes RSS — use CORS proxy
+  try{
+    const proxy='https://api.allorigins.win/get?url=';
+    const feedUrl='https://www.cisa.gov/cybersecurity-advisories/advisories.xml';
+    const res=await fetch(proxy+encodeURIComponent(feedUrl));
+    const json=await res.json();
+    const parser=new DOMParser();
+    const xml=parser.parseFromString(json.contents,'text/xml');
+    const items=Array.from(xml.querySelectorAll('item')).slice(0,10);
+    return items.map((item,i)=>({
+      id:'cisa_'+i,source:'CISA',category:'advisory',severity:'high',
+      title:item.querySelector('title')?.textContent||'CISA Advisory',
+      ioc:'',
+      desc:(item.querySelector('description')?.textContent||'').replace(/<[^>]*>/g,'').slice(0,200),
+      date:item.querySelector('pubDate')?.textContent||'',
+      link:item.querySelector('link')?.textContent||'https://cisa.gov',
+      tags:['CISA','advisory'],
+    }));
+  }catch(e){console.warn('CISA feed error',e);return[];}
+}
+
+async function fetchNVDRecent(){
+  // NVD CVE API — public, no key for basic queries
+  try{
+    const now=new Date();
+    const past=new Date(now-86400000*2);
+    const fmt=d=>d.toISOString().split('.')[0]+'%2B00:00';
+    const res=await fetch(`https://services.nvd.nist.gov/rest/json/cves/2.0?pubStartDate=${fmt(past)}&pubEndDate=${fmt(now)}&resultsPerPage=15`);
+    const d=await res.json();
+    return(d.vulnerabilities||[]).map((v,i)=>{
+      const cve=v.cve;
+      const desc=(cve.descriptions||[]).find(d=>d.lang==='en')?.value||'No description';
+      const score=cve.metrics?.cvssMetricV31?.[0]?.cvssData?.baseScore||cve.metrics?.cvssMetricV2?.[0]?.cvssData?.baseScore||0;
+      const sev=score>=9?'critical':score>=7?'high':score>=4?'medium':'info';
+      return{
+        id:'nvd_'+cve.id,source:'NVD/CVE',category:'cve',severity:sev,
+        title:`${cve.id}: ${desc.slice(0,80)}`,
+        ioc:cve.id,
+        desc:`CVSS: ${score} · ${desc.slice(0,200)}`,
+        date:cve.published,link:`https://nvd.nist.gov/vuln/detail/${cve.id}`,
+        tags:['CVE',`CVSS-${score}`],
+      };
+    });
+  }catch(e){console.warn('NVD error',e);return[];}
+}
+
+function setFeedFilter(f,btn){feedFilter=f;document.querySelectorAll('.ftbtn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderFeed();}
+function searchFeed(q){feedQ=q.toLowerCase();renderFeed();}
+
+function renderFeed(){
   const el=document.getElementById('feed-list');
-  if(!feedData.length){el.innerHTML='<div class="feed-empty"><span style="font-size:1.5rem;opacity:.2">📡</span><span>click refresh to load live feeds</span></div>';return;}
-  q=q.toLowerCase();
+  if(!feedData.length)return;
   let items=feedData.filter(item=>{
-    const mf=feedFilter==='all'||item.category===feedFilter;
-    const mq=!q||(item.title+item.ioc+item.desc).toLowerCase().includes(q);
+    const mf=feedFilter==='all'||item.category===feedFilter||item.tags.some(t=>t.toLowerCase().includes(feedFilter));
+    const mq=!feedQ||(item.title+item.ioc+item.desc+(item.tags||[]).join(' ')).toLowerCase().includes(feedQ);
     return mf&&mq;
   });
   if(!items.length){el.innerHTML='<div class="feed-empty"><span>no results</span></div>';return;}
   el.innerHTML=items.map(item=>`
-    <div class="feed-item ${item.severity}" data-id="${item.id}">
+    <div class="fi ${item.severity}">
       <div class="fi-hdr">
         <span class="fi-sev sev-${item.severity}">${item.severity.toUpperCase()}</span>
-        <span class="fi-source">${item.source}</span>
-        ${item.tags.slice(0,2).map(t=>`<span class="fi-source">${t}</span>`).join('')}
+        <span class="fi-src">${item.source}</span>
+        ${(item.tags||[]).slice(0,2).map(t=>`<span class="fi-src">${t}</span>`).join('')}
         <span class="fi-date">${(item.date||'').slice(0,10)}</span>
       </div>
-      <div class="fi-title">${item.title}</div>
-      ${item.ioc?`<div class="fi-ioc">${item.ioc.slice(0,80)}</div>`:''}
-      <div class="fi-desc">${item.desc}</div>
-      <div class="fi-actions">
+      <div class="fi-title">${escH(item.title)}</div>
+      ${item.ioc?`<div class="fi-ioc">${escH(item.ioc.slice(0,80))}</div>`:''}
+      <div class="fi-desc">${escH(item.desc.slice(0,180))}</div>
+      <div class="fi-acts">
         <button class="fi-btn" onclick="addFeedToCase('${item.id}')">+ add to case</button>
-        <button class="fi-btn" onclick="enrichFeedIOC('${item.id}')">enrich IOC</button>
-        <a class="fi-btn" href="${item.link}" target="_blank" style="text-decoration:none">view source ↗</a>
+        ${item.ioc?`<button class="fi-btn" onclick="enrichFeedIOC('${item.id}')">enrich IOC</button>`:''}
+        <a class="fi-btn" href="${item.link}" target="_blank" style="text-decoration:none">view ↗</a>
       </div>
     </div>`).join('');
 }
@@ -758,30 +841,19 @@ function renderFeed(q=''){
 function addFeedToCase(id){
   const c=getC();if(!c){alert('Select a case first');return;}
   const item=feedData.find(i=>i.id===id);if(!item)return;
-  const type=item.ioc&&item.ioc.match(/^[0-9.]+$/)?'ip':item.ioc&&item.ioc.match(/^[0-9a-f]{64}$/i)?'hash':item.ioc&&item.ioc.startsWith('http')?'url':'domain';
-  const ent={id:'e_'+Date.now(),type,value:item.ioc||item.title,color:TC[type]||'#ff4444',tlp:'WHITE',ioc:'yes',confidence:85,notes:item.desc+'\nSource: '+item.source+'\nLink: '+item.link,created:new Date().toISOString()};
+  const v=item.ioc||item.title;
+  const type=v.match(/^[0-9.]+:\d+$/)?'ip':v.match(/^[0-9.]+$/)?'ip':v.match(/^CVE-/i)?'url':v.match(/^[0-9a-f]{32,64}$/i)?'hash':v.match(/^https?:\/\//)?'url':'domain';
+  const ent={id:'e_'+Date.now(),type,value:v.slice(0,200),color:TC[type]||'#ff4444',tlp:'WHITE',ioc:'yes',confidence:85,notes:`Source: ${item.source}\n${item.desc}\nLink: ${item.link}`,created:new Date().toISOString()};
   c.entities[ent.id]=ent;
-  // also add to timeline
-  c.timeline.push({id:'t_'+Date.now(),date:(item.date||new Date().toISOString()).slice(0,10),type:'IOC Detected',desc:item.title,created:new Date().toISOString()});
+  c.timeline.push({id:'t_'+Date.now(),date:(item.date||new Date().toISOString()).slice(0,10),type:'IOC Detected',desc:item.title.slice(0,200),created:new Date().toISOString()});
   save();renderAll();showToast('Added to case: '+c.name);
 }
-function enrichFeedIOC(id){
-  const item=feedData.find(i=>i.id===id);if(!item||!item.ioc)return;
-  document.getElementById('enrich-val').value=item.ioc;
-  switchTab('enrich',document.querySelectorAll('.cvt')[2]);
-  enrichIOC();
-}
+function enrichFeedIOC(id){const item=feedData.find(i=>i.id===id);if(!item||!item.ioc)return;document.getElementById('enrich-val').value=item.ioc;switchTab('enrich',document.querySelectorAll('.cvt')[2]);enrichIOC();}
 
 // ═══════════════════════════════════════════════════
-// ENRICH IOC — multi-source
+// ENRICH IOC
 // ═══════════════════════════════════════════════════
-function detectType(val){
-  val=val.trim();
-  if(/^\d+\.\d+\.\d+\.\d+$/.test(val))return'ip';
-  if(/^[0-9a-fA-F]{32}$|^[0-9a-fA-F]{40}$|^[0-9a-fA-F]{64}$/.test(val))return'hash';
-  if(/^https?:\/\//.test(val))return'url';
-  return'domain';
-}
+function detectType(val){val=val.trim();if(/^\d+\.\d+\.\d+\.\d+/.test(val))return'ip';if(/^[0-9a-fA-F]{32}$|^[0-9a-fA-F]{40}$|^[0-9a-fA-F]{64}$/.test(val))return'hash';if(/^https?:\/\//.test(val))return'url';return'domain';}
 
 async function enrichIOC(){
   const val=document.getElementById('enrich-val').value.trim();
@@ -790,171 +862,96 @@ async function enrichIOC(){
   if(type==='auto')type=detectType(val);
   const el=document.getElementById('enrich-results');
   el.innerHTML='<div class="feed-loading">querying threat intelligence sources...</div>';
+  const authKey=getKey('abusech');
   const results=await Promise.allSettled([
     enrichIPAPI(val,type),
-    enrichURLhaus(val,type),
+    enrichGreyNoise(val,type),
+    enrichURLhaus(val,type,authKey),
+    enrichThreatFox(val,type,authKey),
     enrichAbuseIPDB(val,type),
     enrichOTX(val,type),
     enrichVirusTotal(val,type),
   ]);
   const cards=results.filter(r=>r.status==='fulfilled'&&r.value).map(r=>r.value);
-  if(!cards.length){el.innerHTML='<div style="color:var(--dim);font-size:.78rem;padding:1rem">no results returned — check API keys for more sources</div>';return;}
-  el.innerHTML=cards.join('');
+  el.innerHTML=cards.length?cards.join(''):'<div style="color:var(--dim);font-size:.76rem;padding:1rem">No results. Add API keys for more sources.</div>';
 }
 
 async function enrichIPAPI(val,type){
   if(type!=='ip'&&type!=='domain')return null;
-  try{
-    const res=await fetch(`https://ip-api.com/json/${encodeURIComponent(val)}?fields=status,message,country,regionName,city,isp,org,as,query`);
-    const d=await res.json();
-    if(d.status!=='success')return null;
-    return `<div class="enrich-card">
-      <div class="ec-hdr"><span class="ec-source">IP-API (free)</span><span class="ec-status ok">OK</span></div>
-      <div class="ec-body">
-        <div class="ec-row"><span class="ec-k">IP</span><span class="ec-v">${d.query}</span></div>
-        <div class="ec-row"><span class="ec-k">Country</span><span class="ec-v">${d.country}</span></div>
-        <div class="ec-row"><span class="ec-k">City</span><span class="ec-v">${d.city}, ${d.regionName}</span></div>
-        <div class="ec-row"><span class="ec-k">ISP</span><span class="ec-v">${d.isp}</span></div>
-        <div class="ec-row"><span class="ec-k">Org</span><span class="ec-v">${d.org}</span></div>
-        <div class="ec-row"><span class="ec-k">ASN</span><span class="ec-v">${d.as}</span></div>
-      </div></div>`;
-  }catch(e){return null;}
+  try{const res=await fetch(`https://ip-api.com/json/${encodeURIComponent(val)}?fields=status,country,regionName,city,isp,org,as,query`);const d=await res.json();if(d.status!=='success')return null;return`<div class="ec"><div class="ec-hdr"><span class="ec-src">ip-api.com (free)</span><span class="ec-st ok">OK</span></div><div class="ec-body"><div class="ec-row"><span class="ec-k">IP</span><span class="ec-v">${d.query}</span></div><div class="ec-row"><span class="ec-k">Country</span><span class="ec-v">${d.country}</span></div><div class="ec-row"><span class="ec-k">City</span><span class="ec-v">${d.city}, ${d.regionName}</span></div><div class="ec-row"><span class="ec-k">ISP</span><span class="ec-v">${d.isp}</span></div><div class="ec-row"><span class="ec-k">ASN</span><span class="ec-v">${d.as}</span></div></div></div>`;}catch(e){return null;}
 }
 
-async function enrichURLhaus(val,type){
+async function enrichGreyNoise(val,type){
+  if(type!=='ip')return null;
+  try{const res=await fetch(`https://api.greynoise.io/v3/community/${val}`,{headers:{'Accept':'application/json','key':''}});const d=await res.json();const noise=d.noise||false;const riot=d.riot||false;return`<div class="ec"><div class="ec-hdr"><span class="ec-src">GreyNoise Community</span><span class="ec-st ${noise?'bad':riot?'ok':'warn'}">${noise?'NOISE/SCANNER':riot?'KNOWN GOOD':'unknown'}</span></div><div class="ec-body"><div class="ec-row"><span class="ec-k">Noise</span><span class="ec-v">${noise?'yes — internet scanner':'no'}</span></div><div class="ec-row"><span class="ec-k">RIOT</span><span class="ec-v">${riot?'yes — known benign':'no'}</span></div>${d.name?`<div class="ec-row"><span class="ec-k">Name</span><span class="ec-v">${d.name}</span></div>`:''}${d.message?`<div class="ec-row"><span class="ec-k">Note</span><span class="ec-v">${d.message}</span></div>`:''}</div></div>`;}catch(e){return null;}
+}
+
+async function enrichURLhaus(val,type,authKey){
+  if(!authKey)return`<div class="ec"><div class="ec-hdr"><span class="ec-src">URLhaus</span><span class="ec-st nokey">needs auth-key</span></div><div class="ec-body"><div style="font-size:.68rem;color:var(--dim)">Add abuse.ch Auth-Key in ⚙ settings. Free at auth.abuse.ch</div></div></div>`;
   if(type!=='url'&&type!=='domain')return null;
-  try{
-    const body=type==='url'?`url=${encodeURIComponent(val)}`:`host=${encodeURIComponent(val)}`;
-    const endpoint=type==='url'?'https://urlhaus-api.abuse.ch/v1/url/':'https://urlhaus-api.abuse.ch/v1/host/';
-    const res=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
-    const d=await res.json();
-    const found=d.query_status==='is_listed'||d.query_status==='ok';
-    return `<div class="enrich-card">
-      <div class="ec-hdr"><span class="ec-source">URLhaus (free)</span><span class="ec-status ${found?'bad':'ok'}">${found?'MALICIOUS':'clean'}</span></div>
-      <div class="ec-body">
-        <div class="ec-row"><span class="ec-k">Status</span><span class="ec-v">${d.query_status}</span></div>
-        ${d.urls_count?`<div class="ec-row"><span class="ec-k">URLs</span><span class="ec-v">${d.urls_count}</span></div>`:''}
-        ${d.tags?`<div class="ec-row"><span class="ec-k">Tags</span><span class="ec-v">${d.tags.join(', ')}</span></div>`:''}
-        ${d.blacklists?`<div class="ec-row"><span class="ec-k">Blacklists</span><span class="ec-v">${JSON.stringify(d.blacklists)}</span></div>`:''}
-      </div></div>`;
-  }catch(e){return null;}
+  try{const body=type==='url'?`url=${encodeURIComponent(val)}`:`host=${encodeURIComponent(val)}`;const ep=type==='url'?'https://urlhaus-api.abuse.ch/v1/url/':'https://urlhaus-api.abuse.ch/v1/host/';const res=await fetch(ep,{method:'POST',headers:{'Auth-Key':authKey,'Content-Type':'application/x-www-form-urlencoded'},body});const d=await res.json();const found=d.query_status==='is_listed'||d.query_status==='ok';return`<div class="ec"><div class="ec-hdr"><span class="ec-src">URLhaus</span><span class="ec-st ${found?'bad':'ok'}">${found?'MALICIOUS':'clean'}</span></div><div class="ec-body"><div class="ec-row"><span class="ec-k">Status</span><span class="ec-v">${d.query_status}</span></div>${d.urls_count!==undefined?`<div class="ec-row"><span class="ec-k">URLs</span><span class="ec-v">${d.urls_count}</span></div>`:''}</div></div>`;}catch(e){return null;}
+}
+
+async function enrichThreatFox(val,type,authKey){
+  if(!authKey)return`<div class="ec"><div class="ec-hdr"><span class="ec-src">ThreatFox</span><span class="ec-st nokey">needs auth-key</span></div><div class="ec-body"><div style="font-size:.68rem;color:var(--dim)">Add abuse.ch Auth-Key in ⚙ settings</div></div></div>`;
+  try{const res=await fetch('https://threatfox-api.abuse.ch/api/v1/',{method:'POST',headers:{'Auth-Key':authKey,'Content-Type':'application/json'},body:JSON.stringify({query:'search_ioc',search_term:val})});const d=await res.json();const found=d.query_status==='ok'&&d.data?.length>0;return`<div class="ec"><div class="ec-hdr"><span class="ec-src">ThreatFox</span><span class="ec-st ${found?'bad':'ok'}">${found?d.data.length+' hit(s)':'clean'}</span></div><div class="ec-body">${found?d.data.slice(0,2).map(ioc=>`<div class="ec-row"><span class="ec-k">${ioc.malware||'malware'}</span><span class="ec-v">${ioc.confidence_level}% confidence</span></div>`).join(''):'<div style="font-size:.68rem;color:var(--accent)">Not found in ThreatFox database</div>'}</div></div>`;}catch(e){return null;}
 }
 
 async function enrichAbuseIPDB(val,type){
-  const key=getKey('abuse');if(!key)return`<div class="enrich-card"><div class="ec-hdr"><span class="ec-source">AbuseIPDB</span><span class="ec-status warn">no key</span></div><div class="ec-body"><div style="font-size:.72rem;color:var(--dim)">Add API key in ⚙ settings. Free at abuseipdb.com</div></div></div>`;
+  const key=getKey('abuse');if(!key)return`<div class="ec"><div class="ec-hdr"><span class="ec-src">AbuseIPDB</span><span class="ec-st nokey">no key</span></div><div class="ec-body"><div style="font-size:.68rem;color:var(--dim)">Free at <a href="https://abuseipdb.com" target="_blank">abuseipdb.com</a></div></div></div>`;
   if(type!=='ip')return null;
-  try{
-    const res=await fetch(`https://api.abuseipdb.com/api/v2/check?ipAddress=${encodeURIComponent(val)}&maxAgeInDays=90`,{headers:{'Key':key,'Accept':'application/json'}});
-    const d=await res.json();const data=d.data;
-    return `<div class="enrich-card">
-      <div class="ec-hdr"><span class="ec-source">AbuseIPDB</span><span class="ec-status ${data.abuseConfidenceScore>50?'bad':data.abuseConfidenceScore>10?'warn':'ok'}">${data.abuseConfidenceScore}% abuse</span></div>
-      <div class="ec-body">
-        <div class="ec-row"><span class="ec-k">Score</span><span class="ec-v" style="color:${data.abuseConfidenceScore>50?'var(--red)':data.abuseConfidenceScore>10?'var(--yellow)':'var(--accent)'}">${data.abuseConfidenceScore}%</span></div>
-        <div class="ec-row"><span class="ec-k">Country</span><span class="ec-v">${data.countryCode||'—'}</span></div>
-        <div class="ec-row"><span class="ec-k">ISP</span><span class="ec-v">${data.isp||'—'}</span></div>
-        <div class="ec-row"><span class="ec-k">Reports</span><span class="ec-v">${data.totalReports} (${data.numDistinctUsers} users)</span></div>
-        <div class="ec-row"><span class="ec-k">Whitelisted</span><span class="ec-v">${data.isWhitelisted?'yes':'no'}</span></div>
-        <div class="ec-row"><span class="ec-k">Last reported</span><span class="ec-v">${data.lastReportedAt||'never'}</span></div>
-      </div></div>`;
-  }catch(e){return null;}
+  try{const res=await fetch(`https://api.abuseipdb.com/api/v2/check?ipAddress=${encodeURIComponent(val)}&maxAgeInDays=90`,{headers:{'Key':key,'Accept':'application/json'}});const d=await res.json();const data=d.data;return`<div class="ec"><div class="ec-hdr"><span class="ec-src">AbuseIPDB</span><span class="ec-st ${data.abuseConfidenceScore>50?'bad':data.abuseConfidenceScore>10?'warn':'ok'}">${data.abuseConfidenceScore}% abuse</span></div><div class="ec-body"><div class="ec-row"><span class="ec-k">Score</span><span class="ec-v" style="color:${data.abuseConfidenceScore>50?'var(--red)':data.abuseConfidenceScore>10?'var(--yellow)':'var(--accent)'}">${data.abuseConfidenceScore}%</span></div><div class="ec-row"><span class="ec-k">Country</span><span class="ec-v">${data.countryCode||'—'}</span></div><div class="ec-row"><span class="ec-k">ISP</span><span class="ec-v">${data.isp||'—'}</span></div><div class="ec-row"><span class="ec-k">Reports</span><span class="ec-v">${data.totalReports} (${data.numDistinctUsers} users)</span></div></div></div>`;}catch(e){return null;}
 }
 
 async function enrichOTX(val,type){
-  const key=getKey('otx');if(!key)return`<div class="enrich-card"><div class="ec-hdr"><span class="ec-source">AlienVault OTX</span><span class="ec-status warn">no key</span></div><div class="ec-body"><div style="font-size:.72rem;color:var(--dim)">Free at otx.alienvault.com</div></div></div>`;
+  const key=getKey('otx');if(!key)return`<div class="ec"><div class="ec-hdr"><span class="ec-src">AlienVault OTX</span><span class="ec-st nokey">no key</span></div><div class="ec-body"><div style="font-size:.68rem;color:var(--dim)">Free at <a href="https://otx.alienvault.com" target="_blank">otx.alienvault.com</a></div></div></div>`;
   const section=type==='ip'?'IPv4':type==='domain'?'domain':type==='hash'?'file':'url';
-  try{
-    const res=await fetch(`https://otx.alienvault.com/api/v1/indicators/${section}/${encodeURIComponent(val)}/general`,{headers:{'X-OTX-API-KEY':key}});
-    const d=await res.json();
-    return `<div class="enrich-card">
-      <div class="ec-hdr"><span class="ec-source">AlienVault OTX</span><span class="ec-status ${d.pulse_info?.count>0?'bad':'ok'}">${d.pulse_info?.count>0?d.pulse_info.count+' pulses':'clean'}</span></div>
-      <div class="ec-body">
-        <div class="ec-row"><span class="ec-k">Pulses</span><span class="ec-v">${d.pulse_info?.count||0}</span></div>
-        ${d.country_name?`<div class="ec-row"><span class="ec-k">Country</span><span class="ec-v">${d.country_name}</span></div>`:''}
-        ${d.asn?`<div class="ec-row"><span class="ec-k">ASN</span><span class="ec-v">${d.asn}</span></div>`:''}
-        ${d.reputation?`<div class="ec-row"><span class="ec-k">Reputation</span><span class="ec-v">${d.reputation}</span></div>`:''}
-        ${d.pulse_info?.references?.slice(0,2).map(r=>`<div class="ec-row"><span class="ec-k">Ref</span><span class="ec-v"><a href="${r}" target="_blank" style="color:var(--accent2)">link ↗</a></span></div>`).join('')||''}
-      </div></div>`;
-  }catch(e){return null;}
+  try{const res=await fetch(`https://otx.alienvault.com/api/v1/indicators/${section}/${encodeURIComponent(val)}/general`,{headers:{'X-OTX-API-KEY':key}});const d=await res.json();return`<div class="ec"><div class="ec-hdr"><span class="ec-src">AlienVault OTX</span><span class="ec-st ${d.pulse_info?.count>0?'bad':'ok'}">${d.pulse_info?.count>0?d.pulse_info.count+' pulses':'clean'}</span></div><div class="ec-body"><div class="ec-row"><span class="ec-k">Pulses</span><span class="ec-v">${d.pulse_info?.count||0}</span></div>${d.country_name?`<div class="ec-row"><span class="ec-k">Country</span><span class="ec-v">${d.country_name}</span></div>`:''}</div></div>`;}catch(e){return null;}
 }
 
 async function enrichVirusTotal(val,type){
-  const key=getKey('vt');if(!key)return`<div class="enrich-card"><div class="ec-hdr"><span class="ec-source">VirusTotal</span><span class="ec-status warn">no key</span></div><div class="ec-body"><div style="font-size:.72rem;color:var(--dim)">Free at virustotal.com</div></div></div>`;
+  const key=getKey('vt');if(!key)return`<div class="ec"><div class="ec-hdr"><span class="ec-src">VirusTotal</span><span class="ec-st nokey">no key</span></div><div class="ec-body"><div style="font-size:.68rem;color:var(--dim)">Free at <a href="https://virustotal.com" target="_blank">virustotal.com</a></div></div></div>`;
   const ep=type==='ip'?'ip_addresses':type==='domain'?'domains':type==='hash'?'files':'urls';
-  try{
-    let url,method='GET',body=null;
-    if(type==='url'){const id=btoa(val).replace(/=+$/,'');url=`https://www.virustotal.com/api/v3/urls/${id}`;}
-    else{url=`https://www.virustotal.com/api/v3/${ep}/${encodeURIComponent(val)}`;}
-    const res=await fetch(url,{method,headers:{'x-apikey':key},...(body?{body}:{})});
-    const d=await res.json();const att=d.data?.attributes||{};
-    const stats=att.last_analysis_stats||{};const mal=stats.malicious||0;const total=Object.values(stats).reduce((a,b)=>a+b,0)||1;
-    return `<div class="enrich-card">
-      <div class="ec-hdr"><span class="ec-source">VirusTotal</span><span class="ec-status ${mal>5?'bad':mal>0?'warn':'ok'}">${mal}/${total} engines</span></div>
-      <div class="ec-body">
-        <div class="ec-row"><span class="ec-k">Malicious</span><span class="ec-v" style="color:${mal>5?'var(--red)':mal>0?'var(--yellow)':'var(--accent)'}">${mal}</span></div>
-        <div class="ec-row"><span class="ec-k">Suspicious</span><span class="ec-v">${stats.suspicious||0}</span></div>
-        <div class="ec-row"><span class="ec-k">Clean</span><span class="ec-v">${stats.undetected||0}</span></div>
-        ${att.country?`<div class="ec-row"><span class="ec-k">Country</span><span class="ec-v">${att.country}</span></div>`:''}
-        ${att.as_owner?`<div class="ec-row"><span class="ec-k">ASN Owner</span><span class="ec-v">${att.as_owner}</span></div>`:''}
-        ${att.reputation!==undefined?`<div class="ec-row"><span class="ec-k">Reputation</span><span class="ec-v">${att.reputation}</span></div>`:''}
-        <div class="ec-row"><span class="ec-k">VT Link</span><span class="ec-v"><a href="https://www.virustotal.com/gui/${ep}/${encodeURIComponent(val)}" target="_blank" style="color:var(--accent2)">view full report ↗</a></span></div>
-      </div></div>`;
-  }catch(e){return null;}
+  try{let url;if(type==='url'){const id=btoa(val).replace(/=+$/,'');url=`https://www.virustotal.com/api/v3/urls/${id}`;}else{url=`https://www.virustotal.com/api/v3/${ep}/${encodeURIComponent(val)}`;}const res=await fetch(url,{headers:{'x-apikey':key}});const d=await res.json();const att=d.data?.attributes||{};const stats=att.last_analysis_stats||{};const mal=stats.malicious||0;const total=Object.values(stats).reduce((a,b)=>a+b,0)||1;return`<div class="ec"><div class="ec-hdr"><span class="ec-src">VirusTotal</span><span class="ec-st ${mal>5?'bad':mal>0?'warn':'ok'}">${mal}/${total} engines</span></div><div class="ec-body"><div class="ec-row"><span class="ec-k">Malicious</span><span class="ec-v" style="color:${mal>5?'var(--red)':mal>0?'var(--yellow)':'var(--accent)'}">${mal}</span></div><div class="ec-row"><span class="ec-k">Suspicious</span><span class="ec-v">${stats.suspicious||0}</span></div>${att.country?`<div class="ec-row"><span class="ec-k">Country</span><span class="ec-v">${att.country}</span></div>`:''}<div class="ec-row"><span class="ec-k">Full Report</span><span class="ec-v"><a href="https://www.virustotal.com/gui/${ep}/${encodeURIComponent(val)}" target="_blank">view ↗</a></span></div></div></div>`;}catch(e){return null;}
 }
 
 // ═══════════════════════════════════════════════════
 // TIMELINE
 // ═══════════════════════════════════════════════════
 function addTLEvent(){const c=getC();if(!c){alert('Select a case first');return;}const desc=document.getElementById('tl-desc').value.trim();if(!desc){alert('Enter description');return;}c.timeline.push({id:'t_'+Date.now(),date:document.getElementById('tl-date').value||new Date().toISOString().split('T')[0],type:document.getElementById('tl-type').value,desc,created:new Date().toISOString()});document.getElementById('tl-desc').value='';c.timeline.sort((a,b)=>a.date.localeCompare(b.date));save();renderTimeline();}
-function renderTimeline(){const c=getC();const el=document.getElementById('tl-events');if(!c||!c.timeline.length){el.innerHTML='<div style="color:var(--dim);font-size:.75rem;text-align:center;padding:1.5rem">no events yet</div>';return;}const tc2={'IOC Detected':'#ff4444','Infrastructure':'#00d4ff','Actor Activity':'#e8c547','Financial':'#bc8cff','Malware':'#f0883e','Attribution':'#00ff41','Other':'#484f58'};el.innerHTML=c.timeline.map(ev=>`<div class="tl-ev"><div class="tl-dt">${ev.date}</div><div class="tl-col"><div class="tl-dot" style="background:${tc2[ev.type]||'#484f58'}"></div><div class="tl-line"></div></div><div><div class="tl-card"><div class="tl-ct">${ev.desc}</div><div class="tl-cm" style="color:${tc2[ev.type]||'#484f58'}">${ev.type}</div></div></div></div>`).join('');}
+function renderTimeline(){const c=getC();const el=document.getElementById('tl-events');if(!c||!c.timeline.length){el.innerHTML='<div style="color:var(--dim);font-size:.74rem;text-align:center;padding:1.5rem">no events yet</div>';return;}const tc2={'IOC Detected':'#ff4444','Infrastructure':'#00d4ff','Actor Activity':'#e8c547','Financial':'#bc8cff','Malware':'#f0883e','Attribution':'#00ff41','Data Breach':'#ff4444','Defacement':'#bc8cff','Other':'#484f58'};el.innerHTML=c.timeline.map(ev=>`<div class="tl-ev"><div class="tl-dt">${ev.date}</div><div class="tl-col"><div class="tl-dot" style="background:${tc2[ev.type]||'#484f58'}"></div><div class="tl-line"></div></div><div><div class="tl-card"><div class="tl-ct">${escH(ev.desc)}</div><div class="tl-cm" style="color:${tc2[ev.type]||'#484f58'}">${ev.type}</div></div></div></div>`).join('');}
 
 // ═══════════════════════════════════════════════════
 // EVIDENCE
 // ═══════════════════════════════════════════════════
 function addEvidence(){const c=getC();if(!c){alert('Select a case first');return;}const content=document.getElementById('ev-content').value.trim();if(!content){alert('Enter content');return;}c.evidence.push({id:'ev_'+Date.now(),tag:document.getElementById('ev-tag').value,content,created:new Date().toISOString()});document.getElementById('ev-content').value='';save();renderEvidence();}
 function delEv(id){const c=getC();if(!c)return;c.evidence=c.evidence.filter(e=>e.id!==id);save();renderEvidence();}
-function renderEvidence(){const c=getC();const el=document.getElementById('ev-items');if(!c||!c.evidence.length){el.innerHTML='<div style="color:var(--dim);font-size:.75rem;text-align:center;padding:1.5rem">no evidence yet</div>';return;}el.innerHTML=[...c.evidence].reverse().map(ev=>`<div class="ev-item"><div class="ev-ih"><span class="ev-tag">${ev.tag}</span><span style="font-size:.62rem;color:var(--dim)">${new Date(ev.created).toLocaleString()}</span><button class="ev-del" onclick="delEv('${ev.id}')">×</button></div><div class="ev-content">${escH(ev.content)}</div></div>`).join('');}
+function renderEvidence(){const c=getC();const el=document.getElementById('ev-items');if(!c||!c.evidence.length){el.innerHTML='<div style="color:var(--dim);font-size:.74rem;text-align:center;padding:1.5rem">no evidence yet</div>';return;}el.innerHTML=[...c.evidence].reverse().map(ev=>`<div class="ev-item"><div class="ev-ih"><span class="ev-tag">${ev.tag}</span><span style="font-size:.6rem;color:var(--dim)">${new Date(ev.created).toLocaleString()}</span><button class="ev-del" onclick="delEv('${ev.id}')">×</button></div><div class="ev-content">${escH(ev.content)}</div></div>`).join('');}
 
 // ═══════════════════════════════════════════════════
 // REPORT
 // ═══════════════════════════════════════════════════
 function generateReport(){switchTab('report',document.querySelectorAll('.cvt')[5]);renderReport();}
-function renderReport(){const c=getC();const el=document.getElementById('rp-preview');if(!c){el.innerHTML='<div style="color:var(--dim);font-size:.78rem">select a case to generate report</div>';return;}const ents=Object.values(c.entities);const iocs=ents.filter(e=>e.ioc==='yes');el.innerHTML=`<div class="rp-t">⬡ Kitsune CTI Report</div><div class="rp-m">Case: ${c.name} · Priority: ${c.priority} · Status: ${c.status}<br>Generated: ${new Date().toLocaleString()} · Analyst: 0xprit3sh</div><div class="rp-s"><div class="rp-sh">// EXECUTIVE SUMMARY</div><p style="font-size:.75rem;color:var(--text2);line-height:1.7">${c.desc||'No description.'}</p></div><div class="rp-s"><div class="rp-sh">// STATISTICS</div><table class="rp-table"><tr><td>Entities</td><td>${ents.length}</td><td>Confirmed IOCs</td><td>${iocs.length}</td></tr><tr><td>Timeline</td><td>${c.timeline.length}</td><td>Evidence</td><td>${c.evidence.length}</td></tr></table></div>${iocs.length?`<div class="rp-s"><div class="rp-sh">// IOC TABLE</div><table class="rp-table"><tr><th>Type</th><th>Indicator</th><th>TLP</th><th>Confidence</th></tr>${iocs.map(e=>`<tr><td>${e.type}</td><td style="color:var(--orange);font-family:monospace">${escH(e.value)}</td><td>TLP:${e.tlp||'WHITE'}</td><td>${e.confidence||80}%</td></tr>`).join('')}</table></div>`:''} ${c.timeline.length?`<div class="rp-s"><div class="rp-sh">// TIMELINE</div><table class="rp-table"><tr><th>Date</th><th>Type</th><th>Event</th></tr>${c.timeline.map(ev=>`<tr><td>${ev.date}</td><td>${ev.type}</td><td>${escH(ev.desc)}</td></tr>`).join('')}</table></div>`:''}<div style="font-size:.62rem;color:var(--dim);margin-top:1rem;border-top:1px solid var(--border);padding-top:.6rem">Generated by Kitsune CTI Platform · 0xprit3sh.xyz · ${new Date().toISOString()}</div>`;}
-function downloadReport(){const c=getC();if(!c)return;renderReport();const content=document.getElementById('rp-preview').innerHTML;const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Kitsune Report — ${c.name}</title><style>body{font-family:monospace;background:#090909;color:#e6edf3;padding:2rem;max-width:900px;margin:0 auto}.rp-t{color:#00ff41;font-size:1.1rem;font-weight:700;margin-bottom:.4rem}.rp-sh{color:#00d4ff;font-size:.78rem;font-weight:700;margin:.75rem 0 .3rem;letter-spacing:.04em}.rp-table{width:100%;border-collapse:collapse;font-size:.78rem;margin:.4rem 0}.rp-table th{background:#161616;color:#484f58;padding:4px 8px;border:1px solid #1e1e1e;text-align:left}.rp-table td{padding:4px 8px;border:1px solid #1e1e1e;color:#8b949e}</style></head><body>${content}</body></html>`;const blob=new Blob([html],{type:'text/html'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`kitsune-${c.name.replace(/\s+/g,'-').toLowerCase()}.html`;a.click();}
-function copyMarkdown(){const c=getC();if(!c)return;const ents=Object.values(c.entities);const iocs=ents.filter(e=>e.ioc==='yes');const md=`# Kitsune CTI Report — ${c.name}\n\n**Priority:** ${c.priority} | **Status:** ${c.status}\n\n## IOCs\n${iocs.map(e=>`- \`${e.value}\` (${e.type}, TLP:${e.tlp})`).join('\n')||'None'}\n\n## Timeline\n${c.timeline.map(ev=>`- **${ev.date}** [${ev.type}] ${ev.desc}`).join('\n')||'None'}`;navigator.clipboard.writeText(md);showToast('Markdown copied');}
+function renderReport(){const c=getC();const el=document.getElementById('rp-preview');if(!c){el.innerHTML='<div style="color:var(--dim);font-size:.76rem">select a case</div>';return;}const ents=Object.values(c.entities);const iocs=ents.filter(e=>e.ioc==='yes');el.innerHTML=`<div class="rp-t">⬡ Kitsune CTI Report</div><div class="rp-m">Case: ${c.name} · Priority: ${c.priority} · Status: ${c.status} · Generated: ${new Date().toLocaleString()} · Analyst: 0xprit3sh</div><div class="rp-sh">// EXECUTIVE SUMMARY</div><p style="font-size:.74rem;color:var(--text2);line-height:1.7;margin-bottom:.75rem">${c.desc||'No description.'}</p><div class="rp-sh">// STATISTICS</div><table class="rp-table"><tr><td>Total Entities</td><td>${ents.length}</td><td>Confirmed IOCs</td><td>${iocs.length}</td></tr><tr><td>Timeline Events</td><td>${c.timeline.length}</td><td>Evidence Items</td><td>${c.evidence.length}</td></tr></table>${iocs.length?`<div class="rp-sh">// IOC TABLE</div><table class="rp-table"><tr><th>Type</th><th>Indicator</th><th>TLP</th><th>Confidence</th></tr>${iocs.map(e=>`<tr><td>${e.type}</td><td style="color:var(--orange);font-family:monospace;font-size:.66rem">${escH(e.value)}</td><td>TLP:${e.tlp||'WHITE'}</td><td>${e.confidence||80}%</td></tr>`).join('')}</table>`:''} ${c.timeline.length?`<div class="rp-sh">// TIMELINE</div><table class="rp-table"><tr><th>Date</th><th>Type</th><th>Event</th></tr>${c.timeline.map(ev=>`<tr><td>${ev.date}</td><td>${ev.type}</td><td>${escH(ev.desc)}</td></tr>`).join('')}</table>`:''}<div style="font-size:.6rem;color:var(--dim);margin-top:1rem;border-top:1px solid var(--border);padding-top:.5rem">Generated by Kitsune CTI Platform · 0xprit3sh.xyz · ${new Date().toISOString()}</div>`;}
+function downloadReport(){const c=getC();if(!c)return;renderReport();const content=document.getElementById('rp-preview').innerHTML;const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Kitsune Report — ${c.name}</title><style>body{font-family:monospace;background:#090909;color:#e6edf3;padding:2rem;max-width:900px;margin:0 auto}.rp-t{color:#00ff41;font-size:1.1rem;font-weight:700;margin-bottom:.3rem}.rp-sh{color:#00d4ff;font-size:.76rem;font-weight:700;margin:.7rem 0 .3rem}.rp-table{width:100%;border-collapse:collapse;font-size:.76rem}.rp-table th{background:#161616;color:#484f58;padding:4px 7px;border:1px solid #1e1e1e;text-align:left}.rp-table td{padding:4px 7px;border:1px solid #1e1e1e;color:#8b949e}</style></head><body>${content}</body></html>`;const blob=new Blob([html],{type:'text/html'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`kitsune-${c.name.replace(/\s+/g,'-').toLowerCase()}.html`;a.click();}
+function copyMarkdown(){const c=getC();if(!c)return;const ents=Object.values(c.entities);const iocs=ents.filter(e=>e.ioc==='yes');const md=`# Kitsune CTI Report — ${c.name}\n\n**Priority:** ${c.priority} | **Status:** ${c.status}\n\n## Summary\n${c.desc||'N/A'}\n\n## IOCs\n${iocs.map(e=>`- \`${e.value}\` (${e.type}, TLP:${e.tlp})`).join('\n')||'None'}\n\n## Timeline\n${c.timeline.map(ev=>`- **${ev.date}** [${ev.type}] ${ev.desc}`).join('\n')||'None'}`;navigator.clipboard.writeText(md);showToast('Markdown copied');}
 
 // ═══════════════════════════════════════════════════
 // IMPORT / EXPORT
 // ═══════════════════════════════════════════════════
-function exportData(){const blob=new Blob([JSON.stringify(S.cases,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`kitsune-backup-${Date.now()}.json`;a.click();}
-function importData(){const input=document.createElement('input');input.type='file';input.accept='.json';input.onchange=e=>{const file=e.target.files[0];const reader=new FileReader();reader.onload=ev=>{try{const data=JSON.parse(ev.target.result);Object.assign(S.cases,data);save();renderAll();showToast('Import successful');}catch(err){alert('Invalid JSON file');}};reader.readAsText(file);};input.click();}
+function exportData(){const blob=new Blob([JSON.stringify(S.cases,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`kitsune-${Date.now()}.json`;a.click();}
+function importData(){const input=document.createElement('input');input.type='file';input.accept='.json';input.onchange=e=>{const file=e.target.files[0];const reader=new FileReader();reader.onload=ev=>{try{const data=JSON.parse(ev.target.result);Object.assign(S.cases,data);save();renderAll();showToast('Imported');}catch(err){alert('Invalid JSON');}};reader.readAsText(file);};input.click();}
 
 // ═══════════════════════════════════════════════════
-// TABS
+// TABS + RENDER ALL
 // ═══════════════════════════════════════════════════
 function switchTab(id,btn){document.querySelectorAll('.cvt').forEach(b=>b.classList.remove('on'));document.querySelectorAll('.cv-panel').forEach(p=>p.classList.remove('on'));if(btn)btn.classList.add('on');document.getElementById('panel-'+id).classList.add('on');if(id==='report')renderReport();}
-
-// ═══════════════════════════════════════════════════
-// RENDER ALL
-// ═══════════════════════════════════════════════════
 function renderAll(){renderCases();renderEnts();renderGraph();renderTimeline();renderEvidence();updateStats();}
-function renderCases(){
-  const el=document.getElementById('cases-list');const sel=document.getElementById('case-sel');
-  const cases=Object.values(S.cases).sort((a,b)=>b.created.localeCompare(a.created));
-  const pc={critical:'#ff4444',high:'#e8c547',medium:'#00d4ff',low:'#484f58'};
-  el.innerHTML=cases.map(c=>`<div class="si ${S.cur===c.id?'on':''}" onclick="switchCase('${c.id}')"><div class="si-dot" style="background:${pc[c.priority]||'#484f58'}"></div><span class="si-name">${c.name}</span><span class="si-badge">${c.status}</span><button class="si-del" onclick="delCase('${c.id}',event)">×</button></div>`).join('')||'<div style="padding:8px 10px;font-size:.72rem;color:var(--dim)">no cases yet</div>';
-  sel.innerHTML='<option value="">— select case —</option>'+cases.map(c=>`<option value="${c.id}" ${S.cur===c.id?'selected':''}>${c.name}</option>`).join('');
-}
-function renderEnts(){
-  const c=getC();const el=document.getElementById('ents-list');
-  if(!c){el.innerHTML='<div style="padding:8px 10px;font-size:.72rem;color:var(--dim)">select a case</div>';return;}
-  const ents=Object.values(c.entities).sort((a,b)=>b.created.localeCompare(a.created));
-  document.getElementById('ent-count').textContent=ents.length;
-  el.innerHTML=ents.map(e=>`<div class="si ${S.selEnt===e.id?'on':''}" onclick="showDetail('${e.id}')" data-v="${e.value.toLowerCase()}"><div class="si-dot" style="background:${e.color||TC[e.type]||'#484f58'}"></div><span class="si-name">${e.value}</span><span class="si-badge">${e.type}</span><button class="si-del" onclick="event.stopPropagation();S.selEnt='${e.id}';deleteDetail()">×</button></div>`).join('')||'<div style="padding:8px 10px;font-size:.72rem;color:var(--dim)">no entities — add above</div>';
-}
-function updateStats(){const c=getC();document.getElementById('st-case').textContent=c?c.name.slice(0,18):'none';document.getElementById('st-ents').textContent=c?Object.keys(c.entities).length:0;document.getElementById('st-nodes').textContent=c?c.graph.nodes.length:0;document.getElementById('st-edges').textContent=c?c.graph.edges.length:0;document.getElementById('st-tl').textContent=c?c.timeline.length:0;document.getElementById('st-ev').textContent=c?c.evidence.length:0;}
-
+function renderCases(){const el=document.getElementById('cases-list');const sel=document.getElementById('case-sel');const cases=Object.values(S.cases).sort((a,b)=>b.created.localeCompare(a.created));const pc={critical:'#ff4444',high:'#e8c547',medium:'#00d4ff',low:'#484f58'};el.innerHTML=cases.map(c=>`<div class="si ${S.cur===c.id?'on':''}" onclick="switchCase('${c.id}')"><div class="si-dot" style="background:${pc[c.priority]||'#484f58'}"></div><span class="si-name">${c.name}</span><span class="si-badge">${c.status}</span><button class="si-del" onclick="delCase('${c.id}',event)">×</button></div>`).join('')||'<div style="padding:8px 10px;font-size:.72rem;color:var(--dim)">no cases yet</div>';sel.innerHTML='<option value="">— select case —</option>'+cases.map(c=>`<option value="${c.id}" ${S.cur===c.id?'selected':''}>${c.name}</option>`).join('');}
+function renderEnts(){const c=getC();const el=document.getElementById('ents-list');if(!c){el.innerHTML='<div style="padding:8px 10px;font-size:.72rem;color:var(--dim)">select a case</div>';return;}const ents=Object.values(c.entities).sort((a,b)=>b.created.localeCompare(a.created));document.getElementById('ent-count').textContent=ents.length;el.innerHTML=ents.map(e=>`<div class="si ${S.selEnt===e.id?'on':''}" onclick="showDetail('${e.id}')" data-v="${e.value.toLowerCase()}"><div class="si-dot" style="background:${e.color||TC[e.type]||'#484f58'}"></div><span class="si-name">${e.value}</span><span class="si-badge">${e.type}</span><button class="si-del" onclick="event.stopPropagation();S.selEnt='${e.id}';deleteDetail()">×</button></div>`).join('')||'<div style="padding:8px 10px;font-size:.72rem;color:var(--dim)">no entities</div>';}
+function updateStats(){const c=getC();document.getElementById('st-case').textContent=c?c.name.slice(0,16):'none';document.getElementById('st-ents').textContent=c?Object.keys(c.entities).length:0;document.getElementById('st-nodes').textContent=c?c.graph.nodes.length:0;document.getElementById('st-edges').textContent=c?c.graph.edges.length:0;document.getElementById('st-tl').textContent=c?c.timeline.length:0;document.getElementById('st-ev').textContent=c?c.evidence.length:0;}
 function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function showToast(msg){const t=document.createElement('div');t.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--accent);color:#000;font-family:monospace;font-size:11px;font-weight:700;padding:8px 18px;border-radius:4px;z-index:9999';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2500);}
+function showToast(msg){const t=document.createElement('div');t.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--accent);color:#000;font-family:monospace;font-size:11px;font-weight:700;padding:8px 18px;border-radius:4px;z-index:9999;pointer-events:none';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2500);}
 
 // INIT
 load();loadKeys();renderAll();setMode('select');
