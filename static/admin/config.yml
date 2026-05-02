@@ -2,12 +2,15 @@ backend:
   name: github
   repo: prit3shnaik/0xprit3sh.xyz
   branch: main
-  
+
 media_folder: "static/images/uploads"
 public_folder: "/images/uploads"
 
 collections:
 
+  # ─────────────────────────────────────────────
+  # BLOG POSTS
+  # ─────────────────────────────────────────────
   - name: "blog"
     label: "Blog Posts"
     folder: "content/blog"
@@ -19,115 +22,144 @@ collections:
       - { label: "Tags",        name: "tags",     widget: "list", allow_add: true }
       - { label: "TL;DR",      name: "tldr",     widget: "string", required: false }
       - { label: "Cover Image", name: "og_image", widget: "image",  required: false,
-          hint: "1200x630px recommended — shows when shared on X, LinkedIn, Telegram" }
+          hint: "1200x630px recommended" }
       - label: "Body"
         name: "body"
         widget: "markdown"
-        buttons:
-          - bold
-          - italic
-          - code
-          - link
-          - heading-one
-          - heading-two
-          - heading-three
-          - quote
-          - bulleted-list
-          - numbered-list
-          - code-block
-        editor_components:
-          - code-block
-          - image
+        buttons: [bold, italic, code, link, heading-one, heading-two, heading-three, quote, bulleted-list, numbered-list, code-block]
+        editor_components: [code-block, image]
 
+  # ─────────────────────────────────────────────
+  # ALERTS — redesigned, clean, Discord-style
+  # ─────────────────────────────────────────────
   - name: "alerts"
-    label: "Alerts"
+    label: "🚨 Alerts"
     folder: "content/alerts"
     create: true
     slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
     fields:
-      - { label: "Title",            name: "title",            widget: "string" }
-      - { label: "Date",             name: "date",             widget: "datetime" }
-      - { label: "Severity",         name: "severity",         widget: "select",
-          options: ["critical","high","medium","info"],         default: "info" }
-      - { label: "Alert Type",       name: "alert_type",       widget: "select",
-          options: ["IOC","CVE","ThreatActor","Malware","Phishing","DarkWeb","General"],
-          default: "General" }
-      - { label: "TLP",              name: "tlp",              widget: "select",
-          options: ["RED","AMBER","GREEN","WHITE","CLEAR"],     default: "WHITE",
-          hint: "Traffic Light Protocol — controls sharing permissions" }
-      - { label: "Active Threat",    name: "active",           widget: "boolean",
-          default: false, hint: "Shows pulsing ACTIVE badge on the alert" }
-      - { label: "IOC",              name: "ioc",              widget: "string",
-          required: false, hint: "Indicator of Compromise — IP, domain, hash, etc." }
-      - { label: "CVE ID",           name: "cve",              widget: "string",
+
+      # ── Core (always visible, always needed) ──
+      - { label: "📌 Alert Title", name: "title", widget: "string",
+          hint: "e.g. Hacktivist Group DXPLOIT defaced Nirmala College website" }
+
+      - { label: "📅 Date",  name: "date", widget: "datetime" }
+
+      - label: "🔴 Severity"
+        name: "severity"
+        widget: "select"
+        options:
+          - { label: "🚨 Critical", value: "critical" }
+          - { label: "⚠️  High",     value: "high" }
+          - { label: "🔔 Medium",   value: "medium" }
+          - { label: "ℹ️  Info",     value: "info" }
+        default: "high"
+
+      - label: "📂 Alert Type"
+        name: "alert_type"
+        widget: "select"
+        options:
+          - { label: "💻 Defacement",    value: "Defacement" }
+          - { label: "🎯 IOC",           value: "IOC" }
+          - { label: "⚡ CVE / Exploit", value: "CVE" }
+          - { label: "🕵️  Threat Actor",  value: "ThreatActor" }
+          - { label: "🦠 Malware",       value: "Malware" }
+          - { label: "🎣 Phishing",      value: "Phishing" }
+          - { label: "🌑 DarkWeb",       value: "DarkWeb" }
+          - { label: "💰 DeFi / Web3",   value: "DeFi" }
+          - { label: "📢 General",       value: "General" }
+        default: "General"
+
+      # ── Classification ──
+      - label: "🔐 TLP"
+        name: "tlp"
+        widget: "select"
+        options:
+          - { label: "🔴 TLP:RED   — do not share",        value: "RED" }
+          - { label: "🟠 TLP:AMBER — limited sharing",     value: "AMBER" }
+          - { label: "🟢 TLP:GREEN — community sharing",   value: "GREEN" }
+          - { label: "⚪ TLP:WHITE — unlimited sharing",   value: "WHITE" }
+        default: "WHITE"
+
+      - { label: "🔴 Active Threat?", name: "active", widget: "boolean",
+          default: false, hint: "Toggle ON if threat is currently active/ongoing" }
+
+      # ── Target Info (matches your Discord format) ──
+      - { label: "🎯 Target",          name: "target",          widget: "string",
+          required: false, hint: "e.g. Nirmala College, Apache Foundation" }
+      - { label: "🌍 Target Location", name: "target_location", widget: "string",
+          required: false, hint: "e.g. Maharashtra, India" }
+      - { label: "🌐 Target Website",  name: "target_url",      widget: "string",
+          required: false, hint: "https://target.com" }
+
+      # ── Threat Actor ──
+      - { label: "☠️  Threat Actor / Hacktivist", name: "threat_actor", widget: "string",
+          required: false, hint: "e.g. DXPLOIT, Anonymous, Lazarus Group" }
+
+      # ── Technical Indicators ──
+      - { label: "🎯 IOC",              name: "ioc",              widget: "string",
+          required: false, hint: "IP, domain, hash, wallet address" }
+      - { label: "⚡ CVE ID",           name: "cve",              widget: "string",
           required: false, hint: "e.g. CVE-2024-1234" }
-      - { label: "Affected Systems", name: "affected_systems", widget: "string",
-          required: false, hint: "e.g. Windows 10/11, Apache 2.4, etc." }
-      - { label: "Source URL",       name: "source",           widget: "string",
-          required: false, hint: "Original source / reference link" }
-      - { label: "TL;DR",           name: "tldr",             widget: "string",
-          required: false }
-      - { label: "Tags",             name: "tags",             widget: "list",
-          allow_add: true }
-      - label: "Body"
+      - { label: "🖥️  Affected Systems", name: "affected_systems", widget: "string",
+          required: false, hint: "e.g. Windows 10/11, Apache 2.4" }
+
+      # ── Evidence ──
+      - { label: "🔍 POC / Mirror URL", name: "poc_url", widget: "string",
+          required: false, hint: "e.g. https://zone-h.org/mirror/id/..." }
+      - { label: "🔗 Source URL",       name: "source",  widget: "string",
+          required: false, hint: "Original source / reference" }
+
+      # ── Media ──
+      - { label: "🖼️  Screenshot / Cover Image", name: "og_image", widget: "image",
+          required: false, hint: "Upload screenshot, defacement image, or evidence" }
+
+      # ── Summary ──
+      - { label: "📝 TL;DR", name: "tldr", widget: "string",
+          required: false, hint: "One line summary — shown in alert feed and Discord" }
+
+      # ── Tags ──
+      - { label: "🏷️  Tags", name: "tags", widget: "list", allow_add: true,
+          hint: "e.g. DDoS, India, Ubuntu, defacement" }
+
+      # ── Body ──
+      - label: "📄 Full Alert Body"
         name: "body"
         widget: "markdown"
-        buttons:
-          - bold
-          - italic
-          - code
-          - link
-          - heading-two
-          - heading-three
-          - quote
-          - bulleted-list
-          - numbered-list
-          - code-block
-        editor_components:
-          - code-block
+        hint: "Full writeup — supports images, code blocks, links"
+        buttons: [bold, italic, code, link, heading-two, heading-three, quote, bulleted-list, numbered-list, code-block]
+        editor_components: [code-block, image]
 
+  # ─────────────────────────────────────────────
+  # OSINT INVESTIGATIONS
+  # ─────────────────────────────────────────────
   - name: "osint"
     label: "OSINT Investigations"
     folder: "content/osint"
     create: true
     slug: "{{slug}}"
     fields:
-      - { label: "Title",      name: "title",    widget: "string" }
-      - { label: "Date",       name: "date",     widget: "datetime" }
-      - { label: "Tags",       name: "tags",     widget: "list", allow_add: true,
-          hint: "Use: GEOINT, SOCMINT, HUMINT, C2, ACTOR, CTI" }
-      - { label: "Node Color", name: "color",    widget: "color",
-          default: "#00d4ff",  hint: "Color of this node in the OSINT workspace graph" }
-      - { label: "Enable Map", name: "leaflet",  widget: "boolean", default: false }
-      - { label: "TL;DR",     name: "tldr",     widget: "string",  required: false }
-      - { label: "Status",     name: "status",   widget: "select",
-          options: ["active", "closed", "ongoing"], default: "active" }
-      - { label: "Cover Image", name: "og_image", widget: "image",   required: false,
-          hint: "1200x630px — shows when shared on social media" }
-      - label: "Graph Data"
-        name: "graph_data"
-        widget: "string"
-        required: false
-        hint: "Paste the JSON from graph-builder here (copy JSON button). Then add {{< graph >}} in body where you want the graph to appear."
+      - { label: "Title",       name: "title",    widget: "string" }
+      - { label: "Date",        name: "date",     widget: "datetime" }
+      - { label: "Tags",        name: "tags",     widget: "list", allow_add: true,
+          hint: "GEOINT, SOCMINT, HUMINT, C2, ACTOR, CTI" }
+      - { label: "Node Color",  name: "color",    widget: "color", default: "#00d4ff" }
+      - { label: "Enable Map",  name: "leaflet",  widget: "boolean", default: false }
+      - { label: "TL;DR",      name: "tldr",     widget: "string", required: false }
+      - { label: "Status",      name: "status",   widget: "select",
+          options: ["active","closed","ongoing"], default: "active" }
+      - { label: "Cover Image", name: "og_image", widget: "image",  required: false }
+      - { label: "Graph Data",  name: "graph_data", widget: "string", required: false,
+          hint: "Paste JSON from graph-builder → add {{< graph >}} in body" }
       - label: "Body"
         name: "body"
         widget: "markdown"
-        buttons:
-          - bold
-          - italic
-          - code
-          - link
-          - heading-one
-          - heading-two
-          - heading-three
-          - quote
-          - bulleted-list
-          - numbered-list
-          - code-block
-        editor_components:
-          - code-block
-          - image
+        buttons: [bold, italic, code, link, heading-one, heading-two, heading-three, quote, bulleted-list, numbered-list, code-block]
+        editor_components: [code-block, image]
 
+  # ─────────────────────────────────────────────
+  # WRITEUPS
+  # ─────────────────────────────────────────────
   - name: "writeups"
     label: "Writeups"
     folder: "content/writeups"
@@ -138,60 +170,53 @@ collections:
       - { label: "Date",        name: "date",     widget: "datetime" }
       - { label: "Tags",        name: "tags",     widget: "list", allow_add: true }
       - { label: "Severity",    name: "severity", widget: "select",
-          options: ["critical", "high", "medium", "low"], required: false }
+          options: ["critical","high","medium","low"], required: false }
       - { label: "Platform",    name: "platform", widget: "string", required: false,
-          hint: "e.g. HackTheBox, Immunefi, Private bug bounty" }
+          hint: "HackTheBox, Immunefi, Private bug bounty" }
       - { label: "TL;DR",      name: "tldr",     widget: "string", required: false }
       - { label: "Cover Image", name: "og_image", widget: "image",  required: false }
       - label: "Body"
         name: "body"
         widget: "markdown"
-        buttons:
-          - bold
-          - italic
-          - code
-          - link
-          - heading-one
-          - heading-two
-          - heading-three
-          - quote
-          - bulleted-list
-          - numbered-list
-          - code-block
-        editor_components:
-          - code-block
-          - image
-          
+        buttons: [bold, italic, code, link, heading-one, heading-two, heading-three, quote, bulleted-list, numbered-list, code-block]
+        editor_components: [code-block, image]
+
+  # ─────────────────────────────────────────────
+  # THREAT ACTOR PROFILES
+  # ─────────────────────────────────────────────
   - name: "actors"
     label: "Threat Actor Profiles"
     folder: "content/actors"
     create: true
     slug: "{{slug}}"
     fields:
-      - { label: "Actor Name",    name: "title",         widget: "string" }
-      - { label: "Primary Alias", name: "alias",         widget: "string", required: false }
-      - { label: "All Aliases",   name: "aliases",       widget: "list",   allow_add: true, required: false }
-      - { label: "Category",      name: "category",      widget: "select",
+      - { label: "Actor Name",    name: "title",        widget: "string" }
+      - { label: "Primary Alias", name: "alias",        widget: "string", required: false }
+      - { label: "All Aliases",   name: "aliases",      widget: "list",   required: false }
+      - { label: "Category",      name: "category",     widget: "select",
           options: ["Nation-State","Cybercriminal","Ransomware","DarkWeb","DeFi","Hacktivism","Unknown"] }
-      - { label: "Threat Level",  name: "threat_level",  widget: "select",
+      - { label: "Threat Level",  name: "threat_level", widget: "select",
           options: ["critical","high","medium","low"] }
-      - { label: "Status",        name: "status",        widget: "select",
+      - { label: "Status",        name: "status",       widget: "select",
           options: ["active","inactive","monitoring","unknown"], default: "monitoring" }
-      - { label: "Origin",        name: "origin",        widget: "string",  required: false, hint: "e.g. Russia, North Korea, Unknown" }
-      - { label: "Motivation",    name: "motivation",    widget: "string",  required: false, hint: "e.g. Financial, Espionage, Disruption" }
-      - { label: "First Seen",    name: "first_seen",    widget: "string",  required: false, hint: "e.g. 2021-Q3" }
-      - { label: "Last Seen",     name: "last_seen",     widget: "string",  required: false, hint: "e.g. 2026-04" }
-      - { label: "TTPs",          name: "ttps",          widget: "list",    allow_add: true, required: false, hint: "e.g. T1566, Phishing, Lateral Movement" }
-      - { label: "Targets",       name: "targets",       widget: "list",    allow_add: true, required: false }
-      - { label: "Tools/Malware", name: "tools_used",    widget: "list",    allow_add: true, required: false }
-      - { label: "Known IOCs",    name: "iocs",          widget: "list",    allow_add: true, required: false }
-      - { label: "TL;DR",         name: "tldr",          widget: "string",  required: false }
-      - { label: "Tags",          name: "tags",          widget: "list",    allow_add: true }
+      - { label: "Origin",        name: "origin",       widget: "string", required: false }
+      - { label: "Motivation",    name: "motivation",   widget: "string", required: false }
+      - { label: "First Seen",    name: "first_seen",   widget: "string", required: false }
+      - { label: "Last Seen",     name: "last_seen",    widget: "string", required: false }
+      - { label: "TTPs",          name: "ttps",         widget: "list",   required: false }
+      - { label: "Targets",       name: "targets",      widget: "list",   required: false }
+      - { label: "Tools/Malware", name: "tools_used",   widget: "list",   required: false }
+      - { label: "Known IOCs",    name: "iocs",         widget: "list",   required: false }
+      - { label: "TL;DR",        name: "tldr",         widget: "string", required: false }
+      - { label: "Tags",          name: "tags",         widget: "list" }
       - label: "Body"
         name: "body"
         widget: "markdown"
         buttons: [bold, italic, code, link, heading-two, heading-three, quote, bulleted-list, numbered-list, code-block]
-          
+
+  # ─────────────────────────────────────────────
+  # PAGES
+  # ─────────────────────────────────────────────
   - name: "pages"
     label: "Pages"
     files:
@@ -217,21 +242,8 @@ collections:
           - label: "Body"
             name: "body"
             widget: "markdown"
-            buttons:
-              - bold
-              - italic
-              - code
-              - link
-              - heading-one
-              - heading-two
-              - heading-three
-              - quote
-              - bulleted-list
-              - numbered-list
-              - code-block
-            editor_components:
-              - code-block
-              - image
+            buttons: [bold, italic, code, link, heading-one, heading-two, heading-three, quote, bulleted-list, numbered-list, code-block]
+            editor_components: [code-block, image]
 
       - label: "Services"
         name: "services"
@@ -242,18 +254,5 @@ collections:
           - label: "Body"
             name: "body"
             widget: "markdown"
-            buttons:
-              - bold
-              - italic
-              - code
-              - link
-              - heading-one
-              - heading-two
-              - heading-three
-              - quote
-              - bulleted-list
-              - numbered-list
-              - code-block
-            editor_components:
-              - code-block
-              - image
+            buttons: [bold, italic, code, link, heading-one, heading-two, heading-three, quote, bulleted-list, numbered-list, code-block]
+            editor_components: [code-block, image]
