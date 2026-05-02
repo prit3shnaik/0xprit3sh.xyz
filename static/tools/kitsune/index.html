@@ -4,12 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kitsune — CTI Investigation Platform</title>
-<meta name="description" content="Kitsune CTI Platform by 0xprit3sh — browser-based threat intelligence investigation tool">
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <style>
-:root {
+:root{
   --bg:#090909;--bg2:#0f0f0f;--bg3:#161616;--bg4:#1c1c1c;
   --border:#1e1e1e;--border2:#2a2a2a;
   --text:#e6edf3;--text2:#8b949e;--dim:#484f58;
@@ -17,1180 +15,951 @@
   --accent2:#00d4ff;--red:#ff4444;--yellow:#e8c547;
   --blue:#58a6ff;--purple:#bc8cff;--orange:#f0883e;
   --font:'JetBrains Mono',monospace;
-  --hh:48px;--sw:240px;--dw:280px;
+  --hh:52px;--sw:250px;--dw:290px;
 }
-html.light {
+html.light{
   --bg:#f0f0eb;--bg2:#fff;--bg3:#e8e8e2;--bg4:#ddd;
   --border:#d0d0c8;--border2:#b8b8b0;
   --text:#1a1a1a;--text2:#555;--dim:#888;
   --accent:#007a1e;--adim:rgba(0,122,30,.08);--accent2:#0066cc;
 }
-*{box-sizing:border-box;margin:0;padding:0;transition:background .15s,color .15s,border-color .15s}
+*{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13px;height:100vh;overflow:hidden;display:grid;grid-template-rows:var(--hh) 1fr}
-a{color:var(--accent2);text-decoration:none}
 button{cursor:pointer;font-family:var(--font)}
-input,textarea,select{font-family:var(--font);background:var(--bg3);border:1px solid var(--border2);color:var(--text);border-radius:3px;outline:none;transition:border-color .15s}
+input,textarea,select{font-family:var(--font);background:var(--bg3);border:1px solid var(--border2);color:var(--text);border-radius:3px;outline:none}
 input:focus,textarea:focus,select:focus{border-color:var(--accent)}
 input::placeholder,textarea::placeholder{color:var(--dim)}
 select option{background:var(--bg2)}
 ::-webkit-scrollbar{width:3px;height:3px}
 ::-webkit-scrollbar-thumb{background:var(--border2)}
 
-/* ── HEADER ── */
+/* HEADER */
 .hdr{background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 12px;gap:8px;z-index:100}
-.hdr-logo{display:flex;align-items:center;gap:7px;color:var(--accent);font-weight:700;font-size:.85rem;margin-right:8px;flex-shrink:0}
-.hdr-logo-icon{font-size:1.1rem}
-.hdr-case-select{background:var(--bg3);border:1px solid var(--border2);color:var(--text);font-size:.72rem;padding:4px 8px;border-radius:3px;max-width:180px}
-.hdr-btn{background:none;border:1px solid var(--border2);color:var(--dim);font-size:.68rem;padding:4px 10px;border-radius:3px;transition:all .15s}
-.hdr-btn:hover{border-color:var(--accent);color:var(--accent)}
-.hdr-btn.primary{background:var(--accent);border-color:var(--accent);color:#000;font-weight:700}
-.hdr-btn.primary:hover{opacity:.85;color:#000}
-.hdr-btn.danger{border-color:var(--red);color:var(--red)}
-.hdr-sep{width:1px;height:20px;background:var(--border);margin:0 4px;flex-shrink:0}
+.logo{color:var(--accent);font-weight:700;font-size:.9rem;display:flex;align-items:center;gap:6px;flex-shrink:0}
+.logo-sub{color:var(--dim);font-size:.65rem;font-weight:400}
+.sep{width:1px;height:20px;background:var(--border);flex-shrink:0}
+.hbtn{background:none;border:1px solid var(--border2);color:var(--dim);font-size:.68rem;padding:4px 10px;border-radius:3px;transition:all .15s}
+.hbtn:hover{border-color:var(--accent);color:var(--accent)}
+.hbtn.p{background:var(--accent);border-color:var(--accent);color:#000;font-weight:700}
+.hbtn.p:hover{opacity:.85;color:#000}
+.hbtn.r{border-color:var(--red);color:var(--red)}
 .hdr-right{margin-left:auto;display:flex;gap:6px;align-items:center}
-.hdr-status{font-size:.65rem;color:var(--dim);background:var(--bg3);border:1px solid var(--border);padding:3px 8px;border-radius:2px}
-.hdr-status.saved{color:var(--accent);border-color:rgba(0,255,65,.2)}
+.save-st{font-size:.62rem;color:var(--dim);background:var(--bg3);border:1px solid var(--border);padding:3px 8px;border-radius:2px}
+.save-st.ok{color:var(--accent);border-color:rgba(0,255,65,.2)}
 
-/* ── MAIN ── */
+/* LAYOUT */
 .main{display:grid;grid-template-columns:var(--sw) 1fr var(--dw);overflow:hidden}
 
-/* ── LEFT SIDEBAR ── */
-.sidebar{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
-.sb-section{flex-shrink:0;border-bottom:1px solid var(--border)}
-.sb-title{padding:8px 10px;font-size:.65rem;color:var(--dim);letter-spacing:.06em;display:flex;align-items:center;justify-content:space-between}
-.sb-add{background:none;border:none;color:var(--dim);font-size:.8rem;line-height:1;padding:0 2px;transition:color .15s}
+/* SIDEBAR */
+.sb{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.sb-sec{flex-shrink:0;border-bottom:1px solid var(--border)}
+.sb-hdr{padding:7px 10px;font-size:.62rem;color:var(--dim);letter-spacing:.06em;display:flex;align-items:center;justify-content:space-between;text-transform:uppercase}
+.sb-add{background:none;border:none;color:var(--dim);font-size:.9rem;line-height:1;padding:0 2px;transition:color .15s}
 .sb-add:hover{color:var(--accent)}
-.sb-list{overflow-y:auto;max-height:180px}
-.sb-item{display:flex;align-items:center;gap:6px;padding:6px 10px;font-size:.75rem;cursor:pointer;transition:background .1s;border-bottom:1px solid var(--border)}
-.sb-item:last-child{border-bottom:none}
-.sb-item:hover{background:var(--bg3)}
-.sb-item.active{background:var(--bg3);border-left:2px solid var(--accent)}
-.sb-item-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.sb-item-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
-.sb-item-badge{font-size:.58rem;color:var(--dim);background:var(--bg4);padding:1px 4px;border-radius:2px;flex-shrink:0}
-.sb-item-del{color:var(--dim);font-size:.7rem;padding:0 2px;background:none;border:none;opacity:0;transition:opacity .15s}
-.sb-item:hover .sb-item-del{opacity:1}
-.sb-item-del:hover{color:var(--red)}
-.entity-types{padding:8px 10px;display:grid;grid-template-columns:1fr 1fr;gap:4px}
-.et-btn{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-size:.62rem;padding:5px 4px;border-radius:3px;text-align:center;transition:all .15s}
-.et-btn:hover{border-color:var(--accent2);color:var(--accent2)}
-.sb-entities{overflow-y:auto;flex:1}
+.sb-list{overflow-y:auto;max-height:160px}
+.si{display:flex;align-items:center;gap:6px;padding:6px 10px;font-size:.75rem;cursor:pointer;transition:background .1s;border-bottom:1px solid var(--border)}
+.si:last-child{border-bottom:none}
+.si:hover{background:var(--bg3)}
+.si.on{background:var(--bg3);border-left:2px solid var(--accent)}
+.si-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.si-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
+.si-badge{font-size:.58rem;color:var(--dim);background:var(--bg4);padding:1px 4px;border-radius:2px;flex-shrink:0}
+.si-del{color:var(--dim);font-size:.7rem;padding:0 2px;background:none;border:none;opacity:0;transition:opacity .15s}
+.si:hover .si-del{opacity:1}
+.si-del:hover{color:var(--red)}
+.et-grid{padding:8px 10px;display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.et{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-size:.62rem;padding:5px 4px;border-radius:3px;text-align:center;transition:all .15s}
+.et:hover{border-color:var(--accent2);color:var(--accent2)}
+.sb-ents{overflow-y:auto;flex:1}
 
-/* ── CANVAS ── */
-.canvas{display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
-.canvas-tabs{background:var(--bg2);border-bottom:1px solid var(--border);display:flex;gap:0;flex-shrink:0}
-.cv-tab{background:none;border:none;border-bottom:2px solid transparent;color:var(--dim);font-size:.75rem;padding:10px 16px;transition:all .15s}
-.cv-tab:hover{color:var(--text)}
-.cv-tab.on{color:var(--accent);border-bottom-color:var(--accent)}
-.cv-panel{display:none;flex:1;overflow:hidden;position:relative}
-.cv-panel.on{display:flex;flex-direction:column}
+/* CANVAS */
+.canvas{display:flex;flex-direction:column;overflow:hidden}
+.cv-tabs{background:var(--bg2);border-bottom:1px solid var(--border);display:flex;flex-shrink:0}
+.cvt{background:none;border:none;border-bottom:2px solid transparent;color:var(--dim);font-size:.75rem;padding:10px 14px;transition:all .15s}
+.cvt:hover{color:var(--text)}
+.cvt.on{color:var(--accent);border-bottom-color:var(--accent)}
+.cv-panel{display:none;flex:1;overflow:hidden;flex-direction:column}
+.cv-panel.on{display:flex}
 
-/* Graph panel */
-.graph-toolbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:6px 10px;display:flex;gap:6px;align-items:center;flex-shrink:0;flex-wrap:wrap}
-.gt-btn{background:none;border:1px solid var(--border2);color:var(--dim);font-size:.65rem;padding:3px 8px;border-radius:3px;transition:all .15s}
-.gt-btn:hover{border-color:var(--accent);color:var(--accent)}
-.gt-btn.on{border-color:var(--accent2);color:var(--accent2);background:rgba(0,212,255,.06)}
-.graph-area{flex:1;position:relative;overflow:hidden}
-.graph-svg{width:100%;height:100%;cursor:grab}
-.graph-svg:active{cursor:grabbing}
-.graph-empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--dim);font-size:.8rem;pointer-events:none;gap:8px}
-.graph-empty-icon{font-size:2rem;opacity:.15}
+/* GRAPH */
+.gtb{background:var(--bg2);border-bottom:1px solid var(--border);padding:6px 10px;display:flex;gap:5px;align-items:center;flex-shrink:0;flex-wrap:wrap}
+.gtbtn{background:none;border:1px solid var(--border2);color:var(--dim);font-size:.62rem;padding:3px 7px;border-radius:3px;transition:all .15s}
+.gtbtn:hover{border-color:var(--accent);color:var(--accent)}
+.gtbtn.on{border-color:var(--accent2);color:var(--accent2)}
+.g-area{flex:1;position:relative;overflow:hidden}
+.g-svg{width:100%;height:100%;cursor:grab}
+.g-svg:active{cursor:grabbing}
+.g-empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--dim);font-size:.78rem;pointer-events:none;gap:8px;opacity:.6}
 
-/* Timeline panel */
-.timeline-wrap{flex:1;overflow-y:auto;padding:1rem}
-.tl-add-form{background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:.75rem;margin-bottom:1rem;display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end}
-.tl-form-group{display:flex;flex-direction:column;gap:3px}
-.tl-label{font-size:.65rem;color:var(--dim)}
+/* INTEL FEED */
+.feed-wrap{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.feed-toolbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 10px;display:flex;gap:6px;align-items:center;flex-shrink:0;flex-wrap:wrap}
+.feed-search{flex:1;padding:5px 9px;font-size:.75rem;border-radius:3px;min-width:120px}
+.feed-type-btn{background:none;border:1px solid var(--border2);color:var(--dim);font-size:.62rem;padding:3px 8px;border-radius:10px;transition:all .15s}
+.feed-type-btn:hover{border-color:var(--accent2);color:var(--accent2)}
+.feed-type-btn.on{border-color:var(--accent2);color:var(--accent2);background:rgba(0,212,255,.06)}
+.feed-list{flex:1;overflow-y:auto;padding:.5rem}
+.feed-item{background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:.75rem 1rem;margin-bottom:6px;cursor:pointer;transition:all .15s}
+.feed-item:hover{border-color:var(--border2)}
+.feed-item.critical{border-left:3px solid var(--red)}
+.feed-item.high{border-left:3px solid var(--yellow)}
+.feed-item.medium{border-left:3px solid var(--accent2)}
+.feed-item.info{border-left:3px solid var(--blue)}
+.fi-hdr{display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap}
+.fi-sev{font-size:.6rem;font-weight:700;padding:1px 6px;border-radius:2px}
+.sev-critical{background:rgba(255,68,68,.15);color:var(--red);border:1px solid rgba(255,68,68,.3)}
+.sev-high{background:rgba(232,197,71,.12);color:var(--yellow);border:1px solid rgba(232,197,71,.3)}
+.sev-medium{background:rgba(0,212,255,.1);color:var(--accent2);border:1px solid rgba(0,212,255,.25)}
+.sev-info{background:rgba(88,166,255,.1);color:var(--blue);border:1px solid rgba(88,166,255,.25)}
+.fi-source{font-size:.6rem;color:var(--dim);background:var(--bg3);border:1px solid var(--border2);padding:1px 5px;border-radius:2px}
+.fi-date{font-size:.6rem;color:var(--dim);margin-left:auto}
+.fi-title{font-size:.8rem;color:var(--text);margin-bottom:3px;font-weight:600;line-height:1.4}
+.fi-ioc{font-size:.7rem;color:var(--orange);background:var(--bg3);padding:1px 6px;border-radius:2px;display:inline-block;margin-bottom:3px}
+.fi-desc{font-size:.72rem;color:var(--text2);line-height:1.5}
+.fi-actions{display:flex;gap:5px;margin-top:6px}
+.fi-btn{background:none;border:1px solid var(--border2);color:var(--dim);font-size:.62rem;padding:2px 8px;border-radius:3px;transition:all .15s}
+.fi-btn:hover{border-color:var(--accent);color:var(--accent)}
+.feed-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--dim);font-size:.78rem;gap:8px}
+.feed-loading{display:flex;align-items:center;gap:8px;color:var(--dim);font-size:.78rem;padding:1rem}
+.feed-loading::before{content:'';width:12px;height:12px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ENRICH */
+.enrich-wrap{flex:1;overflow-y:auto;padding:1rem}
+.enrich-search-row{display:flex;gap:8px;margin-bottom:1rem}
+.enrich-input{flex:1;padding:7px 10px;font-size:.82rem;border-radius:4px}
+.enrich-results{display:flex;flex-direction:column;gap:10px}
+.enrich-card{background:var(--bg2);border:1px solid var(--border);border-radius:5px;overflow:hidden}
+.ec-hdr{padding:8px 12px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.ec-source{font-size:.7rem;color:var(--accent2);font-weight:700}
+.ec-status{font-size:.65rem;padding:2px 6px;border-radius:2px}
+.ec-status.ok{background:rgba(0,255,65,.1);color:var(--accent);border:1px solid rgba(0,255,65,.2)}
+.ec-status.bad{background:rgba(255,68,68,.1);color:var(--red);border:1px solid rgba(255,68,68,.2)}
+.ec-status.warn{background:rgba(232,197,71,.1);color:var(--yellow);border:1px solid rgba(232,197,71,.2)}
+.ec-body{padding:.75rem 1rem}
+.ec-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:.72rem;gap:8px}
+.ec-row:last-child{border-bottom:none}
+.ec-k{color:var(--dim);flex-shrink:0}
+.ec-v{color:var(--text);text-align:right;word-break:break-all}
+
+/* TIMELINE */
+.tl-wrap{flex:1;overflow-y:auto;padding:1rem}
+.tl-add{background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:.75rem;margin-bottom:1rem;display:grid;grid-template-columns:1fr 1fr auto;gap:6px;align-items:end}
 .tl-input{padding:5px 8px;font-size:.75rem;border-radius:3px;width:100%}
 .tl-events{display:flex;flex-direction:column;gap:0}
-.tl-event{display:grid;grid-template-columns:100px 12px 1fr;gap:12px;padding:8px 0;align-items:start}
-.tl-date{font-size:.7rem;color:var(--dim);text-align:right;padding-top:2px}
-.tl-dot-col{display:flex;flex-direction:column;align-items:center;gap:0}
+.tl-ev{display:grid;grid-template-columns:90px 12px 1fr;gap:10px;padding:6px 0;align-items:start}
+.tl-dt{font-size:.68rem;color:var(--dim);text-align:right;padding-top:2px}
+.tl-col{display:flex;flex-direction:column;align-items:center}
 .tl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px}
 .tl-line{width:1px;flex:1;background:var(--border);margin-top:2px;min-height:20px}
 .tl-card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:.5rem .75rem;margin-bottom:4px}
-.tl-card-title{font-size:.78rem;color:var(--text);font-weight:700;margin-bottom:2px}
-.tl-card-desc{font-size:.72rem;color:var(--text2)}
-.tl-card-type{font-size:.6rem;color:var(--dim);margin-top:4px}
-.tl-empty{color:var(--dim);font-size:.78rem;text-align:center;padding:2rem 0}
+.tl-ct{font-size:.78rem;color:var(--text);font-weight:700;margin-bottom:2px}
+.tl-cm{font-size:.65rem}
 
-/* Evidence panel */
-.evidence-wrap{flex:1;overflow-y:auto;padding:1rem}
-.ev-add-form{background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:.75rem;margin-bottom:1rem}
-.ev-form-row{display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:6px}
-.ev-textarea{width:100%;padding:6px 8px;font-size:.75rem;resize:vertical;min-height:60px;border-radius:3px}
-.ev-items{display:flex;flex-direction:column;gap:8px}
-.ev-item{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:.75rem}
-.ev-item-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem}
-.ev-item-tag{font-size:.6rem;padding:2px 6px;border-radius:2px;background:var(--bg3);color:var(--dim);border:1px solid var(--border2)}
-.ev-item-date{font-size:.62rem;color:var(--dim)}
-.ev-item-del{background:none;border:none;color:var(--dim);font-size:.7rem}
-.ev-item-del:hover{color:var(--red)}
-.ev-item-content{font-size:.75rem;color:var(--text2);line-height:1.6;white-space:pre-wrap;word-break:break-all}
-.ev-empty{color:var(--dim);font-size:.78rem;text-align:center;padding:2rem 0}
+/* EVIDENCE */
+.ev-wrap{flex:1;overflow-y:auto;padding:1rem}
+.ev-form{background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:.75rem;margin-bottom:1rem}
+.ev-row{display:grid;grid-template-columns:1fr auto;gap:6px;margin-bottom:6px}
+.ev-ta{width:100%;padding:6px 8px;font-size:.75rem;resize:vertical;min-height:55px;border-radius:3px}
+.ev-items{display:flex;flex-direction:column;gap:6px}
+.ev-item{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:.6rem .75rem}
+.ev-ih{display:flex;align-items:center;justify-content:space-between;margin-bottom:.35rem}
+.ev-tag{font-size:.6rem;padding:1px 5px;border-radius:2px;background:var(--bg3);color:var(--dim);border:1px solid var(--border2)}
+.ev-del{background:none;border:none;color:var(--dim);font-size:.7rem}
+.ev-del:hover{color:var(--red)}
+.ev-content{font-size:.72rem;color:var(--text2);line-height:1.5;white-space:pre-wrap;word-break:break-all}
 
-/* Report panel */
-.report-wrap{flex:1;overflow-y:auto;padding:1rem}
-.report-preview{background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:1.5rem;margin-bottom:1rem;font-size:.78rem;line-height:1.8}
-.rp-title{font-size:1.1rem;font-weight:700;color:var(--accent);margin-bottom:.5rem}
-.rp-meta{font-size:.7rem;color:var(--dim);margin-bottom:1rem;padding-bottom:.75rem;border-bottom:1px solid var(--border)}
-.rp-section{margin-bottom:1rem}
-.rp-section-title{font-size:.75rem;color:var(--accent2);font-weight:700;margin-bottom:.4rem;letter-spacing:.05em}
-.rp-table{width:100%;border-collapse:collapse;font-size:.72rem}
-.rp-table th{background:var(--bg3);color:var(--dim);padding:4px 8px;text-align:left;font-size:.65rem;border:1px solid var(--border)}
+/* REPORT */
+.rp-wrap{flex:1;overflow-y:auto;padding:1rem}
+.rp-preview{background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:1.25rem}
+.rp-t{font-size:1.05rem;font-weight:700;color:var(--accent);margin-bottom:.4rem}
+.rp-m{font-size:.68rem;color:var(--dim);margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)}
+.rp-s{margin-bottom:.75rem}
+.rp-sh{font-size:.72rem;color:var(--accent2);font-weight:700;margin-bottom:.35rem;letter-spacing:.04em}
+.rp-table{width:100%;border-collapse:collapse;font-size:.7rem}
+.rp-table th{background:var(--bg3);color:var(--dim);padding:4px 8px;border:1px solid var(--border);text-align:left;font-size:.62rem}
 .rp-table td{padding:4px 8px;border:1px solid var(--border);color:var(--text2);word-break:break-all}
-.rp-ioc{background:var(--bg3);color:var(--orange);padding:1px 5px;border-radius:2px;font-size:.7rem}
 
-/* ── DETAIL PANEL ── */
+/* DETAIL PANEL */
 .detail{background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
-.detail-hdr{padding:10px 12px;border-bottom:1px solid var(--border);font-size:.72rem;color:var(--accent);font-weight:700;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.detail-body{flex:1;overflow-y:auto;padding:10px}
-.detail-empty{color:var(--dim);font-size:.75rem;padding:.5rem 0}
-.detail-type{font-size:.62rem;font-weight:700;padding:2px 6px;border-radius:2px;margin-bottom:.5rem;display:inline-block}
-.detail-name{font-size:.95rem;color:var(--text);font-weight:700;margin-bottom:.75rem;word-break:break-all}
-.detail-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:.72rem;gap:6px}
-.detail-row:last-of-type{border-bottom:none}
-.detail-key{color:var(--dim);flex-shrink:0}
-.detail-val{color:var(--text);text-align:right;word-break:break-all}
-.detail-notes{margin-top:.75rem;padding:.5rem;background:var(--bg3);border-radius:4px;font-size:.72rem;color:var(--text2);line-height:1.6}
-.detail-actions{padding:10px 12px;border-top:1px solid var(--border);display:flex;gap:6px;flex-shrink:0}
-.da-btn{flex:1;background:none;border:1px solid var(--border2);color:var(--dim);font-size:.68rem;padding:5px;border-radius:3px;transition:all .15s}
-.da-btn:hover{border-color:var(--accent);color:var(--accent)}
-.da-btn.red:hover{border-color:var(--red);color:var(--red)}
+.dp-hdr{padding:9px 12px;border-bottom:1px solid var(--border);font-size:.7rem;color:var(--accent);font-weight:700;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.dp-body{flex:1;overflow-y:auto;padding:10px}
+.dp-empty{color:var(--dim);font-size:.72rem;padding:.5rem 0;line-height:1.6}
+.dp-name{font-size:.9rem;color:var(--text);font-weight:700;margin-bottom:.6rem;word-break:break-all}
+.dp-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:.7rem;gap:6px}
+.dp-row:last-of-type{border-bottom:none}
+.dp-k{color:var(--dim);flex-shrink:0}
+.dp-v{color:var(--text);text-align:right;word-break:break-all}
+.dp-notes{margin-top:.6rem;padding:.5rem;background:var(--bg3);border-radius:4px;font-size:.7rem;color:var(--text2);line-height:1.5}
+.dp-actions{padding:9px 12px;border-top:1px solid var(--border);display:flex;gap:5px;flex-shrink:0}
+.dpa{flex:1;background:none;border:1px solid var(--border2);color:var(--dim);font-size:.65rem;padding:5px;border-radius:3px;transition:all .15s}
+.dpa:hover{border-color:var(--accent);color:var(--accent)}
+.dpa.r:hover{border-color:var(--red);color:var(--red)}
 
-/* ── MODALS ── */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
-.modal-overlay.open{display:flex}
-.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:1.25rem;width:min(480px,90vw);box-shadow:0 20px 60px rgba(0,0,0,.6);max-height:85vh;overflow-y:auto}
-.modal-title{font-size:.9rem;font-weight:700;color:var(--text);margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center}
-.modal-close{background:none;border:none;color:var(--dim);font-size:1.1rem;line-height:1;padding:0 2px}
-.modal-close:hover{color:var(--text)}
-.form-group{margin-bottom:.75rem}
-.form-label{font-size:.7rem;color:var(--dim);margin-bottom:3px;display:block}
-.form-input{width:100%;padding:6px 9px;font-size:.78rem;border-radius:3px}
-.form-select{width:100%;padding:6px 9px;font-size:.78rem;border-radius:3px}
-.form-textarea{width:100%;padding:6px 9px;font-size:.78rem;border-radius:3px;resize:vertical;min-height:70px}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.modal-actions{display:flex;gap:8px;margin-top:1rem}
-.modal-btn{flex:1;background:none;border:1px solid var(--border2);color:var(--dim);font-size:.75rem;padding:7px;border-radius:3px;transition:all .15s}
-.modal-btn:hover{border-color:var(--accent);color:var(--accent)}
-.modal-btn.primary{background:var(--accent);border-color:var(--accent);color:#000;font-weight:700}
-.modal-btn.primary:hover{opacity:.85;color:#000}
-.color-swatches{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px}
-.swatch{width:22px;height:22px;border-radius:3px;cursor:pointer;border:2px solid transparent;transition:border-color .15s}
-.swatch:hover,.swatch.on{border-color:var(--text)}
-
-/* ── TLP BADGES ── */
-.tlp-red{background:#ff4444;color:#fff;padding:1px 5px;border-radius:2px;font-size:.6rem;font-weight:700}
-.tlp-amber{background:#e8c547;color:#000;padding:1px 5px;border-radius:2px;font-size:.6rem;font-weight:700}
-.tlp-green{background:#27c93f;color:#000;padding:1px 5px;border-radius:2px;font-size:.6rem;font-weight:700}
-.tlp-white{background:var(--bg3);color:var(--text2);border:1px solid var(--border2);padding:1px 5px;border-radius:2px;font-size:.6rem;font-weight:700}
-
-/* ── ENTITY TYPE COLORS ── */
-.et-ip{color:#ff4444}.et-domain{color:#58a6ff}.et-wallet{color:#bc8cff}
-.et-actor{color:#e8c547}.et-email{color:#f0883e}.et-hash{color:#00d4ff}
-.et-url{color:#27c93f}.et-org{color:#8b949e}
-
-/* ── MINI STATS ── */
-.stats-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:4px 12px;display:flex;gap:12px;font-size:.65rem;color:var(--dim);flex-shrink:0}
-.stat-item{display:flex;align-items:center;gap:4px}
+/* STATS */
+.stats{background:var(--bg2);border-bottom:1px solid var(--border);padding:4px 12px;display:flex;gap:12px;font-size:.62rem;color:var(--dim);flex-shrink:0;flex-wrap:wrap}
+.stat{display:flex;align-items:center;gap:4px}
 .stat-n{color:var(--text2);font-weight:700}
+
+/* MODALS */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:1000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+.mo.open{display:flex}
+.md{background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:1.25rem;width:min(480px,92vw);box-shadow:0 20px 60px rgba(0,0,0,.6);max-height:88vh;overflow-y:auto}
+.md-t{font-size:.88rem;font-weight:700;color:var(--text);margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center}
+.md-x{background:none;border:none;color:var(--dim);font-size:1.1rem;line-height:1}
+.md-x:hover{color:var(--text)}
+.fg{margin-bottom:.7rem}
+.fl{font-size:.68rem;color:var(--dim);margin-bottom:3px;display:block}
+.fi{width:100%;padding:6px 9px;font-size:.78rem;border-radius:3px}
+.fs{width:100%;padding:6px 9px;font-size:.78rem;border-radius:3px}
+.fta{width:100%;padding:6px 9px;font-size:.78rem;border-radius:3px;resize:vertical;min-height:65px}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ma{display:flex;gap:8px;margin-top:1rem}
+.mb{flex:1;background:none;border:1px solid var(--border2);color:var(--dim);font-size:.75rem;padding:7px;border-radius:3px;transition:all .15s}
+.mb:hover{border-color:var(--accent);color:var(--accent)}
+.mb.p{background:var(--accent);border-color:var(--accent);color:#000;font-weight:700}
+.mb.p:hover{opacity:.85;color:#000}
+.swatches{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px}
+.sw{width:22px;height:22px;border-radius:3px;cursor:pointer;border:2px solid transparent;transition:border-color .15s}
+.sw:hover,.sw.on{border-color:var(--text)}
+.api-keys-grid{display:flex;flex-direction:column;gap:8px}
+.ak-row{display:grid;grid-template-columns:100px 1fr;gap:8px;align-items:center;font-size:.72rem}
+.ak-label{color:var(--dim)}
+.ak-note{font-size:.65rem;color:var(--dim);margin-top:4px;padding:4px 6px;background:var(--bg3);border-radius:3px;line-height:1.5}
 </style>
 </head>
 <body>
 
-<!-- ══ HEADER ══ -->
+<!-- HEADER -->
 <header class="hdr">
-  <div class="hdr-logo">
-    <span class="hdr-logo-icon">⬡</span>
-    <span>Kitsune</span>
-  </div>
-  <div class="hdr-sep"></div>
-  <select class="hdr-case-select" id="case-select" onchange="switchCase(this.value)">
+  <div class="logo">⬡ <span>Kitsune</span> <span class="logo-sub">CTI Platform</span></div>
+  <div class="sep"></div>
+  <select class="hbtn" id="case-sel" style="padding:4px 8px;max-width:180px" onchange="switchCase(this.value)">
     <option value="">— select case —</option>
   </select>
-  <button class="hdr-btn primary" onclick="openModal('case-modal')">+ new case</button>
-  <button class="hdr-btn" onclick="importData()">import</button>
-  <button class="hdr-btn" onclick="exportData()">export</button>
-  <div class="hdr-sep"></div>
-  <button class="hdr-btn" onclick="generateReport()">📄 report</button>
+  <button class="hbtn p" onclick="openModal('case-modal')">+ new case</button>
+  <button class="hbtn" onclick="importData()">import</button>
+  <button class="hbtn" onclick="exportData()">export</button>
+  <div class="sep"></div>
+  <button class="hbtn" onclick="openModal('keys-modal')">⚙ API keys</button>
+  <button class="hbtn" onclick="generateReport()">📄 report</button>
   <div class="hdr-right">
-    <span class="hdr-status" id="save-status">ready</span>
-    <a href="/" style="font-size:.68rem;color:var(--dim);border:1px solid var(--border2);padding:3px 8px;border-radius:3px">← site</a>
-    <button class="hdr-btn" id="theme-btn" onclick="toggleTheme()">[ light ]</button>
+    <span class="save-st" id="save-st">ready</span>
+    <a href="/" style="font-size:.65rem;color:var(--dim);border:1px solid var(--border2);padding:3px 8px;border-radius:3px">← site</a>
+    <button class="hbtn" id="theme-btn" onclick="toggleTheme()">[ light ]</button>
   </div>
 </header>
 
-<!-- ══ MAIN ══ -->
 <div class="main">
 
-  <!-- LEFT SIDEBAR -->
-  <aside class="sidebar">
-    <div class="sb-section">
-      <div class="sb-title">
-        <span>CASES</span>
-        <button class="sb-add" onclick="openModal('case-modal')" title="New case">+</button>
-      </div>
+  <!-- SIDEBAR -->
+  <aside class="sb">
+    <div class="sb-sec">
+      <div class="sb-hdr"><span>Cases</span><button class="sb-add" onclick="openModal('case-modal')">+</button></div>
       <div class="sb-list" id="cases-list"></div>
     </div>
-
-    <div class="sb-section">
-      <div class="sb-title"><span>ADD ENTITY</span></div>
-      <div class="entity-types">
-        <button class="et-btn" onclick="openEntityModal('ip')">● IP</button>
-        <button class="et-btn" onclick="openEntityModal('domain')">◎ Domain</button>
-        <button class="et-btn" onclick="openEntityModal('actor')">◈ Actor</button>
-        <button class="et-btn" onclick="openEntityModal('wallet')">⬡ Wallet</button>
-        <button class="et-btn" onclick="openEntityModal('email')">✉ Email</button>
-        <button class="et-btn" onclick="openEntityModal('hash')">⌗ Hash</button>
-        <button class="et-btn" onclick="openEntityModal('url')">↗ URL</button>
-        <button class="et-btn" onclick="openEntityModal('org')">🏢 Org</button>
+    <div class="sb-sec">
+      <div class="sb-hdr"><span>Add Entity</span></div>
+      <div class="et-grid">
+        <button class="et" onclick="openEnt('ip')">● IP</button>
+        <button class="et" onclick="openEnt('domain')">◎ Domain</button>
+        <button class="et" onclick="openEnt('actor')">◈ Actor</button>
+        <button class="et" onclick="openEnt('wallet')">⬡ Wallet</button>
+        <button class="et" onclick="openEnt('email')">✉ Email</button>
+        <button class="et" onclick="openEnt('hash')">⌗ Hash</button>
+        <button class="et" onclick="openEnt('url')">↗ URL</button>
+        <button class="et" onclick="openEnt('org')">⬡ Org</button>
       </div>
     </div>
-
-    <div class="sb-section" style="flex:1;display:flex;flex-direction:column;overflow:hidden">
-      <div class="sb-title">
-        <span>ENTITIES (<span id="entity-count">0</span>)</span>
-        <input type="text" style="font-size:.62rem;padding:2px 5px;width:90px;border-radius:2px" placeholder="filter..." oninput="filterEntities(this.value)">
+    <div class="sb-sec" style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+      <div class="sb-hdr">
+        <span>Entities (<span id="ent-count">0</span>)</span>
+        <input style="font-size:.6rem;padding:2px 5px;width:85px;border-radius:2px" placeholder="filter..." oninput="filterEnts(this.value)">
       </div>
-      <div class="sb-entities" id="entities-list"></div>
+      <div class="sb-ents" id="ents-list"></div>
     </div>
   </aside>
 
   <!-- CANVAS -->
   <main class="canvas">
-    <div class="stats-bar" id="stats-bar">
-      <span class="stat-item">case: <span class="stat-n" id="stat-case">none</span></span>
-      <span class="stat-item">entities: <span class="stat-n" id="stat-entities">0</span></span>
-      <span class="stat-item">nodes: <span class="stat-n" id="stat-nodes">0</span></span>
-      <span class="stat-item">edges: <span class="stat-n" id="stat-edges">0</span></span>
-      <span class="stat-item">timeline: <span class="stat-n" id="stat-events">0</span></span>
-      <span class="stat-item">evidence: <span class="stat-n" id="stat-evidence">0</span></span>
+    <div class="stats" id="stats-bar">
+      <span class="stat">case: <span class="stat-n" id="st-case">none</span></span>
+      <span class="stat">entities: <span class="stat-n" id="st-ents">0</span></span>
+      <span class="stat">graph: <span class="stat-n" id="st-nodes">0</span>n/<span class="stat-n" id="st-edges">0</span>e</span>
+      <span class="stat">timeline: <span class="stat-n" id="st-tl">0</span></span>
+      <span class="stat">evidence: <span class="stat-n" id="st-ev">0</span></span>
     </div>
-    <div class="canvas-tabs">
-      <button class="cv-tab on" onclick="switchTab('graph',this)">⬡ Graph</button>
-      <button class="cv-tab" onclick="switchTab('timeline',this)">⏱ Timeline</button>
-      <button class="cv-tab" onclick="switchTab('evidence',this)">📋 Evidence</button>
-      <button class="cv-tab" onclick="switchTab('report',this)">📄 Report</button>
+    <div class="cv-tabs">
+      <button class="cvt on" onclick="switchTab('graph',this)">⬡ Graph</button>
+      <button class="cvt" onclick="switchTab('feed',this)">📡 Live Feed</button>
+      <button class="cvt" onclick="switchTab('enrich',this)">🔍 Enrich IOC</button>
+      <button class="cvt" onclick="switchTab('timeline',this)">⏱ Timeline</button>
+      <button class="cvt" onclick="switchTab('evidence',this)">📋 Evidence</button>
+      <button class="cvt" onclick="switchTab('report',this)">📄 Report</button>
     </div>
 
-    <!-- Graph -->
+    <!-- GRAPH -->
     <div class="cv-panel on" id="panel-graph">
-      <div class="graph-toolbar">
-        <button class="gt-btn" onclick="addSelectedToGraph()">+ add to graph</button>
-        <button class="gt-btn" onclick="autoLayout()">auto layout</button>
-        <button class="gt-btn" onclick="resetZoom()">fit</button>
-        <button class="gt-btn" onclick="clearGraph()">clear graph</button>
-        <div class="hdr-sep"></div>
-        <button class="gt-btn on" id="mode-select" onclick="setGraphMode('select')">select</button>
-        <button class="gt-btn" id="mode-edge" onclick="setGraphMode('edge')">draw edge</button>
-        <div class="hdr-sep"></div>
-        <span style="font-size:.65rem;color:var(--dim)" id="graph-hint">add entities from sidebar → add to graph</span>
+      <div class="gtb">
+        <button class="gtbtn" onclick="addAllToGraph()">+ all entities</button>
+        <button class="gtbtn" onclick="autoLayout()">auto layout</button>
+        <button class="gtbtn" onclick="fitGraph()">fit</button>
+        <button class="gtbtn" onclick="clearGraph()">clear</button>
+        <div class="sep"></div>
+        <button class="gtbtn on" id="m-sel" onclick="setMode('select')">select</button>
+        <button class="gtbtn" id="m-edge" onclick="setMode('edge')">draw edge</button>
+        <span style="font-size:.62rem;color:var(--dim);margin-left:4px" id="g-hint">add entities → add to graph</span>
       </div>
-      <div class="graph-area" id="graph-area">
-        <svg class="graph-svg" id="graph-svg"></svg>
-        <div class="graph-empty" id="graph-empty">
-          <div class="graph-empty-icon">⬡</div>
-          <div>select a case and add entities to start investigating</div>
+      <div class="g-area" id="g-area">
+        <svg class="g-svg" id="g-svg"></svg>
+        <div class="g-empty" id="g-empty"><span style="font-size:2rem;opacity:.15">⬡</span><span>select a case and add entities</span></div>
+      </div>
+    </div>
+
+    <!-- LIVE FEED -->
+    <div class="cv-panel" id="panel-feed">
+      <div class="feed-toolbar">
+        <button class="feed-type-btn on" onclick="setFeedFilter('all',this)">all</button>
+        <button class="feed-type-btn" onclick="setFeedFilter('malware',this)">malware</button>
+        <button class="feed-type-btn" onclick="setFeedFilter('c2',this)">C2</button>
+        <button class="feed-type-btn" onclick="setFeedFilter('phishing',this)">phishing</button>
+        <button class="feed-type-btn" onclick="setFeedFilter('ransomware',this)">ransomware</button>
+        <input class="feed-search" placeholder="search feed..." oninput="searchFeed(this.value)">
+        <button class="hbtn" onclick="refreshFeed()">↻ refresh</button>
+        <span style="font-size:.62rem;color:var(--dim)" id="feed-updated"></span>
+      </div>
+      <div class="feed-list" id="feed-list">
+        <div class="feed-empty">
+          <span style="font-size:1.5rem;opacity:.2">📡</span>
+          <span>click refresh to load live threat feeds</span>
+          <span style="font-size:.7rem;color:var(--dim)">(no API keys needed for basic feeds)</span>
         </div>
       </div>
     </div>
 
-    <!-- Timeline -->
+    <!-- ENRICH IOC -->
+    <div class="cv-panel" id="panel-enrich">
+      <div class="enrich-wrap">
+        <div class="enrich-search-row">
+          <input class="enrich-input form-input" id="enrich-val" placeholder="Enter IP, domain, hash, or URL to enrich...">
+          <select class="hbtn" id="enrich-type" style="padding:6px 8px">
+            <option value="auto">auto-detect</option>
+            <option value="ip">IP address</option>
+            <option value="domain">domain</option>
+            <option value="hash">file hash</option>
+            <option value="url">URL</option>
+          </select>
+          <button class="hbtn p" onclick="enrichIOC()">enrich →</button>
+        </div>
+        <div class="ak-note" style="margin-bottom:1rem">
+          ⚙️ Configure API keys via <strong>API Keys</strong> button in header for more data sources.
+          URLhaus and IP-API work without any key.
+        </div>
+        <div class="enrich-results" id="enrich-results"></div>
+      </div>
+    </div>
+
+    <!-- TIMELINE -->
     <div class="cv-panel" id="panel-timeline">
-      <div class="timeline-wrap">
-        <div class="tl-add-form" id="tl-form">
-          <div class="tl-form-group">
-            <label class="tl-label">date</label>
-            <input type="date" class="tl-input form-input" id="tl-date">
+      <div class="tl-wrap">
+        <div class="tl-add">
+          <div style="display:flex;flex-direction:column;gap:3px">
+            <label style="font-size:.65rem;color:var(--dim)">date</label>
+            <input type="date" class="tl-input fi" id="tl-date">
           </div>
-          <div class="tl-form-group">
-            <label class="tl-label">event type</label>
-            <select class="tl-input form-select" id="tl-type">
-              <option>IOC Detected</option>
-              <option>Infrastructure</option>
-              <option>Actor Activity</option>
-              <option>Financial</option>
-              <option>Malware</option>
-              <option>Attribution</option>
-              <option>Other</option>
+          <div style="display:flex;flex-direction:column;gap:3px">
+            <label style="font-size:.65rem;color:var(--dim)">type</label>
+            <select class="tl-input fs" id="tl-type">
+              <option>IOC Detected</option><option>Infrastructure</option><option>Actor Activity</option>
+              <option>Financial</option><option>Malware</option><option>Attribution</option><option>Other</option>
             </select>
           </div>
-          <div class="tl-form-group" style="grid-column:1/-1">
-            <label class="tl-label">description</label>
-            <input type="text" class="tl-input form-input" id="tl-desc" placeholder="What happened?">
+          <div style="display:flex;flex-direction:column;gap:3px;grid-column:1/-1">
+            <label style="font-size:.65rem;color:var(--dim)">description</label>
+            <input class="tl-input fi" id="tl-desc" placeholder="What happened?">
           </div>
-          <button class="modal-btn primary" style="grid-column:1/-1" onclick="addTimelineEvent()">+ add event</button>
+          <button class="mb p" style="grid-column:1/-1" onclick="addTLEvent()">+ add event</button>
         </div>
         <div class="tl-events" id="tl-events">
-          <div class="tl-empty">no events yet — add the first timeline entry above</div>
+          <div style="color:var(--dim);font-size:.75rem;text-align:center;padding:1.5rem">no events yet</div>
         </div>
       </div>
     </div>
 
-    <!-- Evidence -->
+    <!-- EVIDENCE -->
     <div class="cv-panel" id="panel-evidence">
-      <div class="evidence-wrap">
-        <div class="ev-add-form">
-          <div class="ev-form-row">
-            <select class="form-select" id="ev-tag" style="font-size:.75rem;padding:5px 8px">
-              <option>Raw IOC</option>
-              <option>WHOIS Data</option>
-              <option>Shodan Result</option>
-              <option>Paste/Forum</option>
-              <option>Screenshot URL</option>
-              <option>Network Log</option>
-              <option>Stealer Log</option>
-              <option>Note</option>
+      <div class="ev-wrap">
+        <div class="ev-form">
+          <div class="ev-row">
+            <select class="fs" id="ev-tag" style="font-size:.75rem;padding:5px 8px">
+              <option>Raw IOC</option><option>WHOIS Data</option><option>Shodan Result</option>
+              <option>Paste/Forum</option><option>Screenshot URL</option><option>Network Log</option>
+              <option>Stealer Log</option><option>Note</option>
             </select>
-            <button class="modal-btn primary" onclick="addEvidence()" style="flex:none;padding:5px 14px">+ add</button>
+            <button class="mb p" onclick="addEvidence()" style="flex:none;padding:5px 14px">+ add</button>
           </div>
-          <textarea class="ev-textarea form-input" id="ev-content" placeholder="paste raw data, notes, IOCs, WHOIS output, URLs..."></textarea>
+          <textarea class="ev-ta fi" id="ev-content" placeholder="paste raw data, IOCs, notes, WHOIS output, URLs..."></textarea>
         </div>
         <div class="ev-items" id="ev-items">
-          <div class="ev-empty">no evidence yet — paste raw data above</div>
+          <div style="color:var(--dim);font-size:.75rem;text-align:center;padding:1.5rem">no evidence yet</div>
         </div>
       </div>
     </div>
 
-    <!-- Report -->
+    <!-- REPORT -->
     <div class="cv-panel" id="panel-report">
-      <div class="report-wrap">
+      <div class="rp-wrap">
         <div style="display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap">
-          <button class="hdr-btn primary" onclick="downloadReport()">download HTML report</button>
-          <button class="hdr-btn" onclick="copyReport()">copy as markdown</button>
+          <button class="hbtn p" onclick="downloadReport()">⬇ download HTML</button>
+          <button class="hbtn" onclick="copyMarkdown()">copy markdown</button>
         </div>
-        <div class="report-preview" id="report-preview">
+        <div class="rp-preview" id="rp-preview">
           <div style="color:var(--dim);font-size:.78rem">select a case to generate report</div>
         </div>
       </div>
     </div>
+
   </main>
 
   <!-- DETAIL PANEL -->
   <aside class="detail">
-    <div class="detail-hdr">
-      <span>// entity detail</span>
-      <button class="hdr-btn" onclick="closeDetail()" style="font-size:.65rem">×</button>
+    <div class="dp-hdr">
+      <span>// detail</span>
+      <button class="hbtn" onclick="closeDetail()" style="font-size:.62rem;padding:2px 7px">×</button>
     </div>
-    <div class="detail-body" id="detail-body">
-      <div class="detail-empty">click any entity or graph node to inspect</div>
+    <div class="dp-body" id="dp-body">
+      <div class="dp-empty">click any entity or graph node to inspect · use Enrich tab to query live threat intel</div>
     </div>
-    <div class="detail-actions" id="detail-actions" style="display:none">
-      <button class="da-btn" onclick="addDetailToGraph()">add to graph</button>
-      <button class="da-btn" onclick="editDetailEntity()">edit</button>
-      <button class="da-btn red" onclick="deleteDetailEntity()">delete</button>
+    <div class="dp-actions" id="dp-actions" style="display:none">
+      <button class="dpa" onclick="addDetailToGraph()">graph</button>
+      <button class="dpa" onclick="enrichSelected()">enrich</button>
+      <button class="dpa" onclick="editDetail()">edit</button>
+      <button class="dpa r" onclick="deleteDetail()">del</button>
     </div>
   </aside>
 </div>
 
-<!-- ══ MODALS ══ -->
-
-<!-- New Case -->
-<div class="modal-overlay" id="case-modal">
-  <div class="modal">
-    <div class="modal-title">
-      <span>New Investigation Case</span>
-      <button class="modal-close" onclick="closeModal('case-modal')">×</button>
+<!-- MODALS -->
+<div class="mo" id="case-modal">
+  <div class="md">
+    <div class="md-t"><span>New Investigation Case</span><button class="md-x" onclick="closeModal('case-modal')">×</button></div>
+    <div class="fg"><label class="fl">case name</label><input class="fi" id="c-name" placeholder="e.g. APT29 C2 Infrastructure Mapping"></div>
+    <div class="fr">
+      <div class="fg"><label class="fl">priority</label><select class="fs" id="c-pri"><option value="critical">Critical</option><option value="high">High</option><option value="medium" selected>Medium</option><option value="low">Low</option></select></div>
+      <div class="fg"><label class="fl">status</label><select class="fs" id="c-st"><option value="active">Active</option><option value="monitoring">Monitoring</option><option value="closed">Closed</option></select></div>
     </div>
-    <div class="form-group">
-      <label class="form-label">case name</label>
-      <input class="form-input" id="case-name" placeholder="e.g. C2 Infrastructure Mapping — APT29">
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">priority</label>
-        <select class="form-select" id="case-priority">
-          <option value="critical">Critical</option>
-          <option value="high">High</option>
-          <option value="medium" selected>Medium</option>
-          <option value="low">Low</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">status</label>
-        <select class="form-select" id="case-status">
-          <option value="active">Active</option>
-          <option value="monitoring">Monitoring</option>
-          <option value="closed">Closed</option>
-        </select>
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">description</label>
-      <textarea class="form-textarea" id="case-desc" placeholder="Brief description of the investigation..."></textarea>
-    </div>
-    <div class="form-group">
-      <label class="form-label">tags (comma separated)</label>
-      <input class="form-input" id="case-tags" placeholder="APT, C2, ransomware, defi...">
-    </div>
-    <div class="modal-actions">
-      <button class="modal-btn" onclick="closeModal('case-modal')">cancel</button>
-      <button class="modal-btn primary" onclick="createCase()">create case</button>
-    </div>
+    <div class="fg"><label class="fl">description</label><textarea class="fta" id="c-desc" placeholder="Brief investigation description..."></textarea></div>
+    <div class="fg"><label class="fl">tags (comma separated)</label><input class="fi" id="c-tags" placeholder="APT, C2, ransomware..."></div>
+    <div class="ma"><button class="mb" onclick="closeModal('case-modal')">cancel</button><button class="mb p" onclick="createCase()">create case</button></div>
   </div>
 </div>
 
-<!-- New Entity -->
-<div class="modal-overlay" id="entity-modal">
-  <div class="modal">
-    <div class="modal-title">
-      <span id="entity-modal-title">Add Entity</span>
-      <button class="modal-close" onclick="closeModal('entity-modal')">×</button>
+<div class="mo" id="ent-modal">
+  <div class="md">
+    <div class="md-t"><span id="ent-modal-title">Add Entity</span><button class="md-x" onclick="closeModal('ent-modal')">×</button></div>
+    <input type="hidden" id="ent-type"><input type="hidden" id="ent-edit-id">
+    <div class="fg"><label class="fl">value / indicator</label><input class="fi" id="ent-val" placeholder="e.g. 192.168.1.1 or evil.com"></div>
+    <div class="fr">
+      <div class="fg"><label class="fl">TLP</label><select class="fs" id="ent-tlp"><option value="WHITE">WHITE</option><option value="GREEN">GREEN</option><option value="AMBER">AMBER</option><option value="RED">RED</option></select></div>
+      <div class="fg"><label class="fl">IOC?</label><select class="fs" id="ent-ioc"><option value="yes">Yes — confirmed</option><option value="suspected">Suspected</option><option value="no">No</option></select></div>
     </div>
-    <input type="hidden" id="entity-type-hidden">
-    <input type="hidden" id="entity-edit-id">
-    <div class="form-group">
-      <label class="form-label">value / label</label>
-      <input class="form-input" id="entity-value" placeholder="e.g. 192.168.1.1 or c2.evil.com">
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">TLP</label>
-        <select class="form-select" id="entity-tlp">
-          <option value="WHITE">WHITE</option>
-          <option value="GREEN">GREEN</option>
-          <option value="AMBER">AMBER</option>
-          <option value="RED">RED</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">IOC?</label>
-        <select class="form-select" id="entity-ioc">
-          <option value="yes">Yes — confirmed IOC</option>
-          <option value="suspected">Suspected</option>
-          <option value="no">No</option>
-        </select>
+    <div id="ent-extras"></div>
+    <div class="fg"><label class="fl">confidence (0-100)</label><input class="fi" id="ent-conf" type="number" min="0" max="100" value="80"></div>
+    <div class="fg"><label class="fl">notes</label><textarea class="fta" id="ent-notes" placeholder="Investigation notes..."></textarea></div>
+    <div class="fg"><label class="fl">node color</label>
+      <div class="swatches" id="swatches">
+        <div class="sw on" style="background:#ff4444" data-c="#ff4444" onclick="pickColor(this)"></div>
+        <div class="sw" style="background:#58a6ff" data-c="#58a6ff" onclick="pickColor(this)"></div>
+        <div class="sw" style="background:#bc8cff" data-c="#bc8cff" onclick="pickColor(this)"></div>
+        <div class="sw" style="background:#e8c547" data-c="#e8c547" onclick="pickColor(this)"></div>
+        <div class="sw" style="background:#f0883e" data-c="#f0883e" onclick="pickColor(this)"></div>
+        <div class="sw" style="background:#00d4ff" data-c="#00d4ff" onclick="pickColor(this)"></div>
+        <div class="sw" style="background:#00ff41" data-c="#00ff41" onclick="pickColor(this)"></div>
+        <div class="sw" style="background:#484f58" data-c="#484f58" onclick="pickColor(this)"></div>
       </div>
     </div>
-    <div id="entity-extra-fields"></div>
-    <div class="form-group">
-      <label class="form-label">confidence (0-100)</label>
-      <input class="form-input" id="entity-confidence" type="number" min="0" max="100" value="80" placeholder="80">
+    <div class="ma"><button class="mb" onclick="closeModal('ent-modal')">cancel</button><button class="mb p" onclick="saveEnt()">save entity</button></div>
+  </div>
+</div>
+
+<div class="mo" id="keys-modal">
+  <div class="md">
+    <div class="md-t"><span>⚙ API Keys</span><button class="md-x" onclick="closeModal('keys-modal')">×</button></div>
+    <div style="font-size:.72rem;color:var(--text2);margin-bottom:.75rem;line-height:1.6">Keys are stored locally in your browser only. Never sent anywhere except the respective API provider.</div>
+    <div class="api-keys-grid">
+      <div class="ak-row"><span class="ak-label">VirusTotal</span><input class="fi" id="k-vt" type="password" placeholder="VT API key (free tier ok)"></div>
+      <div class="ak-row"><span class="ak-label">AbuseIPDB</span><input class="fi" id="k-abuse" type="password" placeholder="AbuseIPDB key (free)"></div>
+      <div class="ak-row"><span class="ak-label">AlienVault OTX</span><input class="fi" id="k-otx" type="password" placeholder="OTX API key (free)"></div>
+      <div class="ak-row"><span class="ak-label">Shodan</span><input class="fi" id="k-shodan" type="password" placeholder="Shodan key (paid)"></div>
     </div>
-    <div class="form-group">
-      <label class="form-label">notes</label>
-      <textarea class="form-textarea" id="entity-notes" placeholder="Investigation notes about this entity..."></textarea>
+    <div class="ak-note" style="margin-top:.75rem">
+      Free keys:<br>
+      • <strong>VirusTotal</strong>: virustotal.com → join community → API key<br>
+      • <strong>AbuseIPDB</strong>: abuseipdb.com → create account → API key<br>
+      • <strong>OTX</strong>: otx.alienvault.com → sign up → API key<br>
+      • <strong>IP-API &amp; URLhaus</strong>: no key needed — always available
     </div>
-    <div class="form-group">
-      <label class="form-label">node color</label>
-      <div class="color-swatches" id="color-swatches">
-        <div class="swatch on" style="background:#ff4444" data-color="#ff4444" onclick="selectColor(this)"></div>
-        <div class="swatch" style="background:#58a6ff" data-color="#58a6ff" onclick="selectColor(this)"></div>
-        <div class="swatch" style="background:#bc8cff" data-color="#bc8cff" onclick="selectColor(this)"></div>
-        <div class="swatch" style="background:#e8c547" data-color="#e8c547" onclick="selectColor(this)"></div>
-        <div class="swatch" style="background:#f0883e" data-color="#f0883e" onclick="selectColor(this)"></div>
-        <div class="swatch" style="background:#00d4ff" data-color="#00d4ff" onclick="selectColor(this)"></div>
-        <div class="swatch" style="background:#00ff41" data-color="#00ff41" onclick="selectColor(this)"></div>
-        <div class="swatch" style="background:#484f58" data-color="#484f58" onclick="selectColor(this)"></div>
-      </div>
-    </div>
-    <div class="modal-actions">
-      <button class="modal-btn" onclick="closeModal('entity-modal')">cancel</button>
-      <button class="modal-btn primary" onclick="saveEntity()">save entity</button>
-    </div>
+    <div class="ma"><button class="mb" onclick="closeModal('keys-modal')">cancel</button><button class="mb p" onclick="saveKeys()">save keys</button></div>
   </div>
 </div>
 
 <script>
-// ═══════════════════════════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════════════════════════
-let state = {
-  cases: {},
-  currentCase: null,
-  selectedEntity: null,
-  graphMode: 'select',
-  edgeFrom: null,
-};
+// ═══════════════════════════════════════════════════
+// STATE + PERSISTENCE
+// ═══════════════════════════════════════════════════
+let S = { cases:{}, cur:null, selEnt:null, gMode:'select', eFrm:null };
+const TC = {ip:'#ff4444',domain:'#58a6ff',wallet:'#bc8cff',actor:'#e8c547',email:'#f0883e',hash:'#00d4ff',url:'#27c93f',org:'#8b949e'};
+const TE = {ip:[['asn','ASN'],['country','Country'],['org','Organization']],domain:[['registrar','Registrar'],['ns','Nameserver']],wallet:[['chain','Chain'],['exchange','Exchange']],actor:[['aliases','Aliases'],['origin','Origin'],['motivation','Motivation']],email:[['provider','Provider']],hash:[['algo','Algorithm'],['malware','Malware family'],['vt_hits','VT detections']],url:[['status','Status']],org:[['industry','Industry'],['country','Country']]};
+let selColor = '#ff4444';
+let feedData = [];
+let feedFilter = 'all';
 
-const TYPE_COLORS = {
-  ip:'#ff4444', domain:'#58a6ff', wallet:'#bc8cff', actor:'#e8c547',
-  email:'#f0883e', hash:'#00d4ff', url:'#27c93f', org:'#8b949e'
-};
-const TYPE_EXTRA = {
-  ip: [['asn','ASN','AS14618'],['country','Country','US'],['org','Organization','']],
-  domain: [['registrar','Registrar',''],['created','Created',''],['ns','Nameserver','']],
-  wallet: [['chain','Chain','ETH'],['balance','Balance',''],['exchange','Exchange','']],
-  actor: [['aliases','Aliases',''],['origin','Origin',''],['motivation','Motivation','']],
-  email: [['provider','Provider',''],['breach','Found in breach?','']],
-  hash: [['algo','Algorithm','SHA256'],['malware','Malware family',''],['vt','VT detections','']],
-  url: [['status','Status',''],['redirect','Redirects to','']],
-  org: [['industry','Industry',''],['country','Country','']],
-};
-
-// ═══════════════════════════════════════════════════════════
-// PERSISTENCE
-// ═══════════════════════════════════════════════════════════
 function save() {
-  try {
-    localStorage.setItem('kitsune_state', JSON.stringify(state));
-    const el = document.getElementById('save-status');
-    el.textContent = 'saved ' + new Date().toLocaleTimeString();
-    el.className = 'hdr-status saved';
-    setTimeout(() => { el.textContent = 'ready'; el.className = 'hdr-status'; }, 2000);
-  } catch(e) { console.error('save error', e); }
+  try{localStorage.setItem('kitsune_v2',JSON.stringify(S));const e=document.getElementById('save-st');e.textContent='saved '+new Date().toLocaleTimeString();e.className='save-st ok';setTimeout(()=>{e.textContent='ready';e.className='save-st';},2000);}catch(e){}
 }
 function load() {
-  try {
-    const raw = localStorage.getItem('kitsune_state');
-    if (raw) {
-      const loaded = JSON.parse(raw);
-      state.cases = loaded.cases || {};
-      state.currentCase = loaded.currentCase || null;
-    }
-  } catch(e) { state.cases = {}; }
+  try{const r=localStorage.getItem('kitsune_v2');if(r){const d=JSON.parse(r);S.cases=d.cases||{};S.cur=d.cur||null;}}catch(e){S.cases={};}
 }
+function loadKeys() {
+  ['vt','abuse','otx','shodan'].forEach(k=>{const v=localStorage.getItem('kitsune_key_'+k);if(v&&document.getElementById('k-'+k))document.getElementById('k-'+k).value=v;});
+}
+function saveKeys() {
+  ['vt','abuse','otx','shodan'].forEach(k=>{const v=document.getElementById('k-'+k).value.trim();if(v)localStorage.setItem('kitsune_key_'+k,v);else localStorage.removeItem('kitsune_key_'+k);});
+  closeModal('keys-modal');
+  showToast('API keys saved');
+}
+function getKey(k){return localStorage.getItem('kitsune_key_'+k)||'';}
 
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 // THEME
-// ═══════════════════════════════════════════════════════════
-function toggleTheme() {
-  const light = document.getElementById('html-root').classList.toggle('light');
-  document.getElementById('theme-btn').textContent = light ? '[ dark ]' : '[ light ]';
-  localStorage.setItem('kitsune_theme', light ? 'light' : 'dark');
-  renderGraph();
-}
-if (localStorage.getItem('kitsune_theme') === 'light') {
-  document.getElementById('html-root').classList.add('light');
-  document.getElementById('theme-btn').textContent = '[ dark ]';
-}
+// ═══════════════════════════════════════════════════
+function toggleTheme(){const l=document.getElementById('html-root').classList.toggle('light');document.getElementById('theme-btn').textContent=l?'[ dark ]':'[ light ]';localStorage.setItem('kitsune_theme',l?'light':'dark');renderGraph();}
+if(localStorage.getItem('kitsune_theme')==='light'){document.getElementById('html-root').classList.add('light');document.getElementById('theme-btn').textContent='[ dark ]';}
 
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 // MODALS
-// ═══════════════════════════════════════════════════════════
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-document.querySelectorAll('.modal-overlay').forEach(o => {
-  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
-});
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.open').forEach(o => o.classList.remove('open'));
-});
+// ═══════════════════════════════════════════════════
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.mo').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.mo.open').forEach(o=>o.classList.remove('open'));});
 
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 // CASES
-// ═══════════════════════════════════════════════════════════
-function createCase() {
-  const name = document.getElementById('case-name').value.trim();
-  if (!name) { alert('Enter a case name'); return; }
-  const id = 'case_' + Date.now();
-  state.cases[id] = {
-    id, name,
-    priority: document.getElementById('case-priority').value,
-    status: document.getElementById('case-status').value,
-    desc: document.getElementById('case-desc').value.trim(),
-    tags: document.getElementById('case-tags').value.split(',').map(t=>t.trim()).filter(Boolean),
-    created: new Date().toISOString(),
-    entities: {},
-    graph: { nodes: [], edges: [] },
-    timeline: [],
-    evidence: [],
-  };
-  state.currentCase = id;
-  closeModal('case-modal');
-  document.getElementById('case-name').value = '';
-  document.getElementById('case-desc').value = '';
-  document.getElementById('case-tags').value = '';
-  save();
-  renderAll();
+// ═══════════════════════════════════════════════════
+function createCase(){
+  const name=document.getElementById('c-name').value.trim();if(!name){alert('Enter a case name');return;}
+  const id='case_'+Date.now();
+  S.cases[id]={id,name,priority:document.getElementById('c-pri').value,status:document.getElementById('c-st').value,desc:document.getElementById('c-desc').value.trim(),tags:document.getElementById('c-tags').value.split(',').map(t=>t.trim()).filter(Boolean),created:new Date().toISOString(),entities:{},graph:{nodes:[],edges:[]},timeline:[],evidence:[]};
+  S.cur=id;closeModal('case-modal');
+  ['c-name','c-desc','c-tags'].forEach(id=>document.getElementById(id).value='');
+  save();renderAll();
 }
-function switchCase(id) {
-  state.currentCase = id || null;
-  state.selectedEntity = null;
-  save();
-  renderAll();
-}
-function deleteCase(id, e) {
-  e.stopPropagation();
-  if (!confirm('Delete this case and all its data?')) return;
-  delete state.cases[id];
-  if (state.currentCase === id) state.currentCase = null;
-  save(); renderAll();
-}
+function switchCase(id){S.cur=id||null;S.selEnt=null;save();renderAll();}
+function delCase(id,e){e.stopPropagation();if(!confirm('Delete this case and all data?'))return;delete S.cases[id];if(S.cur===id)S.cur=null;save();renderAll();}
+function getC(){return S.cur?S.cases[S.cur]:null;}
 
-function getCase() { return state.currentCase ? state.cases[state.currentCase] : null; }
-
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 // ENTITIES
-// ═══════════════════════════════════════════════════════════
-let selectedColor = '#ff4444';
-function selectColor(el) {
-  document.querySelectorAll('.swatch').forEach(s => s.classList.remove('on'));
-  el.classList.add('on');
-  selectedColor = el.dataset.color;
+// ═══════════════════════════════════════════════════
+function pickColor(el){document.querySelectorAll('.sw').forEach(s=>s.classList.remove('on'));el.classList.add('on');selColor=el.dataset.c;}
+function openEnt(type){
+  if(!getC()){alert('Select or create a case first');return;}
+  document.getElementById('ent-modal-title').textContent='Add '+type.charAt(0).toUpperCase()+type.slice(1);
+  document.getElementById('ent-type').value=type;document.getElementById('ent-edit-id').value='';
+  document.getElementById('ent-val').value='';document.getElementById('ent-tlp').value='WHITE';
+  document.getElementById('ent-ioc').value='suspected';document.getElementById('ent-notes').value='';
+  document.getElementById('ent-conf').value='80';
+  selColor=TC[type]||'#484f58';
+  document.querySelectorAll('.sw').forEach(s=>s.classList.toggle('on',s.dataset.c===selColor));
+  document.getElementById('ent-extras').innerHTML=(TE[type]||[]).map(([k,l])=>`<div class="fg"><label class="fl">${l}</label><input class="fi" id="ef-${k}" placeholder=""></div>`).join('');
+  openModal('ent-modal');setTimeout(()=>document.getElementById('ent-val').focus(),80);
 }
-function openEntityModal(type) {
-  if (!getCase()) { alert('Select or create a case first'); return; }
-  document.getElementById('entity-modal-title').textContent = 'Add ' + type.charAt(0).toUpperCase() + type.slice(1);
-  document.getElementById('entity-type-hidden').value = type;
-  document.getElementById('entity-edit-id').value = '';
-  document.getElementById('entity-value').value = '';
-  document.getElementById('entity-tlp').value = 'WHITE';
-  document.getElementById('entity-ioc').value = 'suspected';
-  document.getElementById('entity-notes').value = '';
-  document.getElementById('entity-confidence').value = '80';
-  // Set default color for type
-  const defaultColor = TYPE_COLORS[type] || '#484f58';
-  selectedColor = defaultColor;
-  document.querySelectorAll('.swatch').forEach(s => {
-    s.classList.toggle('on', s.dataset.color === defaultColor);
-  });
-  // Extra fields
-  const extras = TYPE_EXTRA[type] || [];
-  document.getElementById('entity-extra-fields').innerHTML = extras.map(([key,label,ph]) => `
-    <div class="form-group">
-      <label class="form-label">${label}</label>
-      <input class="form-input" id="ef-${key}" placeholder="${ph}">
-    </div>`).join('');
-  openModal('entity-modal');
-  setTimeout(() => document.getElementById('entity-value').focus(), 100);
+function saveEnt(){
+  const c=getC();if(!c)return;
+  const val=document.getElementById('ent-val').value.trim();if(!val){alert('Enter a value');return;}
+  const type=document.getElementById('ent-type').value;
+  const editId=document.getElementById('ent-edit-id').value;
+  const extras={};(TE[type]||[]).forEach(([k])=>{const el=document.getElementById('ef-'+k);if(el&&el.value.trim())extras[k]=el.value.trim();});
+  const ent={id:editId||'e_'+Date.now(),type,value:val,color:selColor,tlp:document.getElementById('ent-tlp').value,ioc:document.getElementById('ent-ioc').value,confidence:parseInt(document.getElementById('ent-conf').value)||80,notes:document.getElementById('ent-notes').value.trim(),created:new Date().toISOString(),...extras};
+  c.entities[ent.id]=ent;S.selEnt=ent.id;
+  closeModal('ent-modal');save();renderAll();showDetail(ent.id);
 }
-function saveEntity() {
-  const c = getCase(); if (!c) return;
-  const value = document.getElementById('entity-value').value.trim();
-  if (!value) { alert('Enter a value'); return; }
-  const type = document.getElementById('entity-type-hidden').value;
-  const editId = document.getElementById('entity-edit-id').value;
-  const extras = {};
-  (TYPE_EXTRA[type] || []).forEach(([key]) => {
-    const el = document.getElementById('ef-' + key);
-    if (el && el.value.trim()) extras[key] = el.value.trim();
-  });
-  const entity = {
-    id: editId || 'e_' + Date.now(),
-    type, value, color: selectedColor,
-    tlp: document.getElementById('entity-tlp').value,
-    ioc: document.getElementById('entity-ioc').value,
-    confidence: parseInt(document.getElementById('entity-confidence').value) || 80,
-    notes: document.getElementById('entity-notes').value.trim(),
-    created: new Date().toISOString(),
-    ...extras,
-  };
-  c.entities[entity.id] = entity;
-  state.selectedEntity = entity.id;
-  closeModal('entity-modal');
-  save(); renderAll();
-  showDetail(entity.id);
-}
-function filterEntities(q) {
-  q = q.toLowerCase();
-  document.querySelectorAll('#entities-list .sb-item').forEach(el => {
-    el.style.display = !q || el.dataset.val.includes(q) ? '' : 'none';
-  });
-}
-function deleteDetailEntity() {
-  const c = getCase(); if (!c || !state.selectedEntity) return;
-  if (!confirm('Delete this entity?')) return;
-  delete c.entities[state.selectedEntity];
-  // Remove from graph
-  c.graph.nodes = c.graph.nodes.filter(n => n.id !== state.selectedEntity);
-  c.graph.edges = c.graph.edges.filter(e => e.source !== state.selectedEntity && e.target !== state.selectedEntity);
-  state.selectedEntity = null;
-  closeDetail();
-  save(); renderAll();
-}
-function editDetailEntity() {
-  const c = getCase(); if (!c || !state.selectedEntity) return;
-  const entity = c.entities[state.selectedEntity];
-  if (!entity) return;
-  openEntityModal(entity.type);
-  setTimeout(() => {
-    document.getElementById('entity-modal-title').textContent = 'Edit ' + entity.type;
-    document.getElementById('entity-edit-id').value = entity.id;
-    document.getElementById('entity-value').value = entity.value;
-    document.getElementById('entity-tlp').value = entity.tlp || 'WHITE';
-    document.getElementById('entity-ioc').value = entity.ioc || 'suspected';
-    document.getElementById('entity-notes').value = entity.notes || '';
-    document.getElementById('entity-confidence').value = entity.confidence || 80;
-    selectedColor = entity.color || TYPE_COLORS[entity.type] || '#484f58';
-    document.querySelectorAll('.swatch').forEach(s => s.classList.toggle('on', s.dataset.color === selectedColor));
-    (TYPE_EXTRA[entity.type] || []).forEach(([key]) => {
-      const el = document.getElementById('ef-' + key);
-      if (el && entity[key]) el.value = entity[key];
-    });
-  }, 50);
-}
+function filterEnts(q){q=q.toLowerCase();document.querySelectorAll('#ents-list .si').forEach(el=>{el.style.display=!q||el.dataset.v.includes(q)?'':'none';});}
+function deleteDetail(){const c=getC();if(!c||!S.selEnt)return;if(!confirm('Delete?'))return;delete c.entities[S.selEnt];c.graph.nodes=c.graph.nodes.filter(n=>n.id!==S.selEnt);c.graph.edges=c.graph.edges.filter(e=>e.s!==S.selEnt&&e.t!==S.selEnt);S.selEnt=null;closeDetail();save();renderAll();}
+function editDetail(){const c=getC();if(!c||!S.selEnt)return;const ent=c.entities[S.selEnt];if(!ent)return;openEnt(ent.type);setTimeout(()=>{document.getElementById('ent-modal-title').textContent='Edit '+ent.type;document.getElementById('ent-edit-id').value=ent.id;document.getElementById('ent-val').value=ent.value;document.getElementById('ent-tlp').value=ent.tlp||'WHITE';document.getElementById('ent-ioc').value=ent.ioc||'suspected';document.getElementById('ent-notes').value=ent.notes||'';document.getElementById('ent-conf').value=ent.confidence||80;selColor=ent.color||TC[ent.type]||'#484f58';document.querySelectorAll('.sw').forEach(s=>s.classList.toggle('on',s.dataset.c===selColor));(TE[ent.type]||[]).forEach(([k])=>{const el=document.getElementById('ef-'+k);if(el&&ent[k])el.value=ent[k];});},60);}
 
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 // DETAIL PANEL
-// ═══════════════════════════════════════════════════════════
-function showDetail(entityId) {
-  const c = getCase(); if (!c) return;
-  const entity = c.entities[entityId];
-  if (!entity) return;
-  state.selectedEntity = entityId;
-  const col = entity.color || TYPE_COLORS[entity.type] || '#484f58';
-  const tlpClass = 'tlp-' + (entity.tlp || 'white').toLowerCase();
-  const extras = TYPE_EXTRA[entity.type] || [];
-  document.getElementById('detail-body').innerHTML = `
-    <div class="detail-type et-${entity.type}" style="background:${col}22;border:1px solid ${col}44;padding:2px 7px;border-radius:2px;font-size:.6rem;font-weight:700;color:${col};margin-bottom:.6rem;display:inline-block">${entity.type.toUpperCase()}</div>
-    <div class="detail-name">${entity.value}</div>
-    <div class="detail-row"><span class="detail-key">IOC</span><span class="detail-val">${entity.ioc || '—'}</span></div>
-    <div class="detail-row"><span class="detail-key">TLP</span><span class="detail-val"><span class="${tlpClass}">TLP:${entity.tlp || 'WHITE'}</span></span></div>
-    <div class="detail-row"><span class="detail-key">confidence</span><span class="detail-val">${entity.confidence || 80}%</span></div>
-    ${extras.filter(([k]) => entity[k]).map(([k,label]) => `<div class="detail-row"><span class="detail-key">${label}</span><span class="detail-val">${entity[k]}</span></div>`).join('')}
-    <div class="detail-row"><span class="detail-key">added</span><span class="detail-val">${new Date(entity.created).toLocaleDateString()}</span></div>
-    ${entity.notes ? `<div class="detail-notes">${entity.notes}</div>` : ''}
-  `;
-  document.getElementById('detail-actions').style.display = 'flex';
+// ═══════════════════════════════════════════════════
+function showDetail(id){
+  const c=getC();if(!c)return;const ent=c.entities[id];if(!ent)return;
+  S.selEnt=id;const col=ent.color||TC[ent.type]||'#484f58';
+  const extras=TE[ent.type]||[];
+  document.getElementById('dp-body').innerHTML=`
+    <div style="background:${col}22;border:1px solid ${col}44;display:inline-block;padding:1px 7px;border-radius:2px;font-size:.6rem;font-weight:700;color:${col};margin-bottom:.5rem">${ent.type.toUpperCase()}</div>
+    <div class="dp-name">${ent.value}</div>
+    <div class="dp-row"><span class="dp-k">IOC</span><span class="dp-v">${ent.ioc||'—'}</span></div>
+    <div class="dp-row"><span class="dp-k">TLP</span><span class="dp-v">TLP:${ent.tlp||'WHITE'}</span></div>
+    <div class="dp-row"><span class="dp-k">confidence</span><span class="dp-v">${ent.confidence||80}%</span></div>
+    ${extras.filter(([k])=>ent[k]).map(([k,l])=>`<div class="dp-row"><span class="dp-k">${l}</span><span class="dp-v">${ent[k]}</span></div>`).join('')}
+    <div class="dp-row"><span class="dp-k">added</span><span class="dp-v">${new Date(ent.created).toLocaleDateString()}</span></div>
+    ${ent.notes?`<div class="dp-notes">${ent.notes}</div>`:''}`;
+  document.getElementById('dp-actions').style.display='flex';
 }
-function closeDetail() {
-  state.selectedEntity = null;
-  document.getElementById('detail-body').innerHTML = '<div class="detail-empty">click any entity or graph node to inspect</div>';
-  document.getElementById('detail-actions').style.display = 'none';
-}
+function closeDetail(){S.selEnt=null;document.getElementById('dp-body').innerHTML='<div class="dp-empty">click any entity or graph node to inspect · use Enrich tab to query live threat intel</div>';document.getElementById('dp-actions').style.display='none';}
+function addDetailToGraph(){const c=getC();if(!c||!S.selEnt)return;if(c.graph.nodes.find(n=>n.id===S.selEnt)){showToast('Already in graph');return;}const svg=document.getElementById('g-svg');const W=svg.clientWidth||700,H=svg.clientHeight||450;c.graph.nodes.push({id:S.selEnt,x:W/2+(Math.random()-.5)*100,y:H/2+(Math.random()-.5)*100});save();renderGraph();}
+function enrichSelected(){if(!S.selEnt)return;const c=getC();if(!c)return;const ent=c.entities[S.selEnt];document.getElementById('enrich-val').value=ent.value;switchTab('enrich',document.querySelectorAll('.cvt')[2]);enrichIOC();}
 
-// ═══════════════════════════════════════════════════════════
-// GRAPH (D3)
-// ═══════════════════════════════════════════════════════════
-let simulation = null;
+// ═══════════════════════════════════════════════════
+// GRAPH
+// ═══════════════════════════════════════════════════
+function setMode(m){S.gMode=m;S.eFrm=null;document.getElementById('m-sel').classList.toggle('on',m==='select');document.getElementById('m-edge').classList.toggle('on',m==='edge');document.getElementById('g-hint').textContent=m==='edge'?'click source → click target → type label':'drag nodes · scroll zoom · click inspect';}
+function addAllToGraph(){const c=getC();if(!c)return;const svg=document.getElementById('g-svg');const W=svg.clientWidth||700,H=svg.clientHeight||450;const exist=new Set(c.graph.nodes.map(n=>n.id));Object.values(c.entities).forEach((ent,i)=>{if(!exist.has(ent.id)){const a=(i/Math.max(1,Object.keys(c.entities).length))*Math.PI*2;const R=Math.min(W,H)*.28;c.graph.nodes.push({id:ent.id,x:W/2+R*Math.cos(a),y:H/2+R*Math.sin(a)});}});save();renderGraph();}
+function autoLayout(){const c=getC();if(!c)return;const svg=document.getElementById('g-svg');const W=svg.clientWidth||700,H=svg.clientHeight||450;const n=c.graph.nodes.length;c.graph.nodes.forEach((node,i)=>{const a=(i/Math.max(1,n))*Math.PI*2-Math.PI/2;const R=Math.min(W,H)*.3;node.x=W/2+R*Math.cos(a);node.y=H/2+R*Math.sin(a);});save();renderGraph();}
+function clearGraph(){const c=getC();if(!c)return;if(!confirm('Clear graph? Entities remain.'))return;c.graph={nodes:[],edges:[]};save();renderGraph();}
+function fitGraph(){const svg=d3.select('#g-svg');svg.transition().duration(300).call(d3.zoom().transform,d3.zoomIdentity);}
 
-function setGraphMode(mode) {
-  state.graphMode = mode;
-  state.edgeFrom = null;
-  document.getElementById('mode-select').classList.toggle('on', mode === 'select');
-  document.getElementById('mode-edge').classList.toggle('on', mode === 'edge');
-  document.getElementById('graph-hint').textContent = mode === 'edge'
-    ? 'click source node → click target node → type edge label'
-    : 'drag nodes · scroll to zoom · click to inspect';
-}
-
-function addSelectedToGraph() {
-  const c = getCase(); if (!c) return;
-  const entities = Object.values(c.entities);
-  if (!entities.length) { alert('Add entities first'); return; }
-  // Add all entities not already in graph
-  const existing = new Set(c.graph.nodes.map(n => n.id));
-  const svg = document.getElementById('graph-svg');
-  const W = svg.clientWidth || 800, H = svg.clientHeight || 500;
-  entities.forEach((entity, i) => {
-    if (!existing.has(entity.id)) {
-      const angle = (i / entities.length) * Math.PI * 2;
-      const R = Math.min(W, H) * 0.28;
-      c.graph.nodes.push({
-        id: entity.id,
-        x: W/2 + R * Math.cos(angle),
-        y: H/2 + R * Math.sin(angle),
-      });
-    }
-  });
-  save(); renderGraph();
-}
-
-function addDetailToGraph() {
-  const c = getCase(); if (!c || !state.selectedEntity) return;
-  const existing = c.graph.nodes.find(n => n.id === state.selectedEntity);
-  if (existing) { alert('Already in graph'); return; }
-  const svg = document.getElementById('graph-svg');
-  const W = svg.clientWidth || 800, H = svg.clientHeight || 500;
-  c.graph.nodes.push({ id: state.selectedEntity, x: W/2 + (Math.random()-0.5)*100, y: H/2 + (Math.random()-0.5)*100 });
-  save(); renderGraph();
-}
-
-function autoLayout() {
-  const c = getCase(); if (!c) return;
-  const svg = document.getElementById('graph-svg');
-  const W = svg.clientWidth || 800, H = svg.clientHeight || 500;
-  const n = c.graph.nodes.length;
-  c.graph.nodes.forEach((node, i) => {
-    const angle = (i / n) * Math.PI * 2 - Math.PI/2;
-    const R = Math.min(W, H) * 0.3;
-    node.x = W/2 + R * Math.cos(angle);
-    node.y = H/2 + R * Math.sin(angle);
-  });
-  save(); renderGraph();
-}
-
-function clearGraph() {
-  const c = getCase(); if (!c) return;
-  if (!confirm('Clear the graph? Entities will remain.')) return;
-  c.graph = { nodes: [], edges: [] };
-  save(); renderGraph();
-}
-
-function resetZoom() {
-  const svg = d3.select('#graph-svg');
-  svg.transition().duration(300).call(
-    d3.zoom().transform, d3.zoomIdentity
-  );
-}
-
-function renderGraph() {
-  const c = getCase();
-  const svgEl = document.getElementById('graph-svg');
-  const emptyEl = document.getElementById('graph-empty');
+function renderGraph(){
+  const c=getC();const svgEl=document.getElementById('g-svg');const emEl=document.getElementById('g-empty');
   d3.select(svgEl).selectAll('*').remove();
-  if (!c || !c.graph.nodes.length) {
-    emptyEl.style.display = 'flex';
-    return;
-  }
-  emptyEl.style.display = 'none';
-
-  const W = svgEl.clientWidth || 800;
-  const H = svgEl.clientHeight || 500;
-  const isDark = !document.getElementById('html-root').classList.contains('light');
-  const textColor = isDark ? '#8b949e' : '#555';
-  const edgeColor = isDark ? '#2a2a2a' : '#cccccc';
-  const bgColor = isDark ? '#090909' : '#f0f0eb';
-
-  const svg = d3.select(svgEl);
-  const defs = svg.append('defs');
-  defs.append('marker').attr('id','arr').attr('viewBox','0 0 10 10')
-    .attr('refX',20).attr('refY',5).attr('markerWidth',6).attr('markerHeight',6)
-    .attr('orient','auto').append('path').attr('d','M0,0 L10,5 L0,10 Z').attr('fill',edgeColor);
-
-  const g = svg.append('g');
-  const zoom = d3.zoom().scaleExtent([0.1,5]).on('zoom', e => g.attr('transform', e.transform));
+  if(!c||!c.graph.nodes.length){emEl.style.display='flex';return;}
+  emEl.style.display='none';
+  const W=svgEl.clientWidth||700,H=svgEl.clientHeight||450;
+  const dark=!document.getElementById('html-root').classList.contains('light');
+  const tc=dark?'#8b949e':'#555';const ec=dark?'#2a2a2a':'#ccc';const bgc=dark?'#090909':'#f0f0eb';
+  const svg=d3.select(svgEl);
+  const defs=svg.append('defs');
+  const mk=defs.append('marker').attr('id','arr').attr('viewBox','0 0 10 10').attr('refX',22).attr('refY',5).attr('markerWidth',6).attr('markerHeight',6).attr('orient','auto');
+  mk.append('path').attr('d','M0,0 L10,5 L0,10 Z').attr('fill',ec);
+  const g=svg.append('g');
+  const zoom=d3.zoom().scaleExtent([.1,5]).on('zoom',e=>g.attr('transform',e.transform));
   svg.call(zoom);
-
-  // Build node map
-  const nodeMap = {};
-  c.graph.nodes.forEach(n => nodeMap[n.id] = n);
-
-  // Edges
-  const edgeG = g.append('g');
-  c.graph.edges.forEach(edge => {
-    const src = nodeMap[edge.source], tgt = nodeMap[edge.target];
-    if (!src || !tgt) return;
-    edgeG.append('line')
-      .attr('x1', src.x).attr('y1', src.y).attr('x2', tgt.x).attr('y2', tgt.y)
-      .attr('stroke', edgeColor).attr('stroke-width', 1.2)
-      .attr('marker-end','url(#arr)').style('cursor','pointer')
-      .on('click', () => { if (confirm('Delete this edge?')) { c.graph.edges = c.graph.edges.filter(e => e !== edge); save(); renderGraph(); } });
-    if (edge.label) {
-      const mx = (src.x + tgt.x)/2, my = (src.y + tgt.y)/2;
-      edgeG.append('rect').attr('x',mx-28).attr('y',my-7).attr('width',56).attr('height',13).attr('rx',2).attr('fill',bgColor).attr('opacity',.9);
-      edgeG.append('text').attr('x',mx).attr('y',my+3).attr('text-anchor','middle')
-        .attr('fill',textColor).attr('font-size',8).attr('font-family','monospace')
-        .attr('pointer-events','none').text(edge.label);
-    }
+  const nm={};c.graph.nodes.forEach(n=>nm[n.id]=n);
+  // edges
+  const eg=g.append('g');
+  c.graph.edges.forEach(edge=>{
+    const a=nm[edge.s],b=nm[edge.t];if(!a||!b)return;
+    eg.append('line').attr('x1',a.x).attr('y1',a.y).attr('x2',b.x).attr('y2',b.y).attr('stroke',ec).attr('stroke-width',1.2).attr('marker-end','url(#arr)').style('cursor','pointer').on('click',()=>{if(confirm('Delete edge?')){c.graph.edges=c.graph.edges.filter(e=>e!==edge);save();renderGraph();}});
+    if(edge.label){const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;eg.append('rect').attr('x',mx-28).attr('y',my-7).attr('width',56).attr('height',13).attr('rx',2).attr('fill',bgc).attr('opacity',.9);eg.append('text').attr('x',mx).attr('y',my+3).attr('text-anchor','middle').attr('fill',tc).attr('font-size',8).attr('font-family','monospace').attr('pointer-events','none').text(edge.label);}
   });
-
-  // Nodes
-  c.graph.nodes.forEach(node => {
-    const entity = c.entities[node.id];
-    if (!entity) return;
-    const col = entity.color || TYPE_COLORS[entity.type] || '#484f58';
-    const r = 12;
-    const ng = g.append('g').attr('cursor', state.graphMode === 'edge' ? 'crosshair' : 'grab');
-
-    // Glow
-    if (state.selectedEntity === node.id) {
-      ng.append('circle').attr('cx',node.x).attr('cy',node.y).attr('r',r+7)
-        .attr('fill',col).attr('opacity',.15).attr('pointer-events','none');
-    }
-
-    // Shape based on type
-    if (entity.type === 'wallet') {
-      const s = r*1.3;
-      ng.append('polygon')
-        .attr('points',`${node.x},${node.y-s} ${node.x+s},${node.y} ${node.x},${node.y+s} ${node.x-s},${node.y}`)
-        .attr('fill',col).attr('opacity',.9);
-    } else if (entity.type === 'org') {
-      ng.append('rect').attr('x',node.x-r).attr('y',node.y-r).attr('width',r*2).attr('height',r*2)
-        .attr('rx',3).attr('fill',col).attr('opacity',.9);
-    } else {
-      ng.append('circle').attr('cx',node.x).attr('cy',node.y).attr('r',r).attr('fill',col).attr('opacity',.9);
-    }
-
-    // IOC ring
-    if (entity.ioc === 'yes') {
-      ng.append('circle').attr('cx',node.x).attr('cy',node.y).attr('r',r+3)
-        .attr('fill','none').attr('stroke',col).attr('stroke-width',1.5)
-        .attr('stroke-dasharray','3 2').attr('pointer-events','none');
-    }
-
-    // Label
-    const sl = entity.value.length > 16 ? entity.value.slice(0,14)+'…' : entity.value;
-    ng.append('text').attr('x',node.x).attr('y',node.y+r+11)
-      .attr('text-anchor','middle').attr('fill',textColor).attr('font-size',9)
-      .attr('font-family','monospace').attr('pointer-events','none').text(sl);
-
-    // Drag
-    const drag = d3.drag()
-      .on('start', function() { d3.select(this).raise(); })
-      .on('drag', function(event) {
-        node.x = event.x; node.y = event.y;
-        renderGraph(); // re-render for simplicity
-      })
-      .on('end', () => save());
-
-    // Click
-    ng.on('click', (event) => {
-      event.stopPropagation();
-      if (state.graphMode === 'edge') {
-        if (!state.edgeFrom) {
-          state.edgeFrom = node.id;
-          document.getElementById('graph-hint').textContent = 'now click target node';
-        } else if (state.edgeFrom !== node.id) {
-          const label = prompt('Edge label (e.g. RESOLVES, CONNECTS, OWNS):','RESOLVES');
-          if (label !== null) {
-            c.graph.edges.push({ source: state.edgeFrom, target: node.id, label: label.trim() });
-            save();
-          }
-          state.edgeFrom = null;
-          document.getElementById('graph-hint').textContent = 'click source node → click target node';
-          renderGraph();
-        }
-        return;
-      }
-      state.selectedEntity = node.id;
-      showDetail(node.id);
-      renderGraph();
-    }).call(drag);
-
-    g.node().appendChild(ng.node());
+  // nodes
+  c.graph.nodes.forEach(node=>{
+    const ent=c.entities[node.id];if(!ent)return;
+    const col=ent.color||TC[ent.type]||'#484f58';const r=12;
+    const ng=g.append('g').attr('cursor',S.gMode==='edge'?'crosshair':'grab');
+    if(S.selEnt===node.id)ng.append('circle').attr('cx',node.x).attr('cy',node.y).attr('r',r+7).attr('fill',col).attr('opacity',.15).attr('pointer-events','none');
+    if(ent.type==='wallet'){const s=r*1.3;ng.append('polygon').attr('points',`${node.x},${node.y-s} ${node.x+s},${node.y} ${node.x},${node.y+s} ${node.x-s},${node.y}`).attr('fill',col).attr('opacity',.9);}
+    else if(ent.type==='org'){ng.append('rect').attr('x',node.x-r).attr('y',node.y-r).attr('width',r*2).attr('height',r*2).attr('rx',3).attr('fill',col).attr('opacity',.9);}
+    else{ng.append('circle').attr('cx',node.x).attr('cy',node.y).attr('r',r).attr('fill',col).attr('opacity',.9);}
+    if(ent.ioc==='yes')ng.append('circle').attr('cx',node.x).attr('cy',node.y).attr('r',r+4).attr('fill','none').attr('stroke',col).attr('stroke-width',1.5).attr('stroke-dasharray','3 2').attr('pointer-events','none');
+    const sl=ent.value.length>16?ent.value.slice(0,14)+'…':ent.value;
+    ng.append('text').attr('x',node.x).attr('y',node.y+r+11).attr('text-anchor','middle').attr('fill',tc).attr('font-size',9).attr('font-family','monospace').attr('pointer-events','none').text(sl);
+    ng.on('click',ev=>{ev.stopPropagation();if(S.gMode==='edge'){if(!S.eFrm){S.eFrm=node.id;document.getElementById('g-hint').textContent='now click target node';}else if(S.eFrm!==node.id){const lbl=prompt('Edge label:','RESOLVES');if(lbl!==null){c.graph.edges.push({s:S.eFrm,t:node.id,label:lbl.trim()});save();}S.eFrm=null;document.getElementById('g-hint').textContent='click source → click target → type label';renderGraph();}return;}S.selEnt=node.id;showDetail(node.id);renderGraph();});
+    ng.call(d3.drag().on('drag',ev=>{node.x=ev.x;node.y=ev.y;renderGraph();}).on('end',()=>save()));
   });
 }
 
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
+// LIVE FEED — abuse.ch + URLhaus + feodotracker (no key needed)
+// ═══════════════════════════════════════════════════
+async function refreshFeed(){
+  const el=document.getElementById('feed-list');
+  el.innerHTML='<div class="feed-loading">fetching live threat intelligence feeds...</div>';
+  feedData=[];
+  const results=await Promise.allSettled([
+    fetchURLhaus(),
+    fetchFeodoTracker(),
+    fetchMalwareBazaarRecent(),
+  ]);
+  results.forEach(r=>{if(r.status==='fulfilled'&&r.value)feedData.push(...r.value);});
+  feedData.sort((a,b)=>new Date(b.date)-new Date(a.date));
+  document.getElementById('feed-updated').textContent='updated '+new Date().toLocaleTimeString();
+  renderFeed();
+}
+
+async function fetchURLhaus(){
+  try{
+    const res=await fetch('https://urlhaus-api.abuse.ch/v1/urls/recent/',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'limit=30'});
+    const data=await res.json();
+    return (data.urls||[]).map(u=>({
+      id:'urlhaus_'+u.id,source:'URLhaus',category:'phishing',
+      severity:u.threat==='malware_download'?'high':'medium',
+      title:'Malicious URL: '+u.url.slice(0,60),
+      ioc:u.url,desc:`Host: ${u.host} · Tags: ${(u.tags||[]).join(', ')||'none'} · Status: ${u.url_status}`,
+      date:u.date_added,link:'https://urlhaus.abuse.ch/url/'+u.id,
+      tags:u.tags||[],
+    }));
+  }catch(e){console.warn('URLhaus failed',e);return[];}
+}
+
+async function fetchFeodoTracker(){
+  try{
+    const res=await fetch('https://feodotracker.abuse.ch/downloads/ipblocklist_recent.json');
+    const data=await res.json();
+    return (data.blocklist||[]).slice(0,20).map(e=>({
+      id:'feodo_'+e.ip_address,source:'Feodo Tracker',category:'c2',severity:'critical',
+      title:'C2 Server: '+e.ip_address+' ['+e.malware+']',
+      ioc:e.ip_address,
+      desc:`Malware: ${e.malware} · Port: ${e.dst_port} · Country: ${e.country}`,
+      date:e.first_seen,link:'https://feodotracker.abuse.ch/browse/host/'+e.ip_address,
+      tags:[e.malware,'C2'],
+    }));
+  }catch(e){console.warn('Feodo failed',e);return[];}
+}
+
+async function fetchMalwareBazaarRecent(){
+  try{
+    const res=await fetch('https://mb-api.abuse.ch/api/v1/',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'query=get_recent&selector=time'});
+    const data=await res.json();
+    return (data.data||[]).slice(0,20).map(s=>({
+      id:'mbz_'+s.sha256_hash,source:'MalwareBazaar',category:'malware',severity:'high',
+      title:'Malware Sample: '+(s.file_name||'unnamed')+' ['+s.signature+']',
+      ioc:s.sha256_hash,
+      desc:`Type: ${s.file_type} · Size: ${s.file_size}B · Tags: ${(s.tags||[]).join(', ')||'none'}`,
+      date:s.first_seen,link:'https://bazaar.abuse.ch/sample/'+s.sha256_hash,
+      tags:s.tags||[s.signature].filter(Boolean),
+    }));
+  }catch(e){console.warn('MalwareBazaar failed',e);return[];}
+}
+
+function setFeedFilter(f,btn){feedFilter=f;document.querySelectorAll('.feed-type-btn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderFeed();}
+function searchFeed(q){renderFeed(q);}
+
+function renderFeed(q=''){
+  const el=document.getElementById('feed-list');
+  if(!feedData.length){el.innerHTML='<div class="feed-empty"><span style="font-size:1.5rem;opacity:.2">📡</span><span>click refresh to load live feeds</span></div>';return;}
+  q=q.toLowerCase();
+  let items=feedData.filter(item=>{
+    const mf=feedFilter==='all'||item.category===feedFilter;
+    const mq=!q||(item.title+item.ioc+item.desc).toLowerCase().includes(q);
+    return mf&&mq;
+  });
+  if(!items.length){el.innerHTML='<div class="feed-empty"><span>no results</span></div>';return;}
+  el.innerHTML=items.map(item=>`
+    <div class="feed-item ${item.severity}" data-id="${item.id}">
+      <div class="fi-hdr">
+        <span class="fi-sev sev-${item.severity}">${item.severity.toUpperCase()}</span>
+        <span class="fi-source">${item.source}</span>
+        ${item.tags.slice(0,2).map(t=>`<span class="fi-source">${t}</span>`).join('')}
+        <span class="fi-date">${(item.date||'').slice(0,10)}</span>
+      </div>
+      <div class="fi-title">${item.title}</div>
+      ${item.ioc?`<div class="fi-ioc">${item.ioc.slice(0,80)}</div>`:''}
+      <div class="fi-desc">${item.desc}</div>
+      <div class="fi-actions">
+        <button class="fi-btn" onclick="addFeedToCase('${item.id}')">+ add to case</button>
+        <button class="fi-btn" onclick="enrichFeedIOC('${item.id}')">enrich IOC</button>
+        <a class="fi-btn" href="${item.link}" target="_blank" style="text-decoration:none">view source ↗</a>
+      </div>
+    </div>`).join('');
+}
+
+function addFeedToCase(id){
+  const c=getC();if(!c){alert('Select a case first');return;}
+  const item=feedData.find(i=>i.id===id);if(!item)return;
+  const type=item.ioc&&item.ioc.match(/^[0-9.]+$/)?'ip':item.ioc&&item.ioc.match(/^[0-9a-f]{64}$/i)?'hash':item.ioc&&item.ioc.startsWith('http')?'url':'domain';
+  const ent={id:'e_'+Date.now(),type,value:item.ioc||item.title,color:TC[type]||'#ff4444',tlp:'WHITE',ioc:'yes',confidence:85,notes:item.desc+'\nSource: '+item.source+'\nLink: '+item.link,created:new Date().toISOString()};
+  c.entities[ent.id]=ent;
+  // also add to timeline
+  c.timeline.push({id:'t_'+Date.now(),date:(item.date||new Date().toISOString()).slice(0,10),type:'IOC Detected',desc:item.title,created:new Date().toISOString()});
+  save();renderAll();showToast('Added to case: '+c.name);
+}
+function enrichFeedIOC(id){
+  const item=feedData.find(i=>i.id===id);if(!item||!item.ioc)return;
+  document.getElementById('enrich-val').value=item.ioc;
+  switchTab('enrich',document.querySelectorAll('.cvt')[2]);
+  enrichIOC();
+}
+
+// ═══════════════════════════════════════════════════
+// ENRICH IOC — multi-source
+// ═══════════════════════════════════════════════════
+function detectType(val){
+  val=val.trim();
+  if(/^\d+\.\d+\.\d+\.\d+$/.test(val))return'ip';
+  if(/^[0-9a-fA-F]{32}$|^[0-9a-fA-F]{40}$|^[0-9a-fA-F]{64}$/.test(val))return'hash';
+  if(/^https?:\/\//.test(val))return'url';
+  return'domain';
+}
+
+async function enrichIOC(){
+  const val=document.getElementById('enrich-val').value.trim();
+  if(!val){alert('Enter an indicator');return;}
+  let type=document.getElementById('enrich-type').value;
+  if(type==='auto')type=detectType(val);
+  const el=document.getElementById('enrich-results');
+  el.innerHTML='<div class="feed-loading">querying threat intelligence sources...</div>';
+  const results=await Promise.allSettled([
+    enrichIPAPI(val,type),
+    enrichURLhaus(val,type),
+    enrichAbuseIPDB(val,type),
+    enrichOTX(val,type),
+    enrichVirusTotal(val,type),
+  ]);
+  const cards=results.filter(r=>r.status==='fulfilled'&&r.value).map(r=>r.value);
+  if(!cards.length){el.innerHTML='<div style="color:var(--dim);font-size:.78rem;padding:1rem">no results returned — check API keys for more sources</div>';return;}
+  el.innerHTML=cards.join('');
+}
+
+async function enrichIPAPI(val,type){
+  if(type!=='ip'&&type!=='domain')return null;
+  try{
+    const res=await fetch(`https://ip-api.com/json/${encodeURIComponent(val)}?fields=status,message,country,regionName,city,isp,org,as,query`);
+    const d=await res.json();
+    if(d.status!=='success')return null;
+    return `<div class="enrich-card">
+      <div class="ec-hdr"><span class="ec-source">IP-API (free)</span><span class="ec-status ok">OK</span></div>
+      <div class="ec-body">
+        <div class="ec-row"><span class="ec-k">IP</span><span class="ec-v">${d.query}</span></div>
+        <div class="ec-row"><span class="ec-k">Country</span><span class="ec-v">${d.country}</span></div>
+        <div class="ec-row"><span class="ec-k">City</span><span class="ec-v">${d.city}, ${d.regionName}</span></div>
+        <div class="ec-row"><span class="ec-k">ISP</span><span class="ec-v">${d.isp}</span></div>
+        <div class="ec-row"><span class="ec-k">Org</span><span class="ec-v">${d.org}</span></div>
+        <div class="ec-row"><span class="ec-k">ASN</span><span class="ec-v">${d.as}</span></div>
+      </div></div>`;
+  }catch(e){return null;}
+}
+
+async function enrichURLhaus(val,type){
+  if(type!=='url'&&type!=='domain')return null;
+  try{
+    const body=type==='url'?`url=${encodeURIComponent(val)}`:`host=${encodeURIComponent(val)}`;
+    const endpoint=type==='url'?'https://urlhaus-api.abuse.ch/v1/url/':'https://urlhaus-api.abuse.ch/v1/host/';
+    const res=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
+    const d=await res.json();
+    const found=d.query_status==='is_listed'||d.query_status==='ok';
+    return `<div class="enrich-card">
+      <div class="ec-hdr"><span class="ec-source">URLhaus (free)</span><span class="ec-status ${found?'bad':'ok'}">${found?'MALICIOUS':'clean'}</span></div>
+      <div class="ec-body">
+        <div class="ec-row"><span class="ec-k">Status</span><span class="ec-v">${d.query_status}</span></div>
+        ${d.urls_count?`<div class="ec-row"><span class="ec-k">URLs</span><span class="ec-v">${d.urls_count}</span></div>`:''}
+        ${d.tags?`<div class="ec-row"><span class="ec-k">Tags</span><span class="ec-v">${d.tags.join(', ')}</span></div>`:''}
+        ${d.blacklists?`<div class="ec-row"><span class="ec-k">Blacklists</span><span class="ec-v">${JSON.stringify(d.blacklists)}</span></div>`:''}
+      </div></div>`;
+  }catch(e){return null;}
+}
+
+async function enrichAbuseIPDB(val,type){
+  const key=getKey('abuse');if(!key)return`<div class="enrich-card"><div class="ec-hdr"><span class="ec-source">AbuseIPDB</span><span class="ec-status warn">no key</span></div><div class="ec-body"><div style="font-size:.72rem;color:var(--dim)">Add API key in ⚙ settings. Free at abuseipdb.com</div></div></div>`;
+  if(type!=='ip')return null;
+  try{
+    const res=await fetch(`https://api.abuseipdb.com/api/v2/check?ipAddress=${encodeURIComponent(val)}&maxAgeInDays=90`,{headers:{'Key':key,'Accept':'application/json'}});
+    const d=await res.json();const data=d.data;
+    return `<div class="enrich-card">
+      <div class="ec-hdr"><span class="ec-source">AbuseIPDB</span><span class="ec-status ${data.abuseConfidenceScore>50?'bad':data.abuseConfidenceScore>10?'warn':'ok'}">${data.abuseConfidenceScore}% abuse</span></div>
+      <div class="ec-body">
+        <div class="ec-row"><span class="ec-k">Score</span><span class="ec-v" style="color:${data.abuseConfidenceScore>50?'var(--red)':data.abuseConfidenceScore>10?'var(--yellow)':'var(--accent)'}">${data.abuseConfidenceScore}%</span></div>
+        <div class="ec-row"><span class="ec-k">Country</span><span class="ec-v">${data.countryCode||'—'}</span></div>
+        <div class="ec-row"><span class="ec-k">ISP</span><span class="ec-v">${data.isp||'—'}</span></div>
+        <div class="ec-row"><span class="ec-k">Reports</span><span class="ec-v">${data.totalReports} (${data.numDistinctUsers} users)</span></div>
+        <div class="ec-row"><span class="ec-k">Whitelisted</span><span class="ec-v">${data.isWhitelisted?'yes':'no'}</span></div>
+        <div class="ec-row"><span class="ec-k">Last reported</span><span class="ec-v">${data.lastReportedAt||'never'}</span></div>
+      </div></div>`;
+  }catch(e){return null;}
+}
+
+async function enrichOTX(val,type){
+  const key=getKey('otx');if(!key)return`<div class="enrich-card"><div class="ec-hdr"><span class="ec-source">AlienVault OTX</span><span class="ec-status warn">no key</span></div><div class="ec-body"><div style="font-size:.72rem;color:var(--dim)">Free at otx.alienvault.com</div></div></div>`;
+  const section=type==='ip'?'IPv4':type==='domain'?'domain':type==='hash'?'file':'url';
+  try{
+    const res=await fetch(`https://otx.alienvault.com/api/v1/indicators/${section}/${encodeURIComponent(val)}/general`,{headers:{'X-OTX-API-KEY':key}});
+    const d=await res.json();
+    return `<div class="enrich-card">
+      <div class="ec-hdr"><span class="ec-source">AlienVault OTX</span><span class="ec-status ${d.pulse_info?.count>0?'bad':'ok'}">${d.pulse_info?.count>0?d.pulse_info.count+' pulses':'clean'}</span></div>
+      <div class="ec-body">
+        <div class="ec-row"><span class="ec-k">Pulses</span><span class="ec-v">${d.pulse_info?.count||0}</span></div>
+        ${d.country_name?`<div class="ec-row"><span class="ec-k">Country</span><span class="ec-v">${d.country_name}</span></div>`:''}
+        ${d.asn?`<div class="ec-row"><span class="ec-k">ASN</span><span class="ec-v">${d.asn}</span></div>`:''}
+        ${d.reputation?`<div class="ec-row"><span class="ec-k">Reputation</span><span class="ec-v">${d.reputation}</span></div>`:''}
+        ${d.pulse_info?.references?.slice(0,2).map(r=>`<div class="ec-row"><span class="ec-k">Ref</span><span class="ec-v"><a href="${r}" target="_blank" style="color:var(--accent2)">link ↗</a></span></div>`).join('')||''}
+      </div></div>`;
+  }catch(e){return null;}
+}
+
+async function enrichVirusTotal(val,type){
+  const key=getKey('vt');if(!key)return`<div class="enrich-card"><div class="ec-hdr"><span class="ec-source">VirusTotal</span><span class="ec-status warn">no key</span></div><div class="ec-body"><div style="font-size:.72rem;color:var(--dim)">Free at virustotal.com</div></div></div>`;
+  const ep=type==='ip'?'ip_addresses':type==='domain'?'domains':type==='hash'?'files':'urls';
+  try{
+    let url,method='GET',body=null;
+    if(type==='url'){const id=btoa(val).replace(/=+$/,'');url=`https://www.virustotal.com/api/v3/urls/${id}`;}
+    else{url=`https://www.virustotal.com/api/v3/${ep}/${encodeURIComponent(val)}`;}
+    const res=await fetch(url,{method,headers:{'x-apikey':key},...(body?{body}:{})});
+    const d=await res.json();const att=d.data?.attributes||{};
+    const stats=att.last_analysis_stats||{};const mal=stats.malicious||0;const total=Object.values(stats).reduce((a,b)=>a+b,0)||1;
+    return `<div class="enrich-card">
+      <div class="ec-hdr"><span class="ec-source">VirusTotal</span><span class="ec-status ${mal>5?'bad':mal>0?'warn':'ok'}">${mal}/${total} engines</span></div>
+      <div class="ec-body">
+        <div class="ec-row"><span class="ec-k">Malicious</span><span class="ec-v" style="color:${mal>5?'var(--red)':mal>0?'var(--yellow)':'var(--accent)'}">${mal}</span></div>
+        <div class="ec-row"><span class="ec-k">Suspicious</span><span class="ec-v">${stats.suspicious||0}</span></div>
+        <div class="ec-row"><span class="ec-k">Clean</span><span class="ec-v">${stats.undetected||0}</span></div>
+        ${att.country?`<div class="ec-row"><span class="ec-k">Country</span><span class="ec-v">${att.country}</span></div>`:''}
+        ${att.as_owner?`<div class="ec-row"><span class="ec-k">ASN Owner</span><span class="ec-v">${att.as_owner}</span></div>`:''}
+        ${att.reputation!==undefined?`<div class="ec-row"><span class="ec-k">Reputation</span><span class="ec-v">${att.reputation}</span></div>`:''}
+        <div class="ec-row"><span class="ec-k">VT Link</span><span class="ec-v"><a href="https://www.virustotal.com/gui/${ep}/${encodeURIComponent(val)}" target="_blank" style="color:var(--accent2)">view full report ↗</a></span></div>
+      </div></div>`;
+  }catch(e){return null;}
+}
+
+// ═══════════════════════════════════════════════════
 // TIMELINE
-// ═══════════════════════════════════════════════════════════
-function addTimelineEvent() {
-  const c = getCase(); if (!c) { alert('Select a case first'); return; }
-  const desc = document.getElementById('tl-desc').value.trim();
-  if (!desc) { alert('Enter event description'); return; }
-  c.timeline.push({
-    id: 't_' + Date.now(),
-    date: document.getElementById('tl-date').value || new Date().toISOString().split('T')[0],
-    type: document.getElementById('tl-type').value,
-    desc, created: new Date().toISOString(),
-  });
-  document.getElementById('tl-desc').value = '';
-  c.timeline.sort((a,b) => a.date.localeCompare(b.date));
-  save(); renderTimeline();
-}
-function renderTimeline() {
-  const c = getCase();
-  const el = document.getElementById('tl-events');
-  if (!c || !c.timeline.length) { el.innerHTML = '<div class="tl-empty">no events yet — add the first timeline entry above</div>'; return; }
-  const typeColors = {'IOC Detected':'#ff4444','Infrastructure':'#00d4ff','Actor Activity':'#e8c547','Financial':'#bc8cff','Malware':'#f0883e','Attribution':'#00ff41','Other':'#484f58'};
-  el.innerHTML = c.timeline.map(ev => `
-    <div class="tl-event">
-      <div class="tl-date">${ev.date}</div>
-      <div class="tl-dot-col">
-        <div class="tl-dot" style="background:${typeColors[ev.type]||'#484f58'}"></div>
-        <div class="tl-line"></div>
-      </div>
-      <div>
-        <div class="tl-card">
-          <div class="tl-card-title">${ev.desc}</div>
-          <div class="tl-card-type" style="color:${typeColors[ev.type]||'#484f58'}">${ev.type}</div>
-        </div>
-      </div>
-    </div>`).join('');
-}
+// ═══════════════════════════════════════════════════
+function addTLEvent(){const c=getC();if(!c){alert('Select a case first');return;}const desc=document.getElementById('tl-desc').value.trim();if(!desc){alert('Enter description');return;}c.timeline.push({id:'t_'+Date.now(),date:document.getElementById('tl-date').value||new Date().toISOString().split('T')[0],type:document.getElementById('tl-type').value,desc,created:new Date().toISOString()});document.getElementById('tl-desc').value='';c.timeline.sort((a,b)=>a.date.localeCompare(b.date));save();renderTimeline();}
+function renderTimeline(){const c=getC();const el=document.getElementById('tl-events');if(!c||!c.timeline.length){el.innerHTML='<div style="color:var(--dim);font-size:.75rem;text-align:center;padding:1.5rem">no events yet</div>';return;}const tc2={'IOC Detected':'#ff4444','Infrastructure':'#00d4ff','Actor Activity':'#e8c547','Financial':'#bc8cff','Malware':'#f0883e','Attribution':'#00ff41','Other':'#484f58'};el.innerHTML=c.timeline.map(ev=>`<div class="tl-ev"><div class="tl-dt">${ev.date}</div><div class="tl-col"><div class="tl-dot" style="background:${tc2[ev.type]||'#484f58'}"></div><div class="tl-line"></div></div><div><div class="tl-card"><div class="tl-ct">${ev.desc}</div><div class="tl-cm" style="color:${tc2[ev.type]||'#484f58'}">${ev.type}</div></div></div></div>`).join('');}
 
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 // EVIDENCE
-// ═══════════════════════════════════════════════════════════
-function addEvidence() {
-  const c = getCase(); if (!c) { alert('Select a case first'); return; }
-  const content = document.getElementById('ev-content').value.trim();
-  if (!content) { alert('Enter evidence content'); return; }
-  c.evidence.push({
-    id: 'ev_' + Date.now(),
-    tag: document.getElementById('ev-tag').value,
-    content, created: new Date().toISOString(),
-  });
-  document.getElementById('ev-content').value = '';
-  save(); renderEvidence();
-}
-function deleteEvidence(id) {
-  const c = getCase(); if (!c) return;
-  c.evidence = c.evidence.filter(e => e.id !== id);
-  save(); renderEvidence();
-}
-function renderEvidence() {
-  const c = getCase();
-  const el = document.getElementById('ev-items');
-  if (!c || !c.evidence.length) { el.innerHTML = '<div class="ev-empty">no evidence yet — paste raw data above</div>'; return; }
-  el.innerHTML = [...c.evidence].reverse().map(ev => `
-    <div class="ev-item">
-      <div class="ev-item-hdr">
-        <span class="ev-item-tag">${ev.tag}</span>
-        <span class="ev-item-date">${new Date(ev.created).toLocaleString()}</span>
-        <button class="ev-item-del" onclick="deleteEvidence('${ev.id}')">×</button>
-      </div>
-      <div class="ev-item-content">${escHtml(ev.content)}</div>
-    </div>`).join('');
-}
-function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+// ═══════════════════════════════════════════════════
+function addEvidence(){const c=getC();if(!c){alert('Select a case first');return;}const content=document.getElementById('ev-content').value.trim();if(!content){alert('Enter content');return;}c.evidence.push({id:'ev_'+Date.now(),tag:document.getElementById('ev-tag').value,content,created:new Date().toISOString()});document.getElementById('ev-content').value='';save();renderEvidence();}
+function delEv(id){const c=getC();if(!c)return;c.evidence=c.evidence.filter(e=>e.id!==id);save();renderEvidence();}
+function renderEvidence(){const c=getC();const el=document.getElementById('ev-items');if(!c||!c.evidence.length){el.innerHTML='<div style="color:var(--dim);font-size:.75rem;text-align:center;padding:1.5rem">no evidence yet</div>';return;}el.innerHTML=[...c.evidence].reverse().map(ev=>`<div class="ev-item"><div class="ev-ih"><span class="ev-tag">${ev.tag}</span><span style="font-size:.62rem;color:var(--dim)">${new Date(ev.created).toLocaleString()}</span><button class="ev-del" onclick="delEv('${ev.id}')">×</button></div><div class="ev-content">${escH(ev.content)}</div></div>`).join('');}
 
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 // REPORT
-// ═══════════════════════════════════════════════════════════
-function generateReport() { switchTab('report', document.querySelectorAll('.cv-tab')[3]); renderReport(); }
-function renderReport() {
-  const c = getCase();
-  const el = document.getElementById('report-preview');
-  if (!c) { el.innerHTML = '<div style="color:var(--dim);font-size:.78rem">select a case to generate report</div>'; return; }
-  const entities = Object.values(c.entities);
-  const iocs = entities.filter(e => e.ioc === 'yes');
-  el.innerHTML = `
-    <div class="rp-title">⬡ Kitsune — CTI Investigation Report</div>
-    <div class="rp-meta">
-      Case: ${c.name} · Priority: ${c.priority} · Status: ${c.status}<br>
-      Generated: ${new Date().toLocaleString()} · Analyst: 0xprit3sh
-    </div>
-    <div class="rp-section">
-      <div class="rp-section-title">// EXECUTIVE SUMMARY</div>
-      <p style="font-size:.78rem;color:var(--text2);line-height:1.7">${c.desc || 'No description provided.'}</p>
-    </div>
-    <div class="rp-section">
-      <div class="rp-section-title">// STATISTICS</div>
-      <table class="rp-table">
-        <tr><td>Total Entities</td><td>${entities.length}</td><td>Confirmed IOCs</td><td>${iocs.length}</td></tr>
-        <tr><td>Timeline Events</td><td>${c.timeline.length}</td><td>Evidence Items</td><td>${c.evidence.length}</td></tr>
-        <tr><td>Graph Nodes</td><td>${c.graph.nodes.length}</td><td>Graph Edges</td><td>${c.graph.edges.length}</td></tr>
-      </table>
-    </div>
-    ${iocs.length ? `
-    <div class="rp-section">
-      <div class="rp-section-title">// IOC TABLE</div>
-      <table class="rp-table">
-        <tr><th>Type</th><th>Indicator</th><th>TLP</th><th>Confidence</th></tr>
-        ${iocs.map(e => `<tr><td>${e.type}</td><td><span class="rp-ioc">${escHtml(e.value)}</span></td><td>TLP:${e.tlp||'WHITE'}</td><td>${e.confidence||80}%</td></tr>`).join('')}
-      </table>
-    </div>` : ''}
-    ${c.timeline.length ? `
-    <div class="rp-section">
-      <div class="rp-section-title">// TIMELINE</div>
-      <table class="rp-table">
-        <tr><th>Date</th><th>Type</th><th>Event</th></tr>
-        ${c.timeline.map(ev => `<tr><td>${ev.date}</td><td>${ev.type}</td><td>${escHtml(ev.desc)}</td></tr>`).join('')}
-      </table>
-    </div>` : ''}
-    <div class="rp-section">
-      <div class="rp-section-title">// ALL ENTITIES</div>
-      <table class="rp-table">
-        <tr><th>Type</th><th>Value</th><th>IOC</th><th>TLP</th><th>Notes</th></tr>
-        ${entities.map(e => `<tr><td>${e.type}</td><td><span class="rp-ioc">${escHtml(e.value)}</span></td><td>${e.ioc||'—'}</td><td>TLP:${e.tlp||'WHITE'}</td><td style="max-width:150px">${escHtml(e.notes||'—')}</td></tr>`).join('')}
-      </table>
-    </div>
-    <div style="font-size:.65rem;color:var(--dim);margin-top:1rem;border-top:1px solid var(--border);padding-top:.75rem">
-      Generated by Kitsune CTI Platform · 0xprit3sh.xyz · ${new Date().toISOString()}
-    </div>`;
-}
-function downloadReport() {
-  const c = getCase(); if (!c) return;
-  renderReport();
-  const content = document.getElementById('report-preview').innerHTML;
-  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Kitsune Report — ${c.name}</title><style>body{font-family:monospace;background:#090909;color:#e6edf3;padding:2rem;max-width:900px;margin:0 auto}.rp-title{color:#00ff41;font-size:1.2rem;font-weight:700;margin-bottom:.5rem}.rp-section-title{color:#00d4ff;font-size:.8rem;font-weight:700;margin:1rem 0 .4rem;letter-spacing:.05em}.rp-table{width:100%;border-collapse:collapse;margin:.5rem 0;font-size:.8rem}.rp-table th{background:#161616;color:#484f58;padding:5px 10px;text-align:left;border:1px solid #1e1e1e}.rp-table td{padding:5px 10px;border:1px solid #1e1e1e;color:#8b949e}.rp-ioc{background:#1c1c1c;color:#f0883e;padding:1px 5px;border-radius:2px}.rp-meta{font-size:.72rem;color:#484f58;margin-bottom:1rem;padding-bottom:.75rem;border-bottom:1px solid #1e1e1e}</style></head><body>${content}</body></html>`;
-  const blob = new Blob([html], {type:'text/html'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `kitsune-${c.name.replace(/\s+/g,'-').toLowerCase()}-${Date.now()}.html`;
-  a.click();
-}
-function copyReport() {
-  const c = getCase(); if (!c) return;
-  const entities = Object.values(c.entities);
-  const iocs = entities.filter(e => e.ioc === 'yes');
-  const md = `# CTI Report — ${c.name}\n\n**Priority:** ${c.priority} | **Status:** ${c.status}\n**Generated:** ${new Date().toLocaleString()}\n\n## Summary\n${c.desc||'N/A'}\n\n## IOCs\n${iocs.map(e=>`- \`${e.value}\` (${e.type}, TLP:${e.tlp||'WHITE'}, ${e.confidence||80}%)`).join('\n')||'None confirmed'}\n\n## Timeline\n${c.timeline.map(ev=>`- **${ev.date}** [${ev.type}] ${ev.desc}`).join('\n')||'No events'}\n\n## Entities\n${entities.map(e=>`| ${e.type} | ${e.value} | ${e.ioc} | TLP:${e.tlp||'WHITE'} |`).join('\n')}`;
-  navigator.clipboard.writeText(md);
-  alert('Markdown copied to clipboard');
-}
+// ═══════════════════════════════════════════════════
+function generateReport(){switchTab('report',document.querySelectorAll('.cvt')[5]);renderReport();}
+function renderReport(){const c=getC();const el=document.getElementById('rp-preview');if(!c){el.innerHTML='<div style="color:var(--dim);font-size:.78rem">select a case to generate report</div>';return;}const ents=Object.values(c.entities);const iocs=ents.filter(e=>e.ioc==='yes');el.innerHTML=`<div class="rp-t">⬡ Kitsune CTI Report</div><div class="rp-m">Case: ${c.name} · Priority: ${c.priority} · Status: ${c.status}<br>Generated: ${new Date().toLocaleString()} · Analyst: 0xprit3sh</div><div class="rp-s"><div class="rp-sh">// EXECUTIVE SUMMARY</div><p style="font-size:.75rem;color:var(--text2);line-height:1.7">${c.desc||'No description.'}</p></div><div class="rp-s"><div class="rp-sh">// STATISTICS</div><table class="rp-table"><tr><td>Entities</td><td>${ents.length}</td><td>Confirmed IOCs</td><td>${iocs.length}</td></tr><tr><td>Timeline</td><td>${c.timeline.length}</td><td>Evidence</td><td>${c.evidence.length}</td></tr></table></div>${iocs.length?`<div class="rp-s"><div class="rp-sh">// IOC TABLE</div><table class="rp-table"><tr><th>Type</th><th>Indicator</th><th>TLP</th><th>Confidence</th></tr>${iocs.map(e=>`<tr><td>${e.type}</td><td style="color:var(--orange);font-family:monospace">${escH(e.value)}</td><td>TLP:${e.tlp||'WHITE'}</td><td>${e.confidence||80}%</td></tr>`).join('')}</table></div>`:''} ${c.timeline.length?`<div class="rp-s"><div class="rp-sh">// TIMELINE</div><table class="rp-table"><tr><th>Date</th><th>Type</th><th>Event</th></tr>${c.timeline.map(ev=>`<tr><td>${ev.date}</td><td>${ev.type}</td><td>${escH(ev.desc)}</td></tr>`).join('')}</table></div>`:''}<div style="font-size:.62rem;color:var(--dim);margin-top:1rem;border-top:1px solid var(--border);padding-top:.6rem">Generated by Kitsune CTI Platform · 0xprit3sh.xyz · ${new Date().toISOString()}</div>`;}
+function downloadReport(){const c=getC();if(!c)return;renderReport();const content=document.getElementById('rp-preview').innerHTML;const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Kitsune Report — ${c.name}</title><style>body{font-family:monospace;background:#090909;color:#e6edf3;padding:2rem;max-width:900px;margin:0 auto}.rp-t{color:#00ff41;font-size:1.1rem;font-weight:700;margin-bottom:.4rem}.rp-sh{color:#00d4ff;font-size:.78rem;font-weight:700;margin:.75rem 0 .3rem;letter-spacing:.04em}.rp-table{width:100%;border-collapse:collapse;font-size:.78rem;margin:.4rem 0}.rp-table th{background:#161616;color:#484f58;padding:4px 8px;border:1px solid #1e1e1e;text-align:left}.rp-table td{padding:4px 8px;border:1px solid #1e1e1e;color:#8b949e}</style></head><body>${content}</body></html>`;const blob=new Blob([html],{type:'text/html'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`kitsune-${c.name.replace(/\s+/g,'-').toLowerCase()}.html`;a.click();}
+function copyMarkdown(){const c=getC();if(!c)return;const ents=Object.values(c.entities);const iocs=ents.filter(e=>e.ioc==='yes');const md=`# Kitsune CTI Report — ${c.name}\n\n**Priority:** ${c.priority} | **Status:** ${c.status}\n\n## IOCs\n${iocs.map(e=>`- \`${e.value}\` (${e.type}, TLP:${e.tlp})`).join('\n')||'None'}\n\n## Timeline\n${c.timeline.map(ev=>`- **${ev.date}** [${ev.type}] ${ev.desc}`).join('\n')||'None'}`;navigator.clipboard.writeText(md);showToast('Markdown copied');}
 
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 // IMPORT / EXPORT
-// ═══════════════════════════════════════════════════════════
-function exportData() {
-  const blob = new Blob([JSON.stringify(state.cases, null, 2)], {type:'application/json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `kitsune-backup-${Date.now()}.json`;
-  a.click();
-}
-function importData() {
-  const input = document.createElement('input');
-  input.type = 'file'; input.accept = '.json';
-  input.onchange = e => {
-    const file = e.target.files[0];
-    const reader = new FileReader();
-    reader.onload = ev => {
-      try {
-        const data = JSON.parse(ev.target.result);
-        Object.assign(state.cases, data);
-        save(); renderAll();
-        alert('Import successful');
-      } catch(err) { alert('Invalid JSON file'); }
-    };
-    reader.readAsText(file);
-  };
-  input.click();
-}
+// ═══════════════════════════════════════════════════
+function exportData(){const blob=new Blob([JSON.stringify(S.cases,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`kitsune-backup-${Date.now()}.json`;a.click();}
+function importData(){const input=document.createElement('input');input.type='file';input.accept='.json';input.onchange=e=>{const file=e.target.files[0];const reader=new FileReader();reader.onload=ev=>{try{const data=JSON.parse(ev.target.result);Object.assign(S.cases,data);save();renderAll();showToast('Import successful');}catch(err){alert('Invalid JSON file');}};reader.readAsText(file);};input.click();}
 
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 // TABS
-// ═══════════════════════════════════════════════════════════
-function switchTab(id, btn) {
-  document.querySelectorAll('.cv-tab').forEach(b => b.classList.remove('on'));
-  document.querySelectorAll('.cv-panel').forEach(p => p.classList.remove('on'));
-  if (btn) btn.classList.add('on');
-  document.getElementById('panel-' + id).classList.add('on');
-  if (id === 'report') renderReport();
-}
+// ═══════════════════════════════════════════════════
+function switchTab(id,btn){document.querySelectorAll('.cvt').forEach(b=>b.classList.remove('on'));document.querySelectorAll('.cv-panel').forEach(p=>p.classList.remove('on'));if(btn)btn.classList.add('on');document.getElementById('panel-'+id).classList.add('on');if(id==='report')renderReport();}
 
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 // RENDER ALL
-// ═══════════════════════════════════════════════════════════
-function renderAll() {
-  renderCasesList();
-  renderEntitiesList();
-  renderGraph();
-  renderTimeline();
-  renderEvidence();
-  updateStats();
+// ═══════════════════════════════════════════════════
+function renderAll(){renderCases();renderEnts();renderGraph();renderTimeline();renderEvidence();updateStats();}
+function renderCases(){
+  const el=document.getElementById('cases-list');const sel=document.getElementById('case-sel');
+  const cases=Object.values(S.cases).sort((a,b)=>b.created.localeCompare(a.created));
+  const pc={critical:'#ff4444',high:'#e8c547',medium:'#00d4ff',low:'#484f58'};
+  el.innerHTML=cases.map(c=>`<div class="si ${S.cur===c.id?'on':''}" onclick="switchCase('${c.id}')"><div class="si-dot" style="background:${pc[c.priority]||'#484f58'}"></div><span class="si-name">${c.name}</span><span class="si-badge">${c.status}</span><button class="si-del" onclick="delCase('${c.id}',event)">×</button></div>`).join('')||'<div style="padding:8px 10px;font-size:.72rem;color:var(--dim)">no cases yet</div>';
+  sel.innerHTML='<option value="">— select case —</option>'+cases.map(c=>`<option value="${c.id}" ${S.cur===c.id?'selected':''}>${c.name}</option>`).join('');
 }
-function renderCasesList() {
-  const el = document.getElementById('cases-list');
-  const sel = document.getElementById('case-select');
-  const cases = Object.values(state.cases).sort((a,b) => b.created.localeCompare(a.created));
-  const priorityColors = {critical:'#ff4444',high:'#e8c547',medium:'#00d4ff',low:'#484f58'};
-  el.innerHTML = cases.map(c => `
-    <div class="sb-item ${state.currentCase === c.id ? 'active':''}" onclick="switchCase('${c.id}')">
-      <div class="sb-item-dot" style="background:${priorityColors[c.priority]||'#484f58'}"></div>
-      <span class="sb-item-name">${c.name}</span>
-      <span class="sb-item-badge">${c.status}</span>
-      <button class="sb-item-del" onclick="deleteCase('${c.id}',event)">×</button>
-    </div>`).join('') || '<div style="padding:8px 10px;font-size:.72rem;color:var(--dim)">no cases yet</div>';
-  sel.innerHTML = '<option value="">— select case —</option>' +
-    cases.map(c => `<option value="${c.id}" ${state.currentCase===c.id?'selected':''}>${c.name}</option>`).join('');
+function renderEnts(){
+  const c=getC();const el=document.getElementById('ents-list');
+  if(!c){el.innerHTML='<div style="padding:8px 10px;font-size:.72rem;color:var(--dim)">select a case</div>';return;}
+  const ents=Object.values(c.entities).sort((a,b)=>b.created.localeCompare(a.created));
+  document.getElementById('ent-count').textContent=ents.length;
+  el.innerHTML=ents.map(e=>`<div class="si ${S.selEnt===e.id?'on':''}" onclick="showDetail('${e.id}')" data-v="${e.value.toLowerCase()}"><div class="si-dot" style="background:${e.color||TC[e.type]||'#484f58'}"></div><span class="si-name">${e.value}</span><span class="si-badge">${e.type}</span><button class="si-del" onclick="event.stopPropagation();S.selEnt='${e.id}';deleteDetail()">×</button></div>`).join('')||'<div style="padding:8px 10px;font-size:.72rem;color:var(--dim)">no entities — add above</div>';
 }
-function renderEntitiesList() {
-  const c = getCase();
-  const el = document.getElementById('entities-list');
-  if (!c) { el.innerHTML = '<div style="padding:8px 10px;font-size:.72rem;color:var(--dim)">select a case</div>'; return; }
-  const entities = Object.values(c.entities).sort((a,b) => b.created.localeCompare(a.created));
-  document.getElementById('entity-count').textContent = entities.length;
-  el.innerHTML = entities.map(e => `
-    <div class="sb-item ${state.selectedEntity===e.id?'active':''}" onclick="showDetail('${e.id}')" data-val="${e.value.toLowerCase()}">
-      <div class="sb-item-dot" style="background:${e.color||TYPE_COLORS[e.type]||'#484f58'}"></div>
-      <span class="sb-item-name">${e.value}</span>
-      <span class="sb-item-badge et-${e.type}">${e.type}</span>
-      <button class="sb-item-del" onclick="event.stopPropagation();state.selectedEntity='${e.id}';deleteDetailEntity()">×</button>
-    </div>`).join('') || '<div style="padding:8px 10px;font-size:.72rem;color:var(--dim)">no entities — add above</div>';
-}
-function updateStats() {
-  const c = getCase();
-  document.getElementById('stat-case').textContent = c ? c.name.slice(0,20) : 'none';
-  document.getElementById('stat-entities').textContent = c ? Object.keys(c.entities).length : 0;
-  document.getElementById('stat-nodes').textContent = c ? c.graph.nodes.length : 0;
-  document.getElementById('stat-edges').textContent = c ? c.graph.edges.length : 0;
-  document.getElementById('stat-events').textContent = c ? c.timeline.length : 0;
-  document.getElementById('stat-evidence').textContent = c ? c.evidence.length : 0;
-}
+function updateStats(){const c=getC();document.getElementById('st-case').textContent=c?c.name.slice(0,18):'none';document.getElementById('st-ents').textContent=c?Object.keys(c.entities).length:0;document.getElementById('st-nodes').textContent=c?c.graph.nodes.length:0;document.getElementById('st-edges').textContent=c?c.graph.edges.length:0;document.getElementById('st-tl').textContent=c?c.timeline.length:0;document.getElementById('st-ev').textContent=c?c.evidence.length:0;}
 
-// ═══════════════════════════════════════════════════════════
+function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function showToast(msg){const t=document.createElement('div');t.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--accent);color:#000;font-family:monospace;font-size:11px;font-weight:700;padding:8px 18px;border-radius:4px;z-index:9999';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2500);}
+
 // INIT
-// ═══════════════════════════════════════════════════════════
-load();
-renderAll();
-setGraphMode('select');
-document.getElementById('tl-date').value = new Date().toISOString().split('T')[0];
-window.addEventListener('resize', renderGraph);
+load();loadKeys();renderAll();setMode('select');
+document.getElementById('tl-date').value=new Date().toISOString().split('T')[0];
+window.addEventListener('resize',renderGraph);
 </script>
 </body>
 </html>
