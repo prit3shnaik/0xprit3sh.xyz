@@ -227,7 +227,7 @@ a{color:var(--accent2);text-decoration:none}
 <!-- HEADER -->
 <header class="hdr">
   <div class="logo">
-    <div class="logo-img-placeholder" id="logo-container">⬡</div>
+    <div id="logo-container" style="width:32px;height:32px;flex-shrink:0"><img src="/tools/kitsune/kitsune-logo.png" id="logo-img" style="width:32px;height:32px;border-radius:6px;object-fit:cover" onerror="this.src='';this.parentElement.innerHTML='⬡';this.parentElement.style.cssText='width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:.9rem;color:#000'"></div>
     <div>
       <div class="logo-text">Kitsune</div>
       <div class="logo-sub">CTI Platform</div>
@@ -478,26 +478,7 @@ a{color:var(--accent2);text-decoration:none}
     <div class="ak-row"><span class="ak-label">AlienVault OTX</span><input class="fi3" id="k-otx" type="password" placeholder="otx.alienvault.com free"></div>
     <div class="ak-row"><span class="ak-label">Shodan</span><input class="fi3" id="k-shodan" type="password" placeholder="shodan.io (paid)"></div>
 
-    <div style="font-size:.68rem;color:var(--accent);margin:.75rem 0 .5rem;font-weight:700">// custom logo</div>
-    <div class="ak-row"><span class="ak-label">Logo URL</span><input class="fi3" id="k-logo" placeholder="https://0xprit3sh.xyz/images/logo.png"></div>
-    <div class="ak-note" style="margin-bottom:.75rem">
-      Paste URL to your site logo. Use: <code>https://0xprit3sh.xyz/images/logo.png</code><br>
-      Or any direct image URL. Shows in header replacing the ⬡ icon.
-    </div>
 
-    <div style="font-size:.68rem;color:var(--accent);margin:.75rem 0 .5rem;font-weight:700">// telegram/RSS intel feeds (no key needed)</div>
-    <div class="ak-note">
-      These public RSS/JSON feeds load automatically with no key:<br>
-      • <strong>CISA Alerts</strong> — us-cert.gov advisories<br>
-      • <strong>NCSC UK</strong> — ncsc.gov.uk advisories<br>
-      • <strong>CVE NVD</strong> — recent CVEs from NIST<br>
-      • <strong>Cert-In</strong> — India CERT advisories<br>
-      • <strong>ThreatFox IOCs</strong> — abuse.ch (needs Auth-Key)<br>
-      <br>
-      Telegram channels (view only, no API key needed via RSS bridges):<br>
-      • t.me/cybersecuritynews_official → RSS via rsshub.app<br>
-      • t.me/hackread → RSS via rsshub.app
-    </div>
 
     <div class="ma"><button class="mb" onclick="closeModal('keys-modal')">cancel</button><button class="mb p" onclick="saveKeys()">save all</button></div>
   </div>
@@ -521,23 +502,18 @@ let feedQ='';
 function save(){try{localStorage.setItem('kitsune_v3',JSON.stringify(S));const e=document.getElementById('save-st');e.textContent='saved '+new Date().toLocaleTimeString();e.className='save-st ok';setTimeout(()=>{e.textContent='ready';e.className='save-st';},2000);}catch(e){}}
 function load(){try{const r=localStorage.getItem('kitsune_v3');if(r){const d=JSON.parse(r);S.cases=d.cases||{};S.cur=d.cur||null;}}catch(e){S.cases={};}}
 function getKey(k){return localStorage.getItem('kitsune_key_'+k)||'';}
-function loadKeys(){['abusech','vt','abuse','otx','shodan','logo'].forEach(k=>{const v=getKey(k);const el=document.getElementById('k-'+k);if(el&&v)el.value=v;});applyLogo();}
+function loadKeys(){['abusech','vt','abuse','otx','shodan'].forEach(k=>{const v=getKey(k);const el=document.getElementById('k-'+k);if(el&&v)el.value=v;});}
 function saveKeys(){
-  ['abusech','vt','abuse','otx','shodan','logo'].forEach(k=>{
+  ['abusech','vt','abuse','otx','shodan'].forEach(k=>{
     const el=document.getElementById('k-'+k);
     if(!el)return;
     const v=el.value.trim();
     if(v)localStorage.setItem('kitsune_key_'+k,v);
     else localStorage.removeItem('kitsune_key_'+k);
   });
-  applyLogo();closeModal('keys-modal');showToast('Settings saved');
+  closeModal('keys-modal');showToast('API keys saved');
 }
-function applyLogo(){
-  const url=getKey('logo');
-  const c=document.getElementById('logo-container');
-  if(url){c.innerHTML=`<img src="${url}" style="width:28px;height:28px;border-radius:50%;object-fit:cover" onerror="this.style.display='none'">`;c.style.background='transparent';}
-  else{c.innerHTML='⬡';c.style.background='var(--accent)';}
-}
+function applyLogo(){}
 
 // ═══════════════════════════════════════════════════
 // THEME
@@ -960,3 +936,4 @@ window.addEventListener('resize',renderGraph);
 </script>
 </body>
 </html>
+
