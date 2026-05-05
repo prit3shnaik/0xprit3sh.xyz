@@ -1,167 +1,475 @@
 {{ define "main" }}
-<div class="post-layout">
-  <div class="post-main">
-
-    <div class="post-eyebrow">
-      <a href="/">~/home</a><span class="sep">/</span>
-      <a href="/actors/">actors</a><span class="sep">/</span>
-      <span>{{ .File.BaseFileName }}</span>
-    </div>
-
-    <div class="actor-single-header">
-      <div>
-        {{ with .Params.alias }}<div style="font-size:.72rem;color:var(--dim);margin-bottom:4px">{{ . }}</div>{{ end }}
-        <h1 class="post-title" style="margin-bottom:.5rem">{{ .Title }}</h1>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
-          {{ with .Params.category }}<span class="actor-cat cat-{{ . | lower | replaceRE "[^a-z]" "-" }}">{{ . }}</span>{{ end }}
-          {{ with .Params.threat_level }}<span class="actor-threat threat-{{ . | lower }}">{{ . | upper }}</span>{{ end }}
-          {{ with .Params.status }}<span class="actor-status status-{{ . | lower }}">{{ . }}</span>{{ end }}
-          {{ with .Params.origin }}<span style="font-size:.7rem;color:var(--dim);margin-left:4px">📍 {{ . }}</span>{{ end }}
-        </div>
-      </div>
-      <a href="/admin/#/collections/actors/entries/{{ .File.BaseFileName }}" class="edit-btn" style="font-size:.68rem;align-self:flex-start">edit</a>
-    </div>
-
-    {{ with .Params.tldr }}
-    <div class="tldr-box"><strong>// TL;DR</strong><p>{{ . }}</p></div>
-    {{ end }}
-
-    <!-- Two column layout instead of grid -->
-    <div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin:1rem 0 1.5rem;">
-      <!-- Left column -->
-      <div style="flex:2;min-width:200px;">
-        {{ with .Params.aliases }}
-        <div class="actor-ref-box" style="margin-bottom:1rem;">
-          <div class="actor-ref-title">// aliases</div>
-          <div class="actor-ref-tags">{{ range . }}<span class="tag">{{ . }}</span>{{ end }}</div>
-        </div>{{ end }}
-        
-        {{ with .Params.ttps }}
-        <div class="actor-ref-box" style="margin-bottom:1rem;">
-          <div class="actor-ref-title">// TTPs</div>
-          <div style="display:flex;flex-direction:column;gap:4px;">
-            {{ range . }}<span style="font-size:.75rem;color:var(--text2);">• {{ . }}</span>{{ end }}
-          </div>
-        </div>{{ end }}
-        
-        {{ with .Params.targets }}
-        <div class="actor-ref-box" style="margin-bottom:1rem;">
-          <div class="actor-ref-title">// targets</div>
-          <div class="actor-ref-tags">{{ range . }}<span class="tag">{{ . }}</span>{{ end }}</div>
-        </div>{{ end }}
-        
-        {{ with .Params.tools_used }}
-        <div class="actor-ref-box" style="margin-bottom:1rem;">
-          <div class="actor-ref-title">// tools / malware</div>
-          <div class="actor-ref-tags">{{ range . }}<span class="tag" style="color:var(--orange)">{{ . }}</span>{{ end }}</div>
-        </div>{{ end }}
-        
-        {{ with .Params.iocs }}
-        <div class="actor-ref-box" style="margin-bottom:1rem;">
-          <div class="actor-ref-title">// known IOCs</div>
-          {{ range . }}<code style="display:block;font-size:.72rem;color:var(--orange);margin-bottom:4px;background:var(--bg3);padding:4px 8px;border-radius:3px;word-break:break-all;">{{ . }}</code>{{ end }}
-        </div>{{ end }}
-      </div>
-
-      <!-- Right column (sidebar) -->
-      <div style="flex:1;min-width:200px;">
-        <div class="sidebar-box" style="margin-bottom:1rem;">
-          <div class="sidebar-box-title">// profile</div>
-          {{ with .Params.first_seen }}<div class="contact-item"><span class="k">first seen</span><span>{{ . }}</span></div>{{ end }}
-          {{ with .Params.last_seen }}<div class="contact-item"><span class="k">last seen</span><span>{{ . }}</span></div>{{ end }}
-          {{ with .Params.motivation }}<div class="contact-item"><span class="k">motivation</span><span>{{ . }}</span></div>{{ end }}
-        </div>
-        
-        {{ with .Params.tags }}
-        <div class="sidebar-box" style="margin-bottom:1rem;">
-          <div class="sidebar-box-title">// tags</div>
-          <div style="display:flex;flex-wrap:wrap;gap:4px;">{{ range . }}<span class="tag" style="margin:0;">#{{ . }}</span>{{ end }}</div>
-        </div>{{ end }}
-        
-        <div class="sidebar-box">
-          <div class="sidebar-box-title">// share</div>
-          <div class="share-row">
-            <a class="share-btn" href="https://twitter.com/intent/tweet?text={{ .Title | urlize }}&url={{ .Permalink }}" target="_blank">𝕏 tweet</a>
-            <button class="share-btn" onclick="navigator.clipboard.writeText('{{ .Permalink }}')"># copy link</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="post-content">{{ .Content }}</div>
-
-    <nav class="post-nav">
-      {{ with .PrevInSection }}<a href="{{ .Permalink }}">← {{ .Title }}</a>{{ else }}<span></span>{{ end }}
-      {{ with .NextInSection }}<a href="{{ .Permalink }}">{{ .Title }} →</a>{{ end }}
-    </nav>
-  </div>
-</div>
-
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-/* Keep your existing CSS, just hide the old grid */
-.actor-ref-grid {
-  display: none !important;
+/* Light mode */
+:root {
+  --bg: #f5f5f5;
+  --card: #ffffff;
+  --text: #1a1a1a;
+  --text-light: #666666;
+  --border: #dddddd;
+  --accent: #0066cc;
+  --red: #cc0000;
 }
 
-/* Make boxes cleaner */
-.actor-ref-box {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 0.85rem 1rem;
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #121212;
+    --card: #1e1e1e;
+    --text: #e0e0e0;
+    --text-light: #a0a0a0;
+    --border: #333333;
+    --accent: #4da6ff;
+    --red: #ff6666;
+  }
 }
 
-.sidebar-box {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 0.85rem 1rem;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-.contact-item {
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', monospace;
+  padding: 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+/* Navigation */
+.nav {
   display: flex;
-  justify-content: space-between;
-  padding: 6px 0;
-  font-size: 0.75rem;
+  gap: 1.2rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
   border-bottom: 1px solid var(--border);
 }
 
-.contact-item:last-child {
-  border-bottom: none;
+.nav a {
+  color: var(--text-light);
+  text-decoration: none;
+  font-size: 0.75rem;
 }
 
-.contact-item .k {
-  color: var(--dim);
+.nav a:hover {
+  color: var(--accent);
+}
+
+/* Breadcrumb */
+.breadcrumb {
+  font-size: 0.7rem;
+  color: var(--text-light);
+  margin-bottom: 1.5rem;
+}
+
+.breadcrumb a {
+  color: var(--text-light);
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  color: var(--accent);
+}
+
+/* Header */
+.header {
+  margin-bottom: 1.5rem;
+}
+
+.alias {
+  font-size: 0.7rem;
+  color: var(--text-light);
+  font-family: monospace;
+  margin-bottom: 0.25rem;
+}
+
+h1 {
+  font-size: 2rem;
+  font-weight: 600;
+  margin: 0.25rem 0 1rem 0;
+  color: var(--text);
+}
+
+.meta {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.badge {
+  font-size: 0.6rem;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.badge-cat {
+  background: rgba(0, 102, 204, 0.1);
+  color: var(--accent);
+}
+
+.badge-threat {
+  background: rgba(204, 0, 0, 0.1);
+  color: var(--red);
+}
+
+.badge-status {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text-light);
+}
+
+.origin {
+  font-size: 0.7rem;
+  color: var(--text-light);
+  margin-left: 0.25rem;
+}
+
+.edit-btn {
+  float: right;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text-light);
+  font-size: 0.65rem;
+  padding: 4px 12px;
+  border-radius: 6px;
+  text-decoration: none;
+}
+
+.edit-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* TL;DR */
+.tldr {
+  background: var(--card);
+  border-left: 3px solid var(--accent);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border-radius: 0 8px 8px 0;
+}
+
+.tldr p {
+  margin: 0.5rem 0 0 0;
+  font-size: 0.85rem;
+  color: var(--text-light);
+}
+
+/* Content sections */
+.section {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.section-title {
+  font-size: 0.65rem;
+  color: var(--accent);
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
 }
 
 .tag {
   font-size: 0.7rem;
-  background: var(--bg3);
-  padding: 3px 8px;
-  border-radius: 4px;
-  color: var(--text2);
-}
-
-.share-row {
-  display: flex;
-  gap: 8px;
-  margin-top: 6px;
-}
-
-.share-btn {
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  color: var(--dim);
-  font-size: 0.65rem;
+  background: var(--bg);
   padding: 4px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  text-decoration: none;
+  border-radius: 20px;
+  color: var(--text-light);
 }
 
-.share-btn:hover {
-  border-color: var(--accent);
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.list-item {
+  font-size: 0.75rem;
+  color: var(--text-light);
+}
+
+.ioc {
+  font-size: 0.7rem;
+  font-family: monospace;
+  background: var(--bg);
+  padding: 6px 10px;
+  border-radius: 6px;
+  display: block;
+  margin-bottom: 0.5rem;
+  word-break: break-all;
+}
+
+/* Profile sidebar */
+.profile-sidebar {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.profile-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  font-size: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.profile-row:last-child {
+  border-bottom: none;
+}
+
+.profile-label {
+  color: var(--text-light);
+}
+
+.profile-value {
+  color: var(--text);
+  text-align: right;
+  max-width: 60%;
+}
+
+/* Layout */
+.two-column {
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+@media (max-width: 700px) {
+  .two-column {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+/* Main content */
+.content {
+  line-height: 1.6;
+  font-size: 0.85rem;
+  color: var(--text-light);
+  margin-top: 1rem;
+}
+
+.content h2 {
+  font-size: 1.1rem;
+  color: var(--text);
+  margin: 1rem 0 0.5rem 0;
+}
+
+.content p {
+  margin-bottom: 1rem;
+}
+
+/* Footer */
+.footer {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  text-align: center;
+  font-size: 0.7rem;
+  color: var(--text-light);
+}
+
+.footer a {
+  color: var(--text-light);
+  text-decoration: none;
+  margin: 0 0.3rem;
+}
+
+.footer a:hover {
   color: var(--accent);
 }
+
+.nav-links {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+}
+
+.nav-links a {
+  color: var(--text-light);
+  text-decoration: none;
+  font-size: 0.75rem;
+}
+
+.nav-links a:hover {
+  color: var(--accent);
+}
+
+.clearfix::after {
+  content: "";
+  clear: both;
+  display: table;
+}
 </style>
+</head>
+<body>
+
+<div class="nav">
+  <a href="/">~/home</a>
+  <a href="/about">~/about</a>
+  <a href="/osint">~/osint</a>
+  <a href="/writeups">~/writeups</a>
+  <a href="/blog">~/blog</a>
+  <a href="/services">~/services</a>
+  <a href="/tools">~/tools</a>
+  <a href="/alerts">~/alerts</a>
+</div>
+
+<div class="breadcrumb">
+  <a href="/">~/home</a> / <a href="/actors/">actors</a> / <span>{{ .File.BaseFileName }}</span>
+</div>
+
+<div class="header clearfix">
+  <a href="/admin/#/collections/actors/entries/{{ .File.BaseFileName }}" class="edit-btn">edit</a>
+  {{ with .Params.alias }}<div class="alias">{{ . }}</div>{{ end }}
+  <h1>{{ .Title }}</h1>
+  <div class="meta">
+    {{ with .Params.category }}<span class="badge badge-cat">{{ . }}</span>{{ end }}
+    {{ with .Params.threat_level }}<span class="badge badge-threat">{{ . | upper }}</span>{{ end }}
+    {{ with .Params.status }}<span class="badge badge-status">{{ . }}</span>{{ end }}
+    {{ with .Params.origin }}<span class="origin">📍 {{ . }}</span>{{ end }}
+  </div>
+</div>
+
+{{ with .Params.tldr }}
+<div class="tldr">
+  <strong>TL;DR</strong>
+  <p>{{ . }}</p>
+</div>
+{{ end }}
+
+<div class="two-column">
+  <!-- Main column -->
+  <div>
+    {{ with .Params.aliases }}
+    <div class="section">
+      <div class="section-title">aliases</div>
+      <div class="tag-list">
+        {{ range . }}<span class="tag">{{ . }}</span>{{ end }}
+      </div>
+    </div>
+    {{ end }}
+
+    {{ with .Params.ttps }}
+    <div class="section">
+      <div class="section-title">TTPs</div>
+      <div class="list">
+        {{ range . }}<div class="list-item">• {{ . }}</div>{{ end }}
+      </div>
+    </div>
+    {{ end }}
+
+    {{ with .Params.targets }}
+    <div class="section">
+      <div class="section-title">targets</div>
+      <div class="tag-list">
+        {{ range . }}<span class="tag">{{ . }}</span>{{ end }}
+      </div>
+    </div>
+    {{ end }}
+
+    {{ with .Params.tools_used }}
+    <div class="section">
+      <div class="section-title">tools / malware</div>
+      <div class="tag-list">
+        {{ range . }}<span class="tag">{{ . }}</span>{{ end }}
+      </div>
+    </div>
+    {{ end }}
+
+    {{ with .Params.iocs }}
+    <div class="section">
+      <div class="section-title">known IOCs</div>
+      {{ range . }}<code class="ioc">{{ . }}</code>{{ end }}
+    </div>
+    {{ end }}
+
+    <div class="content">
+      {{ .Content }}
+    </div>
+  </div>
+
+  <!-- Sidebar column -->
+  <div>
+    <div class="profile-sidebar">
+      <div class="section-title">profile</div>
+      {{ with .Params.first_seen }}
+      <div class="profile-row">
+        <span class="profile-label">first seen</span>
+        <span class="profile-value">{{ . }}</span>
+      </div>
+      {{ end }}
+      {{ with .Params.last_seen }}
+      <div class="profile-row">
+        <span class="profile-label">last seen</span>
+        <span class="profile-value">{{ . }}</span>
+      </div>
+      {{ end }}
+      {{ with .Params.motivation }}
+      <div class="profile-row">
+        <span class="profile-label">motivation</span>
+        <span class="profile-value">{{ . }}</span>
+      </div>
+      {{ end }}
+    </div>
+
+    {{ with .Params.tags }}
+    <div class="profile-sidebar">
+      <div class="section-title">tags</div>
+      <div class="tag-list">
+        {{ range . }}<span class="tag">#{{ . }}</span>{{ end }}
+      </div>
+    </div>
+    {{ end }}
+
+    <div class="profile-sidebar">
+      <div class="section-title">share</div>
+      <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+        <a href="https://twitter.com/intent/tweet?text={{ .Title }}&url={{ .Permalink }}" target="_blank" class="tag" style="text-decoration: none;">𝕏 tweet</a>
+        <button onclick="navigator.clipboard.writeText('{{ .Permalink }}')" class="tag" style="cursor: pointer;">copy link</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="nav-links">
+  {{ with .PrevInSection }}<a href="{{ .Permalink }}">← {{ .Title }}</a>{{ else }}<span></span>{{ end }}
+  {{ with .NextInSection }}<a href="{{ .Permalink }}">{{ .Title }} →</a>{{ end }}
+</div>
+
+<div class="footer">
+  <div>// Pritesh S Naik — Red Team · VAPT · OSINT · Web3</div>
+  <div style="margin-top: 0.5rem;">
+    <a href="#">github</a> · <a href="#">linkedin</a> · <a href="#">twitter/x</a> · <a href="#">rss</a>
+  </div>
+</div>
+
+</body>
+</html>
 {{ end }}
