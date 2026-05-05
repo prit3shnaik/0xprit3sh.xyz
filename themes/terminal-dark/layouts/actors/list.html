@@ -27,26 +27,24 @@
        data-category="{{ .Params.category | default "unknown" | lower }}"
        data-name="{{ .Title | lower }}">
 
-      <div class="actor-card-top">
-        <div class="actor-left">
-          <h2 class="actor-name">{{ .Title }}</h2>
-          <div class="actor-meta-row">
-            {{ with .Params.category }}
-            <span class="actor-cat cat-{{ . | lower | replaceRE "[^a-z]" "-" }}">{{ . }}</span>
-            {{ end }}
-            {{ with .Params.threat_level }}
-            <span class="actor-threat threat-{{ . | lower }}">{{ . | upper }}</span>
-            {{ end }}
-            {{ with .Params.status }}
-            <span class="actor-status status-{{ . | lower }}">{{ . }}</span>
-            {{ end }}
-          </div>
+      <div class="actor-card-top" style="flex-direction:column;gap:6px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
+          <h2 class="actor-name" style="margin-bottom:0">{{ .Title }}</h2>
+          {{ with .Params.origin }}
+          <span class="actor-origin-val" style="flex-shrink:0;white-space:nowrap">{{ . }}</span>
+          {{ end }}
         </div>
-        {{ with .Params.origin }}
-        <div class="actor-origin">
-          <span class="actor-origin-val">{{ . }}</span>
+        <div class="actor-meta-row">
+          {{ with .Params.category }}
+          <span class="actor-cat cat-{{ . | lower | replaceRE "[^a-z]" "-" }}">{{ . }}</span>
+          {{ end }}
+          {{ with .Params.threat_level }}
+          <span class="actor-threat threat-{{ . | lower }}">{{ . | upper }}</span>
+          {{ end }}
+          {{ with .Params.status }}
+          <span class="actor-status status-{{ . | lower }}">{{ . }}</span>
+          {{ end }}
         </div>
-        {{ end }}
       </div>
 
       {{ with .Params.tldr }}
