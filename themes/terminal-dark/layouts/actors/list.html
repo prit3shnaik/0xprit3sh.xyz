@@ -2,11 +2,10 @@
 <div class="page-header">
   <div style="display:flex;align-items:center;gap:8px;">
     <span class="page-title"><span class="dim">~/</span>actors</span>
-    <span class="alerts-live-dot"></span>
   </div>
   <div style="display:flex;gap:8px;align-items:center;">
     <span class="page-count">{{ len .Pages }} profiles</span>
-    <a href="/admin/#/collections/actors/new" class="edit-btn">+ new profile</a>
+    <a href="/admin/#/collections/actors/new" class="edit-btn">+ new</a>
   </div>
 </div>
 
@@ -17,7 +16,7 @@
   <button class="actor-filter" onclick="filterActors(this,'ransomware')">ransomware</button>
   <button class="actor-filter" onclick="filterActors(this,'darkweb')">darkweb</button>
   <button class="actor-filter" onclick="filterActors(this,'defi')">defi/web3</button>
-  <input class="actor-search" type="text" placeholder="search actors..." oninput="searchActors(this.value)">
+  <input class="actor-search" type="text" placeholder="search..." oninput="searchActors(this.value)">
 </div>
 
 <div class="actor-grid" id="actor-grid">
@@ -27,94 +26,330 @@
        data-category="{{ .Params.category | default "unknown" | lower }}"
        data-name="{{ .Title | lower }}">
 
-      <div class="actor-card-top">
-        <div class="actor-left">
-          {{ with .Params.alias }}
-          <div class="actor-alias">{{ . }}</div>
-          {{ end }}
-          <h2 class="actor-name">{{ .Title }}</h2>
-          <div class="actor-meta-row">
-            {{ with .Params.category }}
-            <span class="actor-cat cat-{{ . | lower | replaceRE "[^a-z]" "-" }}">{{ . }}</span>
-            {{ end }}
-            {{ with .Params.threat_level }}
-            <span class="actor-threat threat-{{ . | lower }}">{{ . | upper }}</span>
-            {{ end }}
-            {{ with .Params.status }}
-            <span class="actor-status status-{{ . | lower }}">{{ . }}</span>
-            {{ end }}
-          </div>
-        </div>
+      <div class="actor-card-header">
+        <h2 class="actor-name">{{ .Title }}</h2>
         {{ with .Params.origin }}
-        <div class="actor-origin">
-          <span class="actor-origin-label">origin</span>
-          <span class="actor-origin-val">{{ . }}</span>
-        </div>
+        <span class="actor-origin">{{ . }}</span>
+        {{ end }}
+      </div>
+
+      <div class="actor-badges">
+        {{ with .Params.category }}
+        <span class="badge badge-cat">{{ . }}</span>
+        {{ end }}
+        {{ with .Params.threat_level }}
+        <span class="badge badge-threat">{{ . | upper }}</span>
+        {{ end }}
+        {{ with .Params.alias }}
+        <span class="badge badge-alias">{{ . }}</span>
         {{ end }}
       </div>
 
       {{ with .Params.tldr }}
-      <p class="actor-tldr">{{ . }}</p>
+      <p class="actor-tldr">{{ . | truncate 100 }}</p>
       {{ end }}
 
-      <div class="actor-card-bottom">
+      <div class="actor-footer">
+        {{ with .Params.ttps }}
         <div class="actor-ttps">
-          {{ with .Params.ttps }}{{ range first 3 . }}
-          <span class="actor-ttp">{{ . }}</span>
-          {{ end }}{{ end }}
+          {{ range first 2 . }}<span>{{ . }}</span>{{ end }}
         </div>
+        {{ end }}
         {{ with .Params.last_seen }}
-        <span class="actor-last-seen">last seen: {{ . }}</span>
+        <span class="actor-last-seen">{{ . }}</span>
         {{ end }}
       </div>
 
     </a>
     {{ end }}
   {{ else }}
-  <div style="grid-column:1/-1;padding:3rem 0;color:var(--dim);font-size:.82rem;text-align:center">
-    <div style="font-size:2rem;opacity:.2;margin-bottom:8px">◈</div>
-    no actor profiles yet
-    <br><a href="/admin/#/collections/actors/new" style="color:var(--accent);font-size:.78rem;margin-top:6px;display:block">create first profile →</a>
+  <div class="empty-state">
+    <div>◈</div>
+    <p>no actor profiles yet</p>
+    <a href="/admin/#/collections/actors/new">create first profile →</a>
   </div>
   {{ end }}
 </div>
 
 <style>
-.actor-filter-bar{display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-bottom:1.25rem;padding-bottom:.75rem;border-bottom:1px solid var(--border)}
-.actor-filter{background:none;border:1px solid var(--border2);color:var(--dim);font-family:var(--font);font-size:.65rem;padding:3px 10px;border-radius:10px;cursor:pointer;transition:all .15s}
-.actor-filter:hover{border-color:var(--accent);color:var(--accent)}
-.actor-filter.on{border-color:var(--accent);color:var(--accent);background:rgba(0,255,65,.06)}
-.actor-search{margin-left:auto;background:var(--bg3);border:1px solid var(--border2);color:var(--text);font-family:var(--font);font-size:.72rem;padding:4px 10px;border-radius:var(--radius);outline:none;width:180px}
-.actor-search:focus{border-color:var(--accent)}
-.actor-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px}
-.actor-card{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:1.1rem 1.25rem;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:.6rem;transition:border-color .2s,box-shadow .2s}
-.actor-card:hover{border-color:var(--accent);box-shadow:0 0 12px rgba(0,255,65,.06);color:inherit}
-.actor-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
-.actor-alias{font-size:.68rem;color:var(--dim);margin-bottom:2px;font-family:var(--font)}
-.actor-name{font-size:.95rem;color:var(--text);font-weight:700;margin-bottom:4px}
-.actor-meta-row{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
-.actor-cat{font-size:.6rem;font-weight:700;padding:2px 6px;border-radius:2px;background:var(--bg3);border:1px solid var(--border2);color:var(--text2)}
-.cat-nation-state{background:rgba(255,68,68,.1);color:var(--red);border-color:rgba(255,68,68,.2)}
-.cat-cybercriminal{background:rgba(232,197,71,.1);color:var(--yellow);border-color:rgba(232,197,71,.2)}
-.cat-ransomware{background:rgba(240,136,62,.1);color:var(--orange);border-color:rgba(240,136,62,.2)}
-.cat-darkweb{background:rgba(188,140,255,.1);color:var(--purple);border-color:rgba(188,140,255,.2)}
-.cat-defi,.cat-web3{background:rgba(0,212,255,.1);color:var(--accent2);border-color:rgba(0,212,255,.2)}
-.actor-threat{font-size:.6rem;font-weight:700;padding:2px 6px;border-radius:2px}
-.threat-critical{background:rgba(255,68,68,.15);color:var(--red);border:1px solid rgba(255,68,68,.3)}
-.threat-high{background:rgba(232,197,71,.12);color:var(--yellow);border:1px solid rgba(232,197,71,.3)}
-.threat-medium{background:rgba(0,212,255,.1);color:var(--accent2);border:1px solid rgba(0,212,255,.25)}
-.actor-status{font-size:.6rem;padding:2px 6px;border-radius:2px;border:1px solid var(--border2);color:var(--dim)}
-.status-active{color:var(--red);border-color:rgba(255,68,68,.3);background:rgba(255,68,68,.08);animation:pulse-red 2s infinite}
-.status-inactive{color:var(--dim)}
-.status-monitoring{color:var(--yellow);border-color:rgba(232,197,71,.3)}
-.actor-origin{text-align:right;flex-shrink:0}
-.actor-origin-label{display:block;font-size:.6rem;color:var(--dim);margin-bottom:1px}
-.actor-origin-val{font-size:.78rem;color:var(--text2)}
-.actor-tldr{font-size:.78rem;color:var(--text2);line-height:1.6}
-.actor-card-bottom{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;padding-top:.5rem;border-top:1px solid var(--border)}
-.actor-ttps{display:flex;gap:4px;flex-wrap:wrap}
-.actor-ttp{font-size:.6rem;background:var(--bg3);border:1px solid var(--border2);color:var(--dim);padding:1px 5px;border-radius:2px}
-.actor-last-seen{font-size:.65rem;color:var(--dim)}
+/* Base styles (assuming vars exist) */
+:root {
+  --bg: #0a0a0a;
+  --bg2: #111;
+  --bg3: #1a1a1a;
+  --text: #eaeaea;
+  --text2: #aaa;
+  --dim: #666;
+  --border: #222;
+  --accent: #0f0;
+  --accent2: #0cf;
+  --red: #f44;
+  --yellow: #eca;
+  --orange: #f86;
+}
+
+/* Layout */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.page-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.dim {
+  color: var(--dim);
+}
+
+.page-count {
+  font-size: 0.7rem;
+  color: var(--dim);
+}
+
+.edit-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--dim);
+  font-size: 0.65rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: all 0.15s;
+}
+
+.edit-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Filter bar */
+.actor-filter-bar {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.actor-filter {
+  background: none;
+  border: none;
+  color: var(--dim);
+  font-size: 0.7rem;
+  padding: 4px 10px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+
+.actor-filter:hover {
+  color: var(--accent);
+  background: rgba(0, 255, 65, 0.05);
+}
+
+.actor-filter.on {
+  color: var(--accent);
+  background: rgba(0, 255, 65, 0.1);
+}
+
+.actor-search {
+  margin-left: auto;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 0.7rem;
+  padding: 5px 10px;
+  border-radius: 6px;
+  outline: none;
+  width: 180px;
+  font-family: inherit;
+}
+
+.actor-search:focus {
+  border-color: var(--accent);
+}
+
+/* Grid */
+.actor-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
+}
+
+/* Card */
+.actor-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  transition: all 0.15s ease;
+}
+
+.actor-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+/* Card header */
+.actor-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.actor-name {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+.actor-origin {
+  font-size: 0.65rem;
+  color: var(--dim);
+  flex-shrink: 0;
+}
+
+/* Badges */
+.actor-badges {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  font-size: 0.6rem;
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: var(--bg3);
+  color: var(--dim);
+  border: none;
+}
+
+.badge-cat {
+  background: rgba(0, 255, 65, 0.08);
+  color: var(--accent);
+}
+
+.badge-threat {
+  background: rgba(255, 68, 68, 0.1);
+  color: var(--red);
+}
+
+.badge-alias {
+  background: var(--bg3);
+  color: var(--dim);
+  font-family: monospace;
+}
+
+/* TL;DR */
+.actor-tldr {
+  font-size: 0.75rem;
+  color: var(--text2);
+  line-height: 1.4;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Footer */
+.actor-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.25rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.actor-ttps {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.actor-ttps span {
+  font-size: 0.6rem;
+  font-family: monospace;
+  color: var(--dim);
+  background: var(--bg3);
+  padding: 1px 5px;
+  border-radius: 2px;
+}
+
+.actor-last-seen {
+  font-size: 0.6rem;
+  color: var(--dim);
+  flex-shrink: 0;
+}
+
+/* Empty state */
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 3rem 0;
+  color: var(--dim);
+}
+
+.empty-state div {
+  font-size: 2rem;
+  opacity: 0.2;
+  margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+  font-size: 0.8rem;
+  margin: 0 0 0.5rem 0;
+}
+
+.empty-state a {
+  color: var(--accent);
+  font-size: 0.7rem;
+  text-decoration: none;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .actor-filter-bar {
+    gap: 4px;
+  }
+  
+  .actor-filter {
+    padding: 3px 8px;
+    font-size: 0.65rem;
+  }
+  
+  .actor-search {
+    width: 140px;
+    margin-left: 0;
+  }
+  
+  .actor-grid {
+    gap: 8px;
+  }
+  
+  .actor-card {
+    padding: 0.75rem;
+  }
+}
 </style>
 
 <script>
@@ -125,6 +360,7 @@ function filterActors(btn, cat) {
     card.style.display = cat === 'all' || card.dataset.category === cat ? '' : 'none';
   });
 }
+
 function searchActors(q) {
   q = q.toLowerCase();
   document.querySelectorAll('.actor-card').forEach(card => {
