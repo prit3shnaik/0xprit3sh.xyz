@@ -3,98 +3,503 @@
   <div class="post-main">
 
     <div class="post-eyebrow">
-      <a href="/">~/home</a><span class="sep">/</span>
-      <a href="/actors/">actors</a><span class="sep">/</span>
+      <a href="/">~/home</a>
+      <span class="sep">/</span>
+      <a href="/actors/">actors</a>
+      <span class="sep">/</span>
       <span>{{ .File.BaseFileName }}</span>
     </div>
 
-    <div class="actor-single-header">
-      <div>
-        {{ with .Params.alias }}<div style="font-size:.72rem;color:var(--dim);margin-bottom:4px">{{ . }}</div>{{ end }}
-        <h1 class="post-title" style="margin-bottom:.5rem">{{ .Title }}</h1>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
-          {{ with .Params.category }}<span class="actor-cat cat-{{ . | lower | replaceRE "[^a-z]" "-" }}">{{ . }}</span>{{ end }}
-          {{ with .Params.threat_level }}<span class="actor-threat threat-{{ . | lower }}">{{ . | upper }}</span>{{ end }}
-          {{ with .Params.status }}<span class="actor-status status-{{ . | lower }}">{{ . }}</span>{{ end }}
-          {{ with .Params.origin }}<span style="font-size:.7rem;color:var(--dim);margin-left:4px">📍 {{ . }}</span>{{ end }}
+    <div class="actor-header">
+      <div class="actor-header-main">
+        {{ with .Params.alias }}
+        <div class="actor-alias">{{ . }}</div>
+        {{ end }}
+        <h1 class="post-title">{{ .Title }}</h1>
+        <div class="actor-header-meta">
+          {{ with .Params.category }}
+          <span class="badge badge-cat">{{ . }}</span>
+          {{ end }}
+          {{ with .Params.threat_level }}
+          <span class="badge badge-threat">{{ . | upper }}</span>
+          {{ end }}
+          {{ with .Params.status }}
+          <span class="badge badge-status">{{ . }}</span>
+          {{ end }}
+          {{ with .Params.origin }}
+          <span class="actor-header-origin">📍 {{ . }}</span>
+          {{ end }}
         </div>
       </div>
-      <a href="/admin/#/collections/actors/entries/{{ .File.BaseFileName }}" class="edit-btn" style="font-size:.68rem;align-self:flex-start">edit</a>
+      <a href="/admin/#/collections/actors/entries/{{ .File.BaseFileName }}" class="edit-btn">edit</a>
     </div>
 
     {{ with .Params.tldr }}
-    <div class="tldr-box"><strong>// TL;DR</strong><p>{{ . }}</p></div>
-    {{ end }}
-
-    {{ if or .Params.ttps .Params.targets .Params.tools_used .Params.aliases }}
-    <div class="actor-ref-grid">
-      {{ with .Params.aliases }}
-      <div class="actor-ref-box">
-        <div class="actor-ref-title">// aliases</div>
-        <div class="actor-ref-tags">{{ range . }}<span class="tag">{{ . }}</span>{{ end }}</div>
-      </div>{{ end }}
-      {{ with .Params.ttps }}
-      <div class="actor-ref-box">
-        <div class="actor-ref-title">// TTPs</div>
-        <div class="actor-ref-tags">{{ range . }}<span class="tag">{{ . }}</span>{{ end }}</div>
-      </div>{{ end }}
-      {{ with .Params.targets }}
-      <div class="actor-ref-box">
-        <div class="actor-ref-title">// targets</div>
-        <div class="actor-ref-tags">{{ range . }}<span class="tag">{{ . }}</span>{{ end }}</div>
-      </div>{{ end }}
-      {{ with .Params.tools_used }}
-      <div class="actor-ref-box">
-        <div class="actor-ref-title">// tools / malware</div>
-        <div class="actor-ref-tags">{{ range . }}<span class="tag" style="color:var(--orange)">{{ . }}</span>{{ end }}</div>
-      </div>{{ end }}
-      {{ with .Params.iocs }}
-      <div class="actor-ref-box" style="grid-column:1/-1">
-        <div class="actor-ref-title">// known IOCs</div>
-        {{ range . }}<code style="display:block;font-size:.75rem;color:var(--orange);margin-bottom:3px;background:var(--bg3);padding:2px 8px;border-radius:3px">{{ . }}</code>{{ end }}
-      </div>{{ end }}
+    <div class="tldr-block">
+      <span class="tldr-label">TL;DR</span>
+      <p>{{ . }}</p>
     </div>
     {{ end }}
 
-    <div class="post-content">{{ .Content }}</div>
+    <!-- Details grid -->
+    <div class="details-grid">
+      {{ with .Params.aliases }}
+      <div class="details-card">
+        <div class="details-title">aliases</div>
+        <div class="details-tags">
+          {{ range . }}<span class="tag">{{ . }}</span>{{ end }}
+        </div>
+      </div>
+      {{ end }}
 
+      {{ with .Params.ttps }}
+      <div class="details-card">
+        <div class="details-title">TTPs</div>
+        <div class="details-tags">
+          {{ range . }}<span class="tag">{{ . }}</span>{{ end }}
+        </div>
+      </div>
+      {{ end }}
+
+      {{ with .Params.targets }}
+      <div class="details-card">
+        <div class="details-title">targets</div>
+        <div class="details-tags">
+          {{ range . }}<span class="tag">{{ . }}</span>{{ end }}
+        </div>
+      </div>
+      {{ end }}
+
+      {{ with .Params.tools_used }}
+      <div class="details-card">
+        <div class="details-title">tools / malware</div>
+        <div class="details-tags">
+          {{ range . }}<span class="tag tag-tool">{{ . }}</span>{{ end }}
+        </div>
+      </div>
+      {{ end }}
+
+      {{ with .Params.iocs }}
+      <div class="details-card details-card-full">
+        <div class="details-title">known IOCs</div>
+        <div class="details-iocs">
+          {{ range . }}<code>{{ . }}</code>{{ end }}
+        </div>
+      </div>
+      {{ end }}
+    </div>
+
+    <!-- Main content -->
+    <div class="post-content">
+      {{ .Content }}
+    </div>
+
+    <!-- Navigation -->
     <nav class="post-nav">
-      {{ with .PrevInSection }}<a href="{{ .Permalink }}">← {{ .Title }}</a>{{ else }}<span></span>{{ end }}
-      {{ with .NextInSection }}<a href="{{ .Permalink }}">{{ .Title }} →</a>{{ end }}
+      {{ with .PrevInSection }}
+      <a href="{{ .Permalink }}">← {{ .Title }}</a>
+      {{ else }}
+      <span></span>
+      {{ end }}
+      {{ with .NextInSection }}
+      <a href="{{ .Permalink }}">{{ .Title }} →</a>
+      {{ end }}
     </nav>
   </div>
 
+  <!-- Sidebar -->
   <div class="post-sidebar">
-    <div class="sidebar-box">
-      <div class="sidebar-box-title">// actor profile</div>
-      {{ with .Params.origin }}<div class="contact-item"><span class="k">origin</span><span>{{ . }}</span></div>{{ end }}
-      {{ with .Params.threat_level }}<div class="contact-item"><span class="k">threat</span><span class="actor-threat threat-{{ . | lower }}">{{ . | upper }}</span></div>{{ end }}
-      {{ with .Params.status }}<div class="contact-item"><span class="k">status</span><span class="actor-status status-{{ . | lower }}">{{ . }}</span></div>{{ end }}
-      {{ with .Params.first_seen }}<div class="contact-item"><span class="k">first seen</span><span>{{ . }}</span></div>{{ end }}
-      {{ with .Params.last_seen }}<div class="contact-item"><span class="k">last seen</span><span>{{ . }}</span></div>{{ end }}
-      {{ with .Params.motivation }}<div class="contact-item"><span class="k">motivation</span><span>{{ . }}</span></div>{{ end }}
+    <div class="sidebar-card">
+      <div class="sidebar-title">profile</div>
+      {{ with .Params.origin }}
+      <div class="sidebar-row">
+        <span class="sidebar-key">origin</span>
+        <span class="sidebar-val">{{ . }}</span>
+      </div>
+      {{ end }}
+      {{ with .Params.threat_level }}
+      <div class="sidebar-row">
+        <span class="sidebar-key">threat</span>
+        <span class="sidebar-val threat-val">{{ . | upper }}</span>
+      </div>
+      {{ end }}
+      {{ with .Params.status }}
+      <div class="sidebar-row">
+        <span class="sidebar-key">status</span>
+        <span class="sidebar-val">{{ . }}</span>
+      </div>
+      {{ end }}
+      {{ with .Params.first_seen }}
+      <div class="sidebar-row">
+        <span class="sidebar-key">first seen</span>
+        <span class="sidebar-val">{{ . }}</span>
+      </div>
+      {{ end }}
+      {{ with .Params.last_seen }}
+      <div class="sidebar-row">
+        <span class="sidebar-key">last seen</span>
+        <span class="sidebar-val">{{ . }}</span>
+      </div>
+      {{ end }}
+      {{ with .Params.motivation }}
+      <div class="sidebar-row">
+        <span class="sidebar-key">motivation</span>
+        <span class="sidebar-val">{{ . }}</span>
+      </div>
+      {{ end }}
     </div>
+
     {{ with .Params.tags }}
-    <div class="sidebar-box">
-      <div class="sidebar-box-title">// tags</div>
-      <div>{{ range . }}<span class="tag" style="margin:2px;display:inline-block">{{ . }}</span>{{ end }}</div>
-    </div>{{ end }}
-    <div class="sidebar-box">
-      <div class="sidebar-box-title">// share</div>
+    <div class="sidebar-card">
+      <div class="sidebar-title">tags</div>
+      <div class="sidebar-tags">
+        {{ range . }}<span class="tag">{{ . }}</span>{{ end }}
+      </div>
+    </div>
+    {{ end }}
+
+    <div class="sidebar-card">
+      <div class="sidebar-title">share</div>
       <div class="share-row">
-        <a class="share-btn" href="https://twitter.com/intent/tweet?text={{ .Title | urlize }}&url={{ .Permalink }}" target="_blank"><span class="share-icon">𝕏</span> share</a>
-        <button class="share-btn" onclick="navigator.clipboard.writeText('{{ .Permalink }}')"><span class="share-icon">#</span> copy link</button>
+        <a class="share-btn" href="https://twitter.com/intent/tweet?text={{ .Title | urlize }}&url={{ .Permalink }}" target="_blank">𝕏 tweet</a>
+        <button class="share-btn" onclick="navigator.clipboard.writeText('{{ .Permalink }}')"># copy link</button>
       </div>
     </div>
   </div>
 </div>
 
 <style>
-.actor-single-header{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;margin-bottom:1rem;flex-wrap:wrap}
-.actor-ref-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:1rem 0 1.5rem}
-.actor-ref-box{background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:.75rem 1rem}
-.actor-ref-title{font-size:.68rem;color:var(--accent);margin-bottom:.5rem}
-.actor-ref-tags{display:flex;gap:4px;flex-wrap:wrap}
-@media(max-width:600px){.actor-ref-grid{grid-template-columns:1fr}}
+/* Layout */
+.post-layout {
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  gap: 2rem;
+}
+
+@media (max-width: 768px) {
+  .post-layout {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+.post-main {
+  min-width: 0;
+}
+
+.post-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Eyebrow */
+.post-eyebrow {
+  font-size: 0.7rem;
+  color: var(--dim);
+  margin-bottom: 1.5rem;
+}
+
+.post-eyebrow a {
+  color: var(--dim);
+  text-decoration: none;
+}
+
+.post-eyebrow a:hover {
+  color: var(--accent);
+}
+
+.sep {
+  margin: 0 4px;
+  color: var(--border);
+}
+
+/* Header */
+.actor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.actor-header-main {
+  flex: 1;
+}
+
+.actor-alias {
+  font-size: 0.7rem;
+  color: var(--dim);
+  margin-bottom: 0.25rem;
+  font-family: monospace;
+}
+
+.post-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+
+.actor-header-meta {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.actor-header-origin {
+  font-size: 0.7rem;
+  color: var(--dim);
+  margin-left: 4px;
+}
+
+/* Badges */
+.badge {
+  font-size: 0.6rem;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 3px;
+}
+
+.badge-cat {
+  background: rgba(0, 255, 65, 0.08);
+  color: var(--accent);
+}
+
+.badge-threat {
+  background: rgba(255, 68, 68, 0.1);
+  color: var(--red);
+}
+
+.badge-status {
+  background: var(--bg3);
+  color: var(--dim);
+}
+
+/* TL;DR block */
+.tldr-block {
+  background: var(--bg2);
+  border-left: 3px solid var(--accent);
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.tldr-label {
+  font-size: 0.65rem;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tldr-block p {
+  font-size: 0.85rem;
+  color: var(--text2);
+  margin: 0.25rem 0 0 0;
+  line-height: 1.5;
+}
+
+/* Details grid */
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 640px) {
+  .details-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.details-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+}
+
+.details-card-full {
+  grid-column: 1 / -1;
+}
+
+.details-title {
+  font-size: 0.65rem;
+  color: var(--accent);
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.details-tags {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.details-iocs {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.details-iocs code {
+  font-size: 0.7rem;
+  color: var(--orange);
+  background: var(--bg3);
+  padding: 3px 8px;
+  border-radius: 3px;
+  font-family: monospace;
+  word-break: break-all;
+}
+
+/* Tags */
+.tag {
+  font-size: 0.65rem;
+  background: var(--bg3);
+  color: var(--dim);
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+}
+
+.tag-tool {
+  color: var(--orange);
+  border-color: rgba(255, 136, 68, 0.3);
+}
+
+/* Content */
+.post-content {
+  color: var(--text2);
+  line-height: 1.6;
+  font-size: 0.9rem;
+}
+
+.post-content h2 {
+  font-size: 1.2rem;
+  color: var(--text);
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.post-content h3 {
+  font-size: 1rem;
+  color: var(--text);
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.post-content p {
+  margin-bottom: 1rem;
+}
+
+.post-content code {
+  font-size: 0.8rem;
+  background: var(--bg3);
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: monospace;
+}
+
+.post-content pre {
+  background: var(--bg3);
+  padding: 1rem;
+  border-radius: 6px;
+  overflow-x: auto;
+}
+
+/* Navigation */
+.post-nav {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.post-nav a {
+  color: var(--dim);
+  text-decoration: none;
+  font-size: 0.8rem;
+}
+
+.post-nav a:hover {
+  color: var(--accent);
+}
+
+/* Sidebar */
+.sidebar-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.9rem;
+}
+
+.sidebar-title {
+  font-size: 0.65rem;
+  color: var(--accent);
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sidebar-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.75rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar-row:last-child {
+  border-bottom: none;
+}
+
+.sidebar-key {
+  color: var(--dim);
+}
+
+.sidebar-val {
+  color: var(--text2);
+  font-weight: 500;
+}
+
+.threat-val {
+  color: var(--red);
+}
+
+.sidebar-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+/* Share */
+.share-row {
+  display: flex;
+  gap: 6px;
+}
+
+.share-btn {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--dim);
+  font-size: 0.65rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.15s;
+}
+
+.share-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
 </style>
 {{ end }}
