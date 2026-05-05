@@ -1,6 +1,6 @@
 {{ define "main" }}
 
-{{/* ── Build actor data from Hugo ── */}}
+{{/* ── Build actor data from Hugo (YOUR EXISTING SETUP) ── */}}
 {{ $actors := where .Site.RegularPages "Section" "eq" "actors" }}
 
 <div class="page-header">
@@ -15,8 +15,7 @@
 </div>
 
 <div class="tm-wrap">
-
-  {{/* ── MAP CONTAINER ── */}}
+  {{/* ── MAP CONTAINER with advanced features ── */}}
   <div class="tm-map-shell">
     <div id="tm-map"></div>
     <div class="tm-scanline"></div>
@@ -25,26 +24,37 @@
     <div class="tm-corner tm-bl"></div>
     <div class="tm-corner tm-br"></div>
     <div class="tm-hud-top">
-      <span class="tm-hud-label">// GLOBAL THREAT INTELLIGENCE MAP</span>
-      <span class="tm-hud-status"><span class="alerts-live-dot"></span> LIVE</span>
+      <span class="tm-hud-label">// GLOBAL THREAT ACTOR MAP</span>
+      <span class="tm-hud-status"><span class="alerts-live-dot"></span> LIVE · ZOOM TO COUNTRY</span>
     </div>
     <div class="tm-hud-bot">
-      <span class="tm-hud-label">SCROLL TO ZOOM · DRAG TO PAN · CLICK ACTOR TO PROFILE</span>
+      <span class="tm-hud-label">🔍 CLICK COUNTRY → ACTORS · 🖱️ CLICK MARKER → PROFILE · 🔎 SCROLL TO ZOOM</span>
     </div>
   </div>
 
-  {{/* ── ACTOR SIDEBAR LIST ── */}}
+  {{/* ── ADVANCED SIDEBAR with search & filter ── */}}
   <div class="tm-sidebar">
     <div class="tm-sidebar-title">// tracked actors</div>
-    {{ range $actors }}
-    <a href="{{ .Permalink }}" class="tm-actor-row" data-slug="{{ .File.BaseFileName }}">
-      <span class="tm-actor-dot threat-dot-{{ .Params.threat_level | default "medium" | lower }}"></span>
-      <span class="tm-actor-name">{{ .Title }}</span>
-      <span class="tm-actor-origin">{{ .Params.origin | default "unknown" }}</span>
-    </a>
-    {{ end }}
+    <div class="tm-search-wrap">
+      <input type="text" id="tmSearchInput" class="tm-search-input" placeholder="🔍 filter by name, origin, or category...">
+      <div class="tm-threat-filters">
+        <button class="tm-filter-btn active" data-threat="all">all</button>
+        <button class="tm-filter-btn" data-threat="critical">critical</button>
+        <button class="tm-filter-btn" data-threat="high">high</button>
+        <button class="tm-filter-btn" data-threat="medium">medium</button>
+        <button class="tm-filter-btn" data-threat="low">low</button>
+      </div>
+    </div>
+    <div id="tmActorList" class="tm-actor-list">
+      {{ range $actors }}
+      <a href="{{ .Permalink }}" class="tm-actor-row" data-slug="{{ .File.BaseFileName }}" data-threat="{{ .Params.threat_level | default "medium" | lower }}" data-name="{{ .Title | lower }}" data-origin="{{ .Params.origin | default "" | lower }}" data-category="{{ .Params.category | default "" | lower }}">
+        <span class="tm-actor-dot threat-dot-{{ .Params.threat_level | default "medium" | lower }}"></span>
+        <span class="tm-actor-name">{{ .Title }}</span>
+        <span class="tm-actor-origin">{{ .Params.origin | default "unknown" }}</span>
+      </a>
+      {{ end }}
+    </div>
   </div>
-
 </div>
 
 {{/* ── TOOLTIP ── */}}
@@ -55,7 +65,14 @@
   <div class="tm-tt-link">click to view profile →</div>
 </div>
 
-{{/* ── ACTOR DATA FOR JS ── */}}
+{{/* ── COUNTRY POPUP (shown when user clicks a country on map) ── */}}
+<div id="tm-country-popup" class="tm-country-popup" style="display:none">
+  <div class="tm-cp-header"><span id="cpCountryName"></span> <span id="cpActorCount"></span></div>
+  <div id="cpActorList" class="tm-cp-list"></div>
+  <div class="tm-cp-hint">click any actor to view profile</div>
+</div>
+
+{{/* ── ACTOR DATA FOR JS (YOUR EXISTING DATA) ── */}}
 <script>
 window.ACTOR_DATA = [
   {{ range $actors }}
@@ -74,12 +91,12 @@ window.ACTOR_DATA = [
 </script>
 
 <style>
-/* ── WRAP ── */
-.tm-wrap{display:grid;grid-template-columns:1fr 260px;gap:12px;margin-bottom:2rem}
-@media(max-width:768px){.tm-wrap{grid-template-columns:1fr};.tm-sidebar{display:none}}
+/* ── MAIN LAYOUT ── */
+.tm-wrap{display:grid;grid-template-columns:1fr 300px;gap:12px;margin-bottom:2rem}
+@media(max-width:768px){.tm-wrap{grid-template-columns:1fr}.tm-sidebar{display:block;max-height:400px;overflow:auto}}
 
 /* ── MAP SHELL ── */
-.tm-map-shell{position:relative;background:var(--bg2);border:1px solid var(--border);border-radius:6px;overflow:hidden;height:520px}
+.tm-map-shell{position:relative;background:var(--bg2);border:1px solid var(--border);border-radius:6px;overflow:hidden;height:560px}
 #tm-map{width:100%;height:100%}
 .tm-scanline{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.03) 2px,rgba(0,0,0,.03) 4px);pointer-events:none;z-index:10}
 .tm-corner{position:absolute;width:12px;height:12px;z-index:11;pointer-events:none}
@@ -92,12 +109,19 @@ window.ACTOR_DATA = [
 .tm-hud-label{font-size:.58rem;color:var(--dim);font-family:var(--font);letter-spacing:.08em}
 .tm-hud-status{font-size:.58rem;color:var(--accent);font-family:var(--font);display:flex;align-items:center;gap:5px}
 
-/* ── SIDEBAR ── */
-.tm-sidebar{background:var(--bg2);border:1px solid var(--border);border-radius:6px;overflow-y:auto;max-height:520px}
-.tm-sidebar-title{font-size:.65rem;color:var(--accent);padding:.75rem 1rem .5rem;border-bottom:1px solid var(--border);font-family:var(--font);letter-spacing:.04em;position:sticky;top:0;background:var(--bg2);z-index:1}
-.tm-actor-row{display:flex;align-items:center;gap:8px;padding:.5rem 1rem;text-decoration:none;color:inherit;border-bottom:1px solid var(--border);transition:background .15s}
-.tm-actor-row:hover{background:var(--bg3);color:inherit}
-.tm-actor-row.tm-active{background:rgba(0,255,65,.06);border-left:2px solid var(--accent)}
+/* ── SIDEBAR WITH SEARCH ── */
+.tm-sidebar{background:var(--bg2);border:1px solid var(--border);border-radius:6px;display:flex;flex-direction:column;overflow:hidden}
+.tm-sidebar-title{font-size:.65rem;color:var(--accent);padding:.75rem 1rem .5rem;border-bottom:1px solid var(--border);font-family:var(--font);letter-spacing:.04em;background:var(--bg2)}
+.tm-search-wrap{padding:10px 12px;border-bottom:1px solid var(--border)}
+.tm-search-input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:6px 12px;color:var(--text);font-size:.7rem;font-family:var(--font);outline:none}
+.tm-search-input:focus{border-color:var(--accent)}
+.tm-threat-filters{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.tm-filter-btn{background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:3px 10px;font-size:.6rem;color:var(--dim);cursor:pointer;transition:.1s;font-family:var(--font)}
+.tm-filter-btn.active{background:var(--accent);color:#000;border-color:var(--accent)}
+.tm-actor-list{flex:1;overflow-y:auto;max-height:420px}
+.tm-actor-row{display:flex;align-items:center;gap:8px;padding:.5rem 1rem;text-decoration:none;color:inherit;border-bottom:1px solid var(--border);transition:background .15s;cursor:pointer}
+.tm-actor-row:hover{background:var(--bg3)}
+.tm-actor-row.tm-active{background:rgba(0,255,65,.1);border-left:2px solid var(--accent)}
 .tm-actor-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 .threat-dot-critical{background:var(--red);box-shadow:0 0 6px var(--red)}
 .threat-dot-high{background:var(--orange);box-shadow:0 0 6px var(--orange)}
@@ -112,53 +136,44 @@ window.ACTOR_DATA = [
 .tm-tt-meta{font-size:.65rem;color:var(--dim);margin-bottom:6px}
 .tm-tt-tldr{font-size:.72rem;color:var(--text2);line-height:1.5;margin-bottom:6px;border-top:1px solid var(--border);padding-top:6px}
 .tm-tt-link{font-size:.62rem;color:var(--accent);letter-spacing:.04em}
+
+/* ── COUNTRY POPUP (zoom-to-country feature) ── */
+.tm-country-popup{position:fixed;z-index:9998;background:var(--bg2);border:1px solid var(--accent);border-radius:8px;min-width:240px;max-width:320px;max-height:320px;overflow-y:auto;box-shadow:0 0 30px rgba(0,0,0,.8);padding:.75rem}
+.tm-cp-header{font-size:.8rem;font-weight:700;color:var(--accent);border-bottom:1px solid var(--border);padding-bottom:6px;margin-bottom:8px;display:flex;justify-content:space-between}
+.tm-cp-list{display:flex;flex-direction:column;gap:6px}
+.tm-cp-item{font-size:.7rem;padding:5px 8px;background:var(--bg3);border-radius:4px;cursor:pointer;transition:.1s;display:flex;justify-content:space-between}
+.tm-cp-item:hover{background:var(--border);color:var(--accent)}
+.tm-cp-hint{font-size:.55rem;color:var(--dim);margin-top:8px;text-align:center}
+
+/* ── MARKER ANIMATION ── */
+@keyframes tm-pulse {
+  0%   { transform: scale(1);   opacity: .6; }
+  50%  { transform: scale(1.7); opacity: 0;  }
+  100% { transform: scale(1);   opacity: .6; }
+}
+.leaflet-container{background:#0d1117!important;font-family:var(--font)!important}
+.leaflet-control-zoom a{background:var(--bg2)!important;color:var(--text)!important;border-color:var(--border)!important}
+.leaflet-control-zoom a:hover{background:var(--bg3)!important;color:var(--accent)!important}
+.alerts-live-dot{display:inline-block;width:8px;height:8px;background:var(--accent);border-radius:50%;animation:pulse-dot 1.5s infinite}
+@keyframes pulse-dot{0%{opacity:1}50%{opacity:.4}100%{opacity:1}}
 </style>
 
-{{/* ── LEAFLET ── */}}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 
 <script>
-// ── Country → lat/lng lookup ──────────────────────────────────
+// ── Country → lat/lng lookup (supports many countries from your actor origins) ──
 const COUNTRY_COORDS = {
-  // Asia
-  "china":              [35.86,  104.19],
-  "north korea":        [40.33,  127.51],
-  "dprk":               [40.33,  127.51],
-  "russia":             [61.52,  105.31],
-  "iran":               [32.42,   53.68],
-  "pakistan":           [30.37,   69.34],
-  "india":              [20.59,   78.96],
-  "vietnam":            [14.05,  108.27],
-  "indonesia":          [-0.78,  113.92],
-  "turkey":             [38.96,   35.24],
-  "israel":             [31.04,   34.85],
-  // Europe
-  "ukraine":            [48.37,   31.16],
-  "romania":            [45.94,   24.96],
-  "bulgaria":           [42.73,   25.48],
-  "germany":            [51.16,   10.45],
-  "netherlands":        [52.13,    5.29],
-  "uk":                 [55.37,   -3.43],
-  "united kingdom":     [55.37,   -3.43],
-  "france":             [46.22,    2.21],
-  "eastern europe":     [50.0,    30.0],
-  // Americas
-  "united states":      [37.09,  -95.71],
-  "usa":                [37.09,  -95.71],
-  "brazil":             [-14.23, -51.92],
-  "mexico":             [23.63,  -102.5],
-  "latin america":      [-8.78,  -55.49],
-  // Africa / ME
-  "nigeria":            [9.08,    8.67],
-  "morocco":            [31.79,   -7.09],
-  "saudi arabia":       [23.88,   45.07],
-  "egypt":              [26.82,   30.80],
-  // Oceania
-  "australia":          [-25.27,  133.77],
-  // Unknown / global
-  "unknown":            [20.0,    0.0],
-  "global":             [20.0,    0.0],
+  "china": [35.86, 104.19], "north korea": [40.33, 127.51], "dprk": [40.33, 127.51],
+  "russia": [61.52, 105.31], "iran": [32.42, 53.68], "pakistan": [30.37, 69.34],
+  "india": [20.59, 78.96], "vietnam": [14.05, 108.27], "indonesia": [-0.78, 113.92],
+  "turkey": [38.96, 35.24], "israel": [31.04, 34.85], "ukraine": [48.37, 31.16],
+  "romania": [45.94, 24.96], "bulgaria": [42.73, 25.48], "germany": [51.16, 10.45],
+  "netherlands": [52.13, 5.29], "uk": [55.37, -3.43], "united kingdom": [55.37, -3.43],
+  "france": [46.22, 2.21], "united states": [37.09, -95.71], "usa": [37.09, -95.71],
+  "brazil": [-14.23, -51.92], "mexico": [23.63, -102.5], "nigeria": [9.08, 8.67],
+  "saudi arabia": [23.88, 45.07], "egypt": [26.82, 30.80], "australia": [-25.27, 133.77],
+  "unknown": [20.0, 0.0], "global": [20.0, 0.0]
 };
 
 function resolveCoords(origin) {
@@ -170,117 +185,155 @@ function resolveCoords(origin) {
   return COUNTRY_COORDS["unknown"];
 }
 
-// ── Threat level → color ─────────────────────────────────────
 const THREAT_COLORS = {
-  critical: { fill: '#ff4444', glow: 'rgba(255,68,68,.5)',   r: 11 },
-  high:     { fill: '#f0883e', glow: 'rgba(240,136,62,.45)', r: 9  },
-  medium:   { fill: '#e8c547', glow: 'rgba(232,197,71,.4)',  r: 7  },
-  low:      { fill: '#00ff41', glow: 'rgba(0,255,65,.35)',   r: 6  },
+  critical: { fill: '#ff4444', glow: 'rgba(255,68,68,.5)', r: 11 },
+  high:     { fill: '#f0883e', glow: 'rgba(240,136,62,.45)', r: 9 },
+  medium:   { fill: '#e8c547', glow: 'rgba(232,197,71,.4)', r: 7 },
+  low:      { fill: '#00ff41', glow: 'rgba(0,255,65,.35)', r: 6 },
 };
 
-// ── Init map ─────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function () {
-
-  const map = L.map('tm-map', {
-    center: [25, 15],
-    zoom: 2,
-    minZoom: 2,
-    maxZoom: 6,
-    zoomControl: false,
-    attributionControl: false,
-  });
-
-  // Dark monochrome tile layer
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
-    subdomains: 'abcd',
-    maxZoom: 6,
-  }).addTo(map);
-
-  // Custom zoom control position
+  const map = L.map('tm-map', { center: [25, 15], zoom: 2, minZoom: 2, maxZoom: 6, zoomControl: false });
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 6 }).addTo(map);
   L.control.zoom({ position: 'bottomright' }).addTo(map);
 
   const tooltip = document.getElementById('tm-tooltip');
+  const countryPopup = document.getElementById('tm-country-popup');
 
-  // ── Plot each actor ────────────────────────────────────────
+  // ── Group actors by country for country-click feature ──
+  function getActorsByCountry() {
+    const byCountry = new Map();
+    window.ACTOR_DATA.forEach(actor => {
+      let origin = actor.origin || "unknown";
+      let countryKey = origin.toLowerCase();
+      if (!byCountry.has(countryKey)) byCountry.set(countryKey, []);
+      byCountry.get(countryKey).push(actor);
+    });
+    return byCountry;
+  }
+
+  // ── Plot markers ──
+  const markers = [];
   window.ACTOR_DATA.forEach(function (actor) {
-    const coords  = resolveCoords(actor.origin);
-    const t       = (actor.threat || 'medium').toLowerCase();
-    const style   = THREAT_COLORS[t] || THREAT_COLORS.medium;
+    const coords = resolveCoords(actor.origin);
+    const t = (actor.threat || 'medium').toLowerCase();
+    const style = THREAT_COLORS[t] || THREAT_COLORS.medium;
 
-    // Pulsing circle marker using SVG
     const svgIcon = L.divIcon({
       className: '',
-      html: `
-        <div class="tm-marker threat-marker-${t}" style="
-          width:${style.r * 2}px;
-          height:${style.r * 2}px;
-          border-radius:50%;
-          background:${style.fill};
-          box-shadow:0 0 0 3px ${style.glow},0 0 12px ${style.glow};
-          cursor:pointer;
-          position:relative;
-        ">
-          <div style="
-            position:absolute;inset:-4px;border-radius:50%;
-            border:1px solid ${style.fill};
-            opacity:.4;
-            animation:tm-pulse 2s infinite;
-          "></div>
-        </div>`,
-      iconSize:   [style.r * 2, style.r * 2],
-      iconAnchor: [style.r,     style.r],
+      html: `<div class="tm-marker threat-marker-${t}" style="width:${style.r * 2}px;height:${style.r * 2}px;border-radius:50%;background:${style.fill};box-shadow:0 0 0 3px ${style.glow},0 0 12px ${style.glow};cursor:pointer;position:relative;"><div style="position:absolute;inset:-4px;border-radius:50%;border:1px solid ${style.fill};opacity:.4;animation:tm-pulse 2s infinite;"></div></div>`,
+      iconSize: [style.r * 2, style.r * 2], iconAnchor: [style.r, style.r]
     });
 
     const marker = L.marker(coords, { icon: svgIcon }).addTo(map);
+    markers.push({ marker, actor });
 
-    // Tooltip on mousemove
     marker.on('mouseover', function (e) {
-      const tt = document.getElementById('tm-tooltip');
-      tt.querySelector('.tm-tt-name').textContent = actor.title;
-      tt.querySelector('.tm-tt-meta').textContent =
-        (actor.category || '') + ' · ' + (actor.origin || 'Unknown') + ' · ' + (actor.threat || '').toUpperCase();
-      tt.querySelector('.tm-tt-tldr').textContent =
-        actor.tldr ? actor.tldr.substring(0, 100) + (actor.tldr.length > 100 ? '…' : '') : '';
-      tt.style.display = 'block';
-
-      // Highlight sidebar row
+      tooltip.querySelector('.tm-tt-name').textContent = actor.title;
+      tooltip.querySelector('.tm-tt-meta').textContent = (actor.category || '') + ' · ' + (actor.origin || 'Unknown') + ' · ' + (actor.threat || '').toUpperCase();
+      tooltip.querySelector('.tm-tt-tldr').textContent = actor.tldr ? actor.tldr.substring(0, 100) + (actor.tldr.length > 100 ? '…' : '') : 'No summary available.';
+      tooltip.style.display = 'block';
       document.querySelectorAll('.tm-actor-row').forEach(r => r.classList.remove('tm-active'));
       const row = document.querySelector(`.tm-actor-row[data-slug="${actor.slug}"]`);
       if (row) { row.classList.add('tm-active'); row.scrollIntoView({ block: 'nearest' }); }
     });
 
-    document.addEventListener('mousemove', function (e) {
-      const tt = document.getElementById('tm-tooltip');
-      if (tt.style.display === 'block') {
-        tt.style.left = (e.clientX + 16) + 'px';
-        tt.style.top  = (e.clientY - 10) + 'px';
+    marker.on('mouseout', function () { tooltip.style.display = 'none'; });
+    marker.on('click', function () { window.location.href = actor.url; });
+  });
+
+  // ── ZOOM TO COUNTRY FEATURE: detect country click via reverse geocoding? simpler: show popup on map click with nearby actors ──
+  // Actually, we implement: when user clicks anywhere on map, find nearest country by iterating actor origins grouped.
+  // Better: show country popup based on click coordinates (reverse lookup from actor origins)
+  map.on('click', function(e) {
+    const clickedLatLng = e.latlng;
+    // Find closest country by actors' coordinates
+    let closestCountry = null;
+    let minDist = Infinity;
+    const countryMap = new Map();
+    window.ACTOR_DATA.forEach(actor => {
+      const coords = resolveCoords(actor.origin);
+      const key = (actor.origin || "unknown").toLowerCase();
+      if (!countryMap.has(key)) countryMap.set(key, { coords, actors: [] });
+      countryMap.get(key).actors.push(actor);
+    });
+    for (let [countryName, data] of countryMap.entries()) {
+      const dist = map.distance(clickedLatLng, data.coords);
+      if (dist < minDist && dist < 2500000) { // within ~2500km radius
+        minDist = dist;
+        closestCountry = { name: countryName, actors: data.actors, coords: data.coords };
       }
-    });
+    }
+    if (closestCountry && closestCountry.actors.length > 0) {
+      const displayName = closestCountry.name.charAt(0).toUpperCase() + closestCountry.name.slice(1);
+      document.getElementById('cpCountryName').innerHTML = `<i class="fa-solid fa-location-dot"></i> ${displayName}`;
+      document.getElementById('cpActorCount').innerHTML = `${closestCountry.actors.length} actor${closestCountry.actors.length > 1 ? 's' : ''}`;
+      const listContainer = document.getElementById('cpActorList');
+      listContainer.innerHTML = closestCountry.actors.map(actor => `
+        <div class="tm-cp-item" data-url="${actor.url}">
+          <span>${actor.title}</span>
+          <span style="font-size:.55rem;color:${THREAT_COLORS[actor.threat]?.fill || '#aaa'}">● ${actor.threat}</span>
+        </div>
+      `).join('');
+      countryPopup.style.display = 'block';
+      countryPopup.style.left = (e.originalEvent.clientX + 15) + 'px';
+      countryPopup.style.top = (e.originalEvent.clientY - 20) + 'px';
+      document.querySelectorAll('.tm-cp-item').forEach(el => {
+        el.addEventListener('click', () => { window.location.href = el.dataset.url; });
+      });
+    } else {
+      countryPopup.style.display = 'none';
+    }
+  });
 
-    marker.on('mouseout', function () {
-      tooltip.style.display = 'none';
-      document.querySelectorAll('.tm-actor-row').forEach(r => r.classList.remove('tm-active'));
-    });
+  map.on('click', function() { setTimeout(() => { if (!countryPopup.mouseOver) countryPopup.style.display = 'none'; }, 100); });
+  countryPopup.addEventListener('mouseleave', () => { countryPopup.style.display = 'none'; });
 
-    // Click → go to actor page
-    marker.on('click', function () {
-      window.location.href = actor.url;
+  document.addEventListener('mousemove', function (e) {
+    if (tooltip.style.display === 'block') {
+      tooltip.style.left = (e.clientX + 16) + 'px';
+      tooltip.style.top = (e.clientY - 10) + 'px';
+    }
+  });
+
+  // ── SEARCH & FILTER ──
+  const searchInput = document.getElementById('tmSearchInput');
+  const filterBtns = document.querySelectorAll('.tm-filter-btn');
+  let activeThreat = 'all';
+  let searchTerm = '';
+
+  function filterActors() {
+    const rows = document.querySelectorAll('.tm-actor-row');
+    rows.forEach(row => {
+      const threat = row.dataset.threat;
+      const name = row.dataset.name || '';
+      const origin = row.dataset.origin || '';
+      const category = row.dataset.category || '';
+      const matchesThreat = activeThreat === 'all' || threat === activeThreat;
+      const matchesSearch = searchTerm === '' || name.includes(searchTerm) || origin.includes(searchTerm) || category.includes(searchTerm);
+      row.style.display = matchesThreat && matchesSearch ? 'flex' : 'none';
+    });
+  }
+
+  searchInput.addEventListener('input', (e) => { searchTerm = e.target.value.toLowerCase(); filterActors(); });
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeThreat = btn.dataset.threat;
+      filterActors();
     });
   });
 
+  // Sidebar click sync with map marker highlighting
+  document.querySelectorAll('.tm-actor-row').forEach(row => {
+    row.addEventListener('mouseenter', function() {
+      const slug = this.dataset.slug;
+      const markerObj = markers.find(m => m.actor.slug === slug);
+      if (markerObj) markerObj.marker.openPopup(); // optional
+    });
+  });
 });
 </script>
-
-<style>
-@keyframes tm-pulse {
-  0%   { transform: scale(1);   opacity: .5; }
-  50%  { transform: scale(1.6); opacity: 0;  }
-  100% { transform: scale(1);   opacity: .5; }
-}
-/* Override Leaflet default styles for dark theme */
-.leaflet-container { background: #0d1117 !important; font-family: var(--font) !important; }
-.leaflet-control-zoom a { background: var(--bg2) !important; color: var(--text) !important; border-color: var(--border) !important; }
-.leaflet-control-zoom a:hover { background: var(--bg3) !important; color: var(--accent) !important; }
-</style>
 
 {{ end }}
