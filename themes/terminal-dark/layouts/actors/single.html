@@ -5,27 +5,35 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
+/* Light mode - clean white */
 :root {
   --bg: #ffffff;
-  --card: #fafafa;
-  --text: #111111;
-  --text-light: #555555;
-  --border: #e5e5e5;
-  --accent: #0a5a0a;
-  --accent-light: #e8f5e8;
-  --red: #c41e3a;
+  --card: #ffffff;
+  --card-alt: #f5f5f5;
+  --text: #1a1a1a;
+  --text-light: #666666;
+  --border: #e0e0e0;
+  --border-light: #eeeeee;
+  --accent: #0066cc;
+  --accent-light: #e6f0ff;
+  --red: #cc0000;
+  --red-light: #ffe6e6;
 }
 
+/* Dark mode - dark gray (not pure black) */
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0d1117;
-    --card: #161b22;
-    --text: #e6edf3;
-    --text-light: #8b949e;
-    --border: #30363d;
-    --accent: #2ea043;
-    --accent-light: #1f2d1f;
-    --red: #f85149;
+    --bg: #121212;
+    --card: #1e1e1e;
+    --card-alt: #252525;
+    --text: #e0e0e0;
+    --text-light: #a0a0a0;
+    --border: #333333;
+    --border-light: #2a2a2a;
+    --accent: #4da6ff;
+    --accent-light: #1a3a5c;
+    --red: #ff6666;
+    --red-light: #4a1a1a;
   }
 }
 
@@ -38,31 +46,35 @@
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'SF Mono', monospace;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', monospace;
   padding: 2rem;
   max-width: 1000px;
   margin: 0 auto;
+  line-height: 1.5;
 }
 
-.nav-bar {
+/* Navigation - light mode friendly */
+.nav {
   display: flex;
-  gap: 1.2rem;
+  gap: 1.5rem;
   flex-wrap: wrap;
   margin-bottom: 2rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid var(--border);
 }
 
-.nav-bar a {
+.nav a {
   color: var(--text-light);
   text-decoration: none;
   font-size: 0.75rem;
+  transition: color 0.15s;
 }
 
-.nav-bar a:hover {
+.nav a:hover {
   color: var(--accent);
 }
 
+/* Breadcrumb */
 .breadcrumb {
   font-size: 0.7rem;
   color: var(--text-light);
@@ -78,66 +90,74 @@ body {
   color: var(--accent);
 }
 
-/* Actor header */
-.actor-header {
-  margin-bottom: 1.5rem;
+/* Header */
+.header {
+  margin-bottom: 2rem;
 }
 
 .alias {
   font-size: 0.7rem;
   color: var(--text-light);
   font-family: monospace;
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.25rem;
 }
 
 h1 {
   font-size: 2rem;
   font-weight: 600;
-  margin-bottom: 0.75rem;
+  margin: 0.25rem 0 1rem 0;
   letter-spacing: -0.3px;
+  color: var(--text);
 }
 
-.meta-row {
+.meta {
   display: flex;
-  gap: 0.6rem;
+  gap: 0.5rem;
   flex-wrap: wrap;
   align-items: center;
 }
 
-.meta-badge {
+.badge {
   font-size: 0.6rem;
   padding: 3px 10px;
-  border-radius: 4px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  text-transform: uppercase;
+  border-radius: 20px;
   font-weight: 500;
 }
 
-.meta-badge.cat {
-  border-color: var(--accent);
+.badge-cat {
+  background: var(--accent-light);
   color: var(--accent);
+  border: none;
 }
 
-.meta-badge.threat {
-  border-color: var(--red);
+.badge-threat {
+  background: var(--red-light);
   color: var(--red);
+  border: none;
+}
+
+.badge-status {
+  background: var(--card-alt);
+  border: 1px solid var(--border);
+  color: var(--text-light);
 }
 
 .origin {
   font-size: 0.7rem;
   color: var(--text-light);
+  margin-left: 0.25rem;
 }
 
 .edit-btn {
   float: right;
-  background: none;
+  background: var(--card-alt);
   border: 1px solid var(--border);
   color: var(--text-light);
   font-size: 0.65rem;
-  padding: 4px 10px;
-  border-radius: 4px;
+  padding: 4px 12px;
+  border-radius: 6px;
   text-decoration: none;
+  transition: all 0.15s;
 }
 
 .edit-btn:hover {
@@ -146,12 +166,13 @@ h1 {
   background: var(--accent-light);
 }
 
-/* TL;DR */
+/* TL;DR box */
 .tldr {
-  background: var(--card);
+  background: var(--card-alt);
   border-left: 3px solid var(--accent);
-  padding: 0.8rem 1rem;
-  margin-bottom: 1.5rem;
+  padding: 1rem;
+  margin-bottom: 2rem;
+  border-radius: 0 8px 8px 0;
 }
 
 .tldr-label {
@@ -163,48 +184,65 @@ h1 {
 }
 
 .tldr p {
-  margin: 0.3rem 0 0 0;
+  margin: 0.5rem 0 0 0;
   font-size: 0.85rem;
   color: var(--text-light);
   line-height: 1.5;
 }
 
-/* Info sections */
-.section {
+/* Two column layout */
+.two-column {
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 700px) {
+  .two-column {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+/* Main content cards - white in light mode */
+.card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 1rem;
+  border-radius: 10px;
+  padding: 1.25rem;
   margin-bottom: 1rem;
 }
 
-.section-title {
+.card-title {
   font-size: 0.65rem;
   color: var(--accent);
   text-transform: uppercase;
   font-weight: 600;
   letter-spacing: 0.5px;
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-light);
 }
 
-.tags {
+.tag-list {
   display: flex;
-  gap: 0.4rem;
   flex-wrap: wrap;
+  gap: 0.4rem;
 }
 
 .tag {
   font-size: 0.7rem;
-  background: var(--bg);
-  padding: 3px 8px;
-  border-radius: 4px;
+  background: var(--card-alt);
+  padding: 4px 10px;
+  border-radius: 20px;
   color: var(--text-light);
 }
 
 .list {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: 0.5rem;
 }
 
 .list-item {
@@ -213,37 +251,25 @@ h1 {
   line-height: 1.5;
 }
 
-.ioc {
+.code-block {
   font-size: 0.7rem;
   font-family: monospace;
-  background: var(--bg);
-  padding: 5px 8px;
-  border-radius: 4px;
+  background: var(--card-alt);
+  padding: 6px 10px;
+  border-radius: 6px;
   display: block;
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.5rem;
   color: var(--accent);
+  word-break: break-all;
 }
 
-/* Profile sidebar */
-.profile-grid {
-  display: grid;
-  grid-template-columns: 1fr 260px;
-  gap: 1.5rem;
-  margin: 1.5rem 0;
-}
-
-@media (max-width: 700px) {
-  .profile-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-}
-
+/* Sidebar */
 .sidebar {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 1rem;
+  border-radius: 10px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
   height: fit-content;
 }
 
@@ -254,17 +280,22 @@ h1 {
   font-weight: 600;
   margin-bottom: 0.75rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .sidebar-row {
   display: flex;
   justify-content: space-between;
-  font-size: 0.7rem;
-  padding: 0.4rem 0;
+  padding: 0.5rem 0;
+  font-size: 0.75rem;
+  border-bottom: 1px solid var(--border-light);
 }
 
-.sidebar-row:first-of-type {
+.sidebar-row:last-child {
+  border-bottom: none;
+}
+
+.sidebar-row:first-child {
   padding-top: 0;
 }
 
@@ -275,47 +306,100 @@ h1 {
 .sidebar-value {
   color: var(--text);
   text-align: right;
+  max-width: 60%;
 }
 
-.tags-cloud {
+.tag-cloud {
   display: flex;
   flex-wrap: wrap;
   gap: 0.3rem;
 }
 
-.tag-cloud {
+.cloud-tag {
   font-size: 0.65rem;
-  background: var(--bg);
+  background: var(--card-alt);
   padding: 3px 8px;
-  border-radius: 4px;
+  border-radius: 20px;
   color: var(--text-light);
 }
 
-/* Content */
+/* Share row */
+.share-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.share-btn {
+  background: var(--card-alt);
+  border: 1px solid var(--border);
+  color: var(--text-light);
+  font-size: 0.65rem;
+  padding: 4px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.15s;
+}
+
+.share-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-light);
+}
+
+/* Main content area for markdown */
 .content {
   margin: 1rem 0;
   line-height: 1.6;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--text-light);
 }
 
 .content h2 {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   color: var(--text);
-  margin: 1.2rem 0 0.6rem 0;
+  margin: 1.5rem 0 0.75rem 0;
+}
+
+.content h3 {
+  font-size: 0.95rem;
+  color: var(--text);
+  margin: 1rem 0 0.5rem 0;
+}
+
+.content p {
+  margin-bottom: 1rem;
 }
 
 .content code {
-  background: var(--card);
+  background: var(--card-alt);
   padding: 2px 5px;
-  border-radius: 3px;
+  border-radius: 4px;
   font-size: 0.8rem;
+  color: var(--accent);
+}
+
+.content pre {
+  background: var(--card-alt);
+  padding: 1rem;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+.content blockquote {
+  border-left: 3px solid var(--accent);
+  margin: 1rem 0;
+  padding-left: 1rem;
+  color: var(--text-light);
 }
 
 /* Footer */
 .footer {
-  margin-top: 2.5rem;
-  padding-top: 1.2rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
   border-top: 1px solid var(--border);
   font-size: 0.7rem;
   color: var(--text-light);
@@ -329,7 +413,7 @@ h1 {
 .footer-links a {
   color: var(--text-light);
   text-decoration: none;
-  margin: 0 0.4rem;
+  margin: 0 0.5rem;
 }
 
 .footer-links a:hover {
@@ -361,7 +445,7 @@ h1 {
 </head>
 <body>
 
-<div class="nav-bar">
+<div class="nav">
   <a href="/">~/home</a>
   <a href="/about">~/about</a>
   <a href="/osint">~/osint</a>
@@ -376,14 +460,14 @@ h1 {
   <a href="/">~/home</a> / <a href="/actors/">actors</a> / <span>{{ .File.BaseFileName }}</span>
 </div>
 
-<div class="actor-header clearfix">
-  <a href="/admin/#/collections/actors/entries/{{ .File.BaseFileName }}" class="edit-btn">edit</a>
+<div class="header clearfix">
+  <a href="/admin/#/collections/actors/entries/{{ .File.BaseFileName }}" class="edit-btn">✎ edit</a>
   {{ with .Params.alias }}<div class="alias">{{ . }}</div>{{ end }}
   <h1>{{ .Title }}</h1>
-  <div class="meta-row">
-    {{ with .Params.category }}<span class="meta-badge cat">{{ . }}</span>{{ end }}
-    {{ with .Params.threat_level }}<span class="meta-badge threat">{{ . | upper }}</span>{{ end }}
-    {{ with .Params.status }}<span class="meta-badge">{{ . }}</span>{{ end }}
+  <div class="meta">
+    {{ with .Params.category }}<span class="badge badge-cat">{{ . }}</span>{{ end }}
+    {{ with .Params.threat_level }}<span class="badge badge-threat">{{ . | upper }}</span>{{ end }}
+    {{ with .Params.status }}<span class="badge badge-status">{{ . }}</span>{{ end }}
     {{ with .Params.origin }}<span class="origin">📍 {{ . }}</span>{{ end }}
   </div>
 </div>
@@ -395,48 +479,49 @@ h1 {
 </div>
 {{ end }}
 
-<div class="profile-grid">
+<div class="two-column">
+  <!-- Main content column -->
   <div>
     {{ if .Params.aliases }}
-    <div class="section">
-      <div class="section-title">aliases</div>
-      <div class="tags">
+    <div class="card">
+      <div class="card-title">aliases</div>
+      <div class="tag-list">
         {{ range .Params.aliases }}<span class="tag">{{ . }}</span>{{ end }}
       </div>
     </div>
     {{ end }}
 
     {{ if .Params.ttps }}
-    <div class="section">
-      <div class="section-title">TTPs</div>
+    <div class="card">
+      <div class="card-title">TTPs</div>
       <div class="list">
-        {{ range .Params.ttps }}<div class="list-item">• {{ . }}</div>{{ end }}
+        {{ range .Params.ttps }}<div class="list-item">▸ {{ . }}</div>{{ end }}
       </div>
     </div>
     {{ end }}
 
     {{ if .Params.targets }}
-    <div class="section">
-      <div class="section-title">targets</div>
-      <div class="tags">
+    <div class="card">
+      <div class="card-title">targets</div>
+      <div class="tag-list">
         {{ range .Params.targets }}<span class="tag">{{ . }}</span>{{ end }}
       </div>
     </div>
     {{ end }}
 
     {{ if .Params.tools_used }}
-    <div class="section">
-      <div class="section-title">tools / malware</div>
-      <div class="tags">
+    <div class="card">
+      <div class="card-title">tools / malware</div>
+      <div class="tag-list">
         {{ range .Params.tools_used }}<span class="tag">{{ . }}</span>{{ end }}
       </div>
     </div>
     {{ end }}
 
     {{ if .Params.iocs }}
-    <div class="section">
-      <div class="section-title">known IOCs</div>
-      {{ range .Params.iocs }}<code class="ioc">{{ . }}</code>{{ end }}
+    <div class="card">
+      <div class="card-title">known IOCs</div>
+      {{ range .Params.iocs }}<code class="code-block">{{ . }}</code>{{ end }}
     </div>
     {{ end }}
 
@@ -445,6 +530,7 @@ h1 {
     </div>
   </div>
 
+  <!-- Sidebar column -->
   <div>
     <div class="sidebar">
       <div class="sidebar-title">profile</div>
@@ -469,13 +555,21 @@ h1 {
     </div>
 
     {{ with .Params.tags }}
-    <div class="sidebar" style="margin-top: 1rem;">
+    <div class="sidebar">
       <div class="sidebar-title">tags</div>
-      <div class="tags-cloud">
-        {{ range . }}<span class="tag-cloud">#{{ . }}</span>{{ end }}
+      <div class="tag-cloud">
+        {{ range . }}<span class="cloud-tag">#{{ . }}</span>{{ end }}
       </div>
     </div>
     {{ end }}
+
+    <div class="sidebar">
+      <div class="sidebar-title">share</div>
+      <div class="share-row">
+        <a href="https://twitter.com/intent/tweet?text={{ .Title }}&url={{ .Permalink }}" target="_blank" class="share-btn">𝕏 tweet</a>
+        <button class="share-btn" onclick="navigator.clipboard.writeText('{{ .Permalink }}')"># copy link</button>
+      </div>
+    </div>
   </div>
 </div>
 
