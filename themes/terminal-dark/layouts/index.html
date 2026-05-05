@@ -10,6 +10,7 @@
     <div class="hero-label">location / status</div>
     <div class="hero-value">{{ $home.Params.location | default "Goa, India" }}</div>
     <div class="hero-sub">UTC+5:30 · {{ $home.Params.status | default "Available for engagements" }}</div>
+    <div id="ist-clock" style="font-size:.72rem;color:var(--accent);margin-top:6px;font-family:var(--font);letter-spacing:.04em;opacity:.85"></div>
   </div>
   <div class="hero-cell c-red">
     <div class="hero-label">specialization</div>
@@ -113,5 +114,25 @@
   min-width: 0;
 }
 </style>
+
+<script>
+(function() {
+  function updateClock() {
+    var now = new Date();
+    var ist = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+    var h = ist.getHours();
+    var m = ist.getMinutes().toString().padStart(2, '0');
+    var s = ist.getSeconds().toString().padStart(2, '0');
+    var ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    var days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    var day = days[ist.getDay()];
+    var el = document.getElementById('ist-clock');
+    if (el) el.textContent = day + ' ' + h + ':' + m + ':' + s + ' ' + ampm + ' IST';
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+})();
+</script>
 
 {{ end }}
