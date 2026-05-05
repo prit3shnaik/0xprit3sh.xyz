@@ -182,37 +182,157 @@ collections:
         editor_components: [code-block, image]
 
   # ─────────────────────────────────────────────
-  # THREAT ACTOR PROFILES
+  # THREAT ACTOR PROFILES  ←  SVELTIA OPTIMISED
   # ─────────────────────────────────────────────
   - name: "actors"
-    label: "Threat Actor Profiles"
+    label: "☠️ Threat Actor Profiles"
+    label_singular: "Threat Actor"
     folder: "content/actors"
     create: true
     slug: "{{slug}}"
+    preview_path: "actors/{{slug}}"
+    thumbnail_field: og_image
+    summary: "{{category}} · {{title}} ({{threat_level}}) — {{status}}"
+ 
+    # Sveltia view groups — filter/group in the sidebar
+    view_groups:
+      - { label: "Category",     field: category }
+      - { label: "Threat Level", field: threat_level }
+      - { label: "Status",       field: status }
+ 
+    # Sveltia view filters — quick toggles
+    view_filters:
+      - { label: "🔴 Active",    field: status,       pattern: "active" }
+      - { label: "🌐 Nation-State", field: category,  pattern: "Nation-State" }
+      - { label: "💸 Cybercriminal", field: category, pattern: "Cybercriminal" }
+      - { label: "🔒 Ransomware",  field: category,   pattern: "Ransomware" }
+      - { label: "⚠️ Critical",   field: threat_level, pattern: "critical" }
+      - { label: "🟠 High",       field: threat_level, pattern: "high" }
+ 
     fields:
-      - { label: "Actor Name",    name: "title",        widget: "string" }
-      - { label: "Primary Alias", name: "alias",        widget: "string", required: false }
-      - { label: "All Aliases",   name: "aliases",      widget: "list",   required: false }
-      - { label: "Category",      name: "category",     widget: "select",
-          options: ["Nation-State","Cybercriminal","Ransomware","DarkWeb","DeFi","Hacktivism","Unknown"] }
-      - { label: "Threat Level",  name: "threat_level", widget: "select",
-          options: ["critical","high","medium","low"] }
-      - { label: "Status",        name: "status",       widget: "select",
-          options: ["active","inactive","monitoring","unknown"], default: "monitoring" }
-      - { label: "Origin",        name: "origin",       widget: "string", required: false }
-      - { label: "Motivation",    name: "motivation",   widget: "string", required: false }
-      - { label: "First Seen",    name: "first_seen",   widget: "string", required: false }
-      - { label: "Last Seen",     name: "last_seen",    widget: "string", required: false }
-      - { label: "TTPs",          name: "ttps",         widget: "list",   required: false }
-      - { label: "Targets",       name: "targets",      widget: "list",   required: false }
-      - { label: "Tools/Malware", name: "tools_used",   widget: "list",   required: false }
-      - { label: "Known IOCs",    name: "iocs",         widget: "list",   required: false }
-      - { label: "TL;DR",        name: "tldr",         widget: "string", required: false }
-      - { label: "Tags",          name: "tags",         widget: "list" }
-      - label: "Body"
+ 
+      # ┌─────────────────────────────────────────
+      # │ 🪪 IDENTITY
+      # └─────────────────────────────────────────
+      - { label: "──── 🪪 IDENTITY ────", name: "_div_identity",
+          widget: "hidden", required: false }
+ 
+      - { label: "Actor Name",       name: "title",   widget: "string",
+          hint: "Primary name e.g. Lazarus Group" }
+ 
+      - { label: "Primary Alias",    name: "alias",   widget: "string", required: false,
+          hint: "Short subtitle e.g. North Korean state sponsored APT group" }
+ 
+      - { label: "All Aliases",      name: "aliases", widget: "list",   required: false,
+          hint: "APT38, BlueNoroff, Hidden Cobra, Stardust Chollima …" }
+ 
+      - { label: "📍 Origin / Country", name: "origin", widget: "string", required: false,
+          hint: "e.g. Democratic People's Republic of Korea (DPRK)" }
+ 
+      # ┌─────────────────────────────────────────
+      # │ 📊 CLASSIFICATION
+      # └─────────────────────────────────────────
+      - { label: "──── 📊 CLASSIFICATION ────", name: "_div_class",
+          widget: "hidden", required: false }
+ 
+      - label: "Category"
+        name: "category"
+        widget: "select"
+        options:
+          - { label: "🌐 Nation-State",  value: "Nation-State" }
+          - { label: "💸 Cybercriminal", value: "Cybercriminal" }
+          - { label: "🔒 Ransomware",    value: "Ransomware" }
+          - { label: "🌑 DarkWeb",       value: "DarkWeb" }
+          - { label: "💎 DeFi / Web3",   value: "DeFi" }
+          - { label: "✊ Hacktivism",    value: "Hacktivism" }
+          - { label: "❓ Unknown",        value: "Unknown" }
+ 
+      - label: "⚠️ Threat Level"
+        name: "threat_level"
+        widget: "select"
+        options:
+          - { label: "🔴 Critical", value: "critical" }
+          - { label: "🟠 High",     value: "high" }
+          - { label: "🟡 Medium",   value: "medium" }
+          - { label: "🟢 Low",      value: "low" }
+ 
+      - label: "Status"
+        name: "status"
+        widget: "select"
+        default: "monitoring"
+        options:
+          - { label: "🔴 Active",     value: "active" }
+          - { label: "⚫ Inactive",   value: "inactive" }
+          - { label: "🟡 Monitoring", value: "monitoring" }
+          - { label: "❓ Unknown",     value: "unknown" }
+ 
+      - { label: "💰 Motivation", name: "motivation", widget: "string", required: false,
+          hint: "e.g. Financial gain (cryptocurrency theft), political espionage" }
+ 
+      # ┌─────────────────────────────────────────
+      # │ 📅 TIMELINE
+      # └─────────────────────────────────────────
+      - { label: "──── 📅 TIMELINE ────", name: "_div_timeline",
+          widget: "hidden", required: false }
+ 
+      - { label: "First Seen", name: "first_seen", widget: "string", required: false,
+          hint: "e.g. 2009 or January 2014" }
+ 
+      - { label: "👁 Last Seen", name: "last_seen", widget: "string", required: false,
+          hint: "e.g. May 2026 (Active campaigns targeting crypto exchanges)" }
+ 
+      # ┌─────────────────────────────────────────
+      # │ 💡 SUMMARY
+      # └─────────────────────────────────────────
+      - { label: "──── 💡 SUMMARY ────", name: "_div_summary",
+          widget: "hidden", required: false }
+ 
+      - { label: "💡 TL;DR", name: "tldr", widget: "text", required: false,
+          hint: "One paragraph — shown on list cards and in the hero. Keep under 200 chars." }
+ 
+      # ┌─────────────────────────────────────────
+      # │ ⚔️ INTELLIGENCE
+      # └─────────────────────────────────────────
+      - { label: "──── ⚔️ INTELLIGENCE ────", name: "_div_intel",
+          widget: "hidden", required: false }
+ 
+      - { label: "⚔️ TTPs", name: "ttps", widget: "list", required: false,
+          hint: "One technique per entry — shown as bullet points on the detail page" }
+ 
+      - { label: "🎯 Targets", name: "targets", widget: "list", required: false,
+          hint: "Industries, sectors, or regions — e.g. Financial institutions, Aerospace" }
+ 
+      - { label: "🦠 Tools / Malware", name: "tools_used", widget: "list", required: false,
+          hint: "Malware families, RATs, C2 frameworks — e.g. AppleJeus, PondRAT" }
+ 
+      - { label: "🔍 Known IOCs", name: "iocs", widget: "list", required: false,
+          hint: "IPs, domains, hashes, wallet addresses — each gets a copy button on the page" }
+ 
+      # ┌─────────────────────────────────────────
+      # │ 🖼️ MEDIA & META
+      # └─────────────────────────────────────────
+      - { label: "──── 🖼️ MEDIA & META ────", name: "_div_media",
+          widget: "hidden", required: false }
+ 
+      - { label: "🖼️ Hero / Cover Image", name: "og_image", widget: "image", required: false,
+          hint: "Full-width banner on the actor page. Dark images work best. Recommended: 1200x400px" }
+ 
+      - { label: "🏷️ Tags", name: "tags", widget: "list", required: false,
+          hint: "APT, CryptoTheft, DPRK, Espionage, SupplyChain …" }
+ 
+      # ┌─────────────────────────────────────────
+      # │ 📄 FULL REPORT
+      # └─────────────────────────────────────────
+      - { label: "──── 📄 FULL REPORT ────", name: "_div_body",
+          widget: "hidden", required: false }
+ 
+      - label: "📄 Full Intelligence Report"
         name: "body"
         widget: "markdown"
+        required: false
+        hint: "Full writeup — supports headers, code blocks, images, tables"
         buttons: [bold, italic, code, link, heading-two, heading-three, quote, bulleted-list, numbered-list, code-block]
+        editor_components: [code-block, image]
 
   # ─────────────────────────────────────────────
   # PAGES
