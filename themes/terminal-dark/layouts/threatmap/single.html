@@ -5,26 +5,26 @@
 window.ACTOR_DATA = [
   {{ range $actors }}
   {
-    title:    {{ .Title | jsonify }},
-    slug:     {{ .File.BaseFileName | jsonify }},
-    url:      {{ .Permalink | jsonify }},
-    origin:   {{ .Params.origin   | default "" | jsonify }},
-    category: {{ .Params.category | default "Unknown" | jsonify }},
-    threat:   {{ .Params.threat_level | default "medium" | jsonify }},
-    status:   {{ .Params.status   | default "unknown" | jsonify }},
-    tldr:     {{ .Params.tldr     | default "" | jsonify }},
+    title:    "{{ .Title | safeJS }}",
+    slug:     "{{ .File.BaseFileName | safeJS }}",
+    url:      "{{ .Permalink | safeJS }}",
+    origin:   "{{ .Params.origin   | default "" | safeJS }}",
+    category: "{{ .Params.category | default "Unknown" | safeJS }}",
+    threat:   "{{ .Params.threat_level | default "medium" | safeJS }}",
+    status:   "{{ .Params.status   | default "unknown" | safeJS }}",
+    tldr:     "{{ .Params.tldr     | default "" | safeJS }}",
     ttps:     {{ .Params.ttps     | jsonify }},
     targets:  {{ .Params.targets  | jsonify }},
     tools:    {{ .Params.tools_used | jsonify }},
-    first_seen: {{ .Params.first_seen | default "" | jsonify }},
-    last_seen:  {{ .Params.last_seen  | default "" | jsonify }},
-    motivation: {{ .Params.motivation | default "" | jsonify }},
+    first_seen: "{{ .Params.first_seen | default "" | safeJS }}",
+    last_seen:  "{{ .Params.last_seen  | default "" | safeJS }}",
+    motivation: "{{ .Params.motivation | default "" | safeJS }}",
   },
   {{ end }}
 ];
 </script>
 
-<div class="tm-page">
+<div class="tm-page" id="tm-page">
 
   {{/* ── HUD BAR ── */}}
   <div class="tm-hud-bar">
@@ -154,6 +154,15 @@ window.ACTOR_DATA = [
 
 <style>
 /* ── PAGE ── */
+#tm-page{
+  display:flex;flex-direction:column;
+  height:calc(100vh - 52px);
+  position:fixed;
+  top:52px;left:0;right:0;bottom:0;
+  z-index:100;
+  overflow:hidden;
+  background:#080b10;
+}
 .tm-page{display:flex;flex-direction:column;height:calc(100vh - 52px);margin:-1rem -1rem 0;overflow:hidden;background:#080b10}
 
 /* ── HUD ── */
@@ -213,23 +222,23 @@ window.ACTOR_DATA = [
 .tm-tl-play.playing{border-color:#ff4444;color:#ff4444}
 
 /* ── PANEL ── */
-.tm-panel{width:272px;flex-shrink:0;background:#0a0d14;border-left:1px solid rgba(0,255,65,.12);display:flex;flex-direction:column;overflow:hidden}
+.tm-panel{width:260px;flex-shrink:0;background:#0a0d14;border-left:1px solid rgba(0,255,65,.12);display:flex;flex-direction:column;overflow:hidden;min-width:0}
 .tm-panel-section{display:flex;flex-direction:column;overflow:hidden;flex:1}
 .tm-panel-title{font-size:.62rem;color:#00ff41;padding:.65rem 1rem .5rem;border-bottom:1px solid rgba(0,255,65,.1);font-family:var(--font);letter-spacing:.06em;flex-shrink:0;display:flex;align-items:center;gap:8px;background:#0a0d14}
 .tm-back-btn{background:none;border:none;color:rgba(255,255,255,.3);font-family:var(--font);font-size:.6rem;cursor:pointer;padding:0;transition:color .15s}
 .tm-back-btn:hover{color:#00ff41}
 #actor-list{overflow-y:auto;flex:1}
-.tm-actor-item{display:flex;align-items:center;justify-content:space-between;padding:.5rem .85rem;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;transition:background .15s}
+.tm-actor-item{display:flex;align-items:center;justify-content:space-between;padding:.5rem .85rem;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;transition:background .15s;overflow:hidden;min-width:0}
 .tm-actor-item:hover{background:rgba(0,255,65,.04)}
 .tm-actor-item.tm-active{background:rgba(0,255,65,.07);border-left:2px solid #00ff41}
-.tm-ai-left{display:flex;align-items:center;gap:8px}
+.tm-ai-left{display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden;flex:1}
 .tm-ai-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 .dot-critical{background:#ff4444;box-shadow:0 0 5px #ff4444}
 .dot-high{background:#f0883e;box-shadow:0 0 5px #f0883e}
 .dot-medium{background:#e8c547}
 .dot-low{background:#00ff41;box-shadow:0 0 4px #00ff41}
-.tm-ai-name{font-size:.72rem;color:#e0e6f0;font-weight:600}
-.tm-ai-meta{font-size:.58rem;color:rgba(255,255,255,.3);margin-top:1px}
+.tm-ai-name{font-size:.72rem;color:#e0e6f0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tm-ai-meta{font-size:.58rem;color:rgba(255,255,255,.3);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px}
 .tm-ai-status{font-size:.53rem;padding:1px 5px;border-radius:1px;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.3);flex-shrink:0}
 .status-active{color:#ff4444;border-color:rgba(255,68,68,.3);background:rgba(255,68,68,.08)}
 .status-monitoring{color:#e8c547;border-color:rgba(232,197,71,.3)}
@@ -288,6 +297,15 @@ window.ACTOR_DATA = [
 .leaflet-control-zoom a{background:#0a0d14 !important;color:#e0e6f0 !important;border-color:rgba(255,255,255,.1) !important}
 .leaflet-control-zoom a:hover{background:#111620 !important;color:#00ff41 !important}
 .leaflet-control-attribution{display:none !important}
+
+/* ── FULL BLEED FIX ── */
+/* Push Hugo's main content wrapper out of the way */
+body:has(#tm-page) > *:not(nav):not(header) { overflow: hidden; }
+body:has(#tm-page) .site-main,
+body:has(#tm-page) main,
+body:has(#tm-page) .content,
+body:has(#tm-page) .container,
+body:has(#tm-page) .wrapper { padding: 0 !important; margin: 0 !important; max-width: none !important; overflow: visible !important; }
 
 /* ── MARKER PULSE ── */
 @keyframes mk-pulse{0%{transform:scale(1);opacity:.5}50%{transform:scale(2.4);opacity:0}100%{transform:scale(1);opacity:.5}}
@@ -383,6 +401,8 @@ function updateStats() {
 // ── INIT ─────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
   updateStats();
+  // Re-run after short delay to ensure data ready
+  setTimeout(updateStats, 100);
 
   map = L.map('tm-map',{
     center:[25,15],zoom:2,minZoom:2,maxZoom:8,
