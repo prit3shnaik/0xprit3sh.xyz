@@ -2,11 +2,9 @@
 <div class="page-header">
   <div style="display:flex;align-items:center;gap:8px;">
     <span class="page-title"><span class="dim">~/</span>actors</span>
-  </div>
-  <div style="display:flex;gap:8px;align-items:center;">
     <span class="page-count">{{ len .Pages }} profiles</span>
-    <a href="/admin/#/collections/actors/new" class="edit-btn">+ new</a>
   </div>
+  <a href="/admin/#/collections/actors/new" class="edit-btn">+ new profile</a>
 </div>
 
 <div class="actor-filter-bar">
@@ -16,7 +14,7 @@
   <button class="actor-filter" onclick="filterActors(this,'ransomware')">ransomware</button>
   <button class="actor-filter" onclick="filterActors(this,'darkweb')">darkweb</button>
   <button class="actor-filter" onclick="filterActors(this,'defi')">defi/web3</button>
-  <input class="actor-search" type="text" placeholder="search..." oninput="searchActors(this.value)">
+  <input class="actor-search" type="text" placeholder="search actors..." oninput="searchActors(this.value)">
 </div>
 
 <div class="actor-grid" id="actor-grid">
@@ -26,53 +24,41 @@
        data-category="{{ .Params.category | default "unknown" | lower }}"
        data-name="{{ .Title | lower }}">
 
-      <div class="actor-card-header">
-        <h2 class="actor-name">{{ .Title }}</h2>
+      <!-- Header: Just name + origin -->
+      <div class="card-header">
+        <h3 class="card-name">{{ .Title }}</h3>
         {{ with .Params.origin }}
-        <span class="actor-origin">{{ . }}</span>
+        <span class="card-origin">{{ index . 0 }}</span>
         {{ end }}
       </div>
 
-      <div class="actor-badges">
-        {{ with .Params.category }}
-        <span class="badge badge-cat">{{ . }}</span>
-        {{ end }}
-        {{ with .Params.threat_level }}
-        <span class="badge badge-threat">{{ . | upper }}</span>
-        {{ end }}
-        {{ with .Params.alias }}
-        <span class="badge badge-alias">{{ . }}</span>
-        {{ end }}
+      <!-- Badges: minified -->
+      <div class="card-badges">
+        {{ with .Params.category }}<span class="badge">{{ . }}</span>{{ end }}
+        {{ with .Params.threat_level }}<span class="badge threat">{{ . }}</span>{{ end }}
+        {{ with .Params.status }}<span class="badge">{{ . }}</span>{{ end }}
       </div>
 
+      <!-- TL;DR: truncated to 1 line -->
       {{ with .Params.tldr }}
-      <p class="actor-tldr">{{ . | truncate 100 }}</p>
+      <p class="card-summary">{{ . | truncate 85 }}</p>
       {{ end }}
 
-      <div class="actor-footer">
-        {{ with .Params.ttps }}
-        <div class="actor-ttps">
-          {{ range first 2 . }}<span>{{ . }}</span>{{ end }}
-        </div>
-        {{ end }}
+      <!-- Footer: just last seen -->
+      <div class="card-footer">
         {{ with .Params.last_seen }}
-        <span class="actor-last-seen">{{ . }}</span>
+        <span class="last-seen">{{ . | truncate 35 }}</span>
         {{ end }}
       </div>
-
     </a>
     {{ end }}
   {{ else }}
-  <div class="empty-state">
-    <div>◈</div>
-    <p>no actor profiles yet</p>
-    <a href="/admin/#/collections/actors/new">create first profile →</a>
-  </div>
+    <div class="empty-state">no actor profiles yet</div>
   {{ end }}
 </div>
 
 <style>
-/* Base styles (assuming vars exist) */
+/* Variables - match your existing theme */
 :root {
   --bg: #0a0a0a;
   --bg2: #111;
@@ -82,13 +68,11 @@
   --dim: #666;
   --border: #222;
   --accent: #0f0;
-  --accent2: #0cf;
   --red: #f44;
   --yellow: #eca;
-  --orange: #f86;
 }
 
-/* Layout */
+/* Header */
 .page-header {
   display: flex;
   justify-content: space-between;
@@ -97,13 +81,8 @@
 }
 
 .page-title {
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   font-weight: 600;
-  color: var(--text);
-}
-
-.dim {
-  color: var(--dim);
 }
 
 .page-count {
@@ -115,11 +94,10 @@
   background: none;
   border: 1px solid var(--border);
   color: var(--dim);
-  font-size: 0.65rem;
-  padding: 4px 8px;
+  font-size: 0.7rem;
+  padding: 4px 10px;
   border-radius: 4px;
   text-decoration: none;
-  transition: all 0.15s;
 }
 
 .edit-btn:hover {
@@ -131,7 +109,6 @@
 .actor-filter-bar {
   display: flex;
   gap: 6px;
-  align-items: center;
   flex-wrap: wrap;
   margin-bottom: 1.5rem;
   padding-bottom: 0.75rem;
@@ -143,16 +120,13 @@
   border: none;
   color: var(--dim);
   font-size: 0.7rem;
-  padding: 4px 10px;
+  padding: 4px 12px;
   border-radius: 20px;
   cursor: pointer;
-  transition: all 0.15s;
-  font-family: inherit;
 }
 
 .actor-filter:hover {
   color: var(--accent);
-  background: rgba(0, 255, 65, 0.05);
 }
 
 .actor-filter.on {
@@ -168,162 +142,113 @@
   font-size: 0.7rem;
   padding: 5px 10px;
   border-radius: 6px;
-  outline: none;
   width: 180px;
-  font-family: inherit;
 }
 
 .actor-search:focus {
   border-color: var(--accent);
+  outline: none;
 }
 
 /* Grid */
 .actor-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 12px;
 }
 
-/* Card */
+/* Card — super minimal */
 .actor-card {
   background: var(--bg2);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 1rem;
+  border-radius: 6px;
+  padding: 0.9rem;
   text-decoration: none;
   color: inherit;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  transition: all 0.15s ease;
+  display: block;
+  transition: border-color 0.15s;
 }
 
 .actor-card:hover {
   border-color: var(--accent);
-  transform: translateY(-1px);
 }
 
 /* Card header */
-.actor-card-header {
+.card-header {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  gap: 8px;
+  margin-bottom: 6px;
 }
 
-.actor-name {
+.card-name {
   font-size: 1rem;
   font-weight: 600;
   margin: 0;
   color: var(--text);
-  letter-spacing: -0.01em;
 }
 
-.actor-origin {
-  font-size: 0.65rem;
+.card-origin {
+  font-size: 0.6rem;
   color: var(--dim);
-  flex-shrink: 0;
+  max-width: 45%;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-/* Badges */
-.actor-badges {
+/* Badges — one line, compact */
+.card-badges {
   display: flex;
   gap: 4px;
   flex-wrap: wrap;
+  margin-bottom: 8px;
 }
 
 .badge {
-  font-size: 0.6rem;
-  font-weight: 500;
+  font-size: 0.55rem;
   padding: 2px 6px;
   border-radius: 3px;
   background: var(--bg3);
   color: var(--dim);
-  border: none;
+  text-transform: uppercase;
 }
 
-.badge-cat {
-  background: rgba(0, 255, 65, 0.08);
-  color: var(--accent);
-}
-
-.badge-threat {
-  background: rgba(255, 68, 68, 0.1);
+.badge.threat {
+  background: rgba(255, 68, 68, 0.15);
   color: var(--red);
 }
 
-.badge-alias {
-  background: var(--bg3);
-  color: var(--dim);
-  font-family: monospace;
-}
-
-/* TL;DR */
-.actor-tldr {
-  font-size: 0.75rem;
+/* Summary - one line only */
+.card-summary {
+  font-size: 0.7rem;
   color: var(--text2);
-  line-height: 1.4;
-  margin: 0;
+  line-height: 1.3;
+  margin: 6px 0 0 0;
+  overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
 /* Footer */
-.actor-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 0.25rem;
-  padding-top: 0.5rem;
+.card-footer {
+  margin-top: 10px;
+  padding-top: 6px;
   border-top: 1px solid var(--border);
 }
 
-.actor-ttps {
-  display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
-}
-
-.actor-ttps span {
-  font-size: 0.6rem;
-  font-family: monospace;
-  color: var(--dim);
-  background: var(--bg3);
-  padding: 1px 5px;
-  border-radius: 2px;
-}
-
-.actor-last-seen {
+.last-seen {
   font-size: 0.6rem;
   color: var(--dim);
-  flex-shrink: 0;
 }
 
-/* Empty state */
 .empty-state {
-  grid-column: 1 / -1;
+  grid-column: 1/-1;
   text-align: center;
-  padding: 3rem 0;
+  padding: 3rem;
   color: var(--dim);
-}
-
-.empty-state div {
-  font-size: 2rem;
-  opacity: 0.2;
-  margin-bottom: 0.5rem;
-}
-
-.empty-state p {
-  font-size: 0.8rem;
-  margin: 0 0 0.5rem 0;
-}
-
-.empty-state a {
-  color: var(--accent);
-  font-size: 0.7rem;
-  text-decoration: none;
 }
 
 /* Responsive */
@@ -334,20 +259,15 @@
   
   .actor-filter {
     padding: 3px 8px;
-    font-size: 0.65rem;
+    font-size: 0.6rem;
   }
   
   .actor-search {
-    width: 140px;
-    margin-left: 0;
+    width: 130px;
   }
   
   .actor-grid {
     gap: 8px;
-  }
-  
-  .actor-card {
-    padding: 0.75rem;
   }
 }
 </style>
@@ -364,7 +284,8 @@ function filterActors(btn, cat) {
 function searchActors(q) {
   q = q.toLowerCase();
   document.querySelectorAll('.actor-card').forEach(card => {
-    card.style.display = !q || card.dataset.name.includes(q) ? '' : 'none';
+    let name = card.dataset.name;
+    card.style.display = !q || name.includes(q) ? '' : 'none';
   });
 }
 </script>
