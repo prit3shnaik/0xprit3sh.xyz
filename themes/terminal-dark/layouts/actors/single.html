@@ -1,175 +1,496 @@
 {{ define "main" }}
-<div class="post-layout">
-  <div class="post-main">
-    <div class="post-eyebrow">
-      <a href="/">~/home</a> / <a href="/actors/">actors</a> / <span>{{ .File.BaseFileName }}</span>
-    </div>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root {
+  --bg: #ffffff;
+  --card: #fafafa;
+  --text: #111111;
+  --text-light: #555555;
+  --border: #e5e5e5;
+  --accent: #0a5a0a;
+  --accent-light: #e8f5e8;
+  --red: #c41e3a;
+}
 
-    <!-- Header -->
-    <div class="actor-header">
-      <div>
-        {{ with .Params.alias }}<div class="actor-alias">{{ . }}</div>{{ end }}
-        <h1 class="post-title">{{ .Title }}</h1>
-        <div class="actor-meta">
-          {{ with .Params.category }}<span class="meta-badge cat">{{ . }}</span>{{ end }}
-          {{ with .Params.threat_level }}<span class="meta-badge threat">{{ . | upper }}</span>{{ end }}
-          {{ with .Params.status }}<span class="meta-badge">{{ . }}</span>{{ end }}
-          {{ with .Params.origin }}<span class="actor-origin">📍 {{ . }}</span>{{ end }}
-        </div>
-      </div>
-      <a href="/admin/#/collections/actors/entries/{{ .File.BaseFileName }}" class="edit-btn">edit</a>
-    </div>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0d1117;
+    --card: #161b22;
+    --text: #e6edf3;
+    --text-light: #8b949e;
+    --border: #30363d;
+    --accent: #2ea043;
+    --accent-light: #1f2d1f;
+    --red: #f85149;
+  }
+}
 
-    <!-- TL;DR -->
-    {{ with .Params.tldr }}
-    <div class="tldr-box">
-      <div class="tldr-label">TL;DR</div>
-      <p>{{ . }}</p>
-    </div>
-    {{ end }}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-    <!-- Info Grid -->
-    <div class="info-grid">
-      {{ with .Params.aliases }}
-      <div class="info-card">
-        <div class="info-title">aliases</div>
-        <div class="info-tags">{{ range . }}<span>{{ . }}</span>{{ end }}</div>
-      </div>
-      {{ end }}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'SF Mono', monospace;
+  padding: 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
 
-      {{ with .Params.ttps }}
-      <div class="info-card">
-        <div class="info-title">TTPs</div>
-        <div class="info-list">{{ range . }}<span>• {{ . }}</span>{{ end }}</div>
-      </div>
-      {{ end }}
+.nav-bar {
+  display: flex;
+  gap: 1.2rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
 
-      {{ with .Params.targets }}
-      <div class="info-card">
-        <div class="info-title">targets</div>
-        <div class="info-tags">{{ range . }}<span>{{ . }}</span>{{ end }}</div>
-      </div>
-      {{ end }}
+.nav-bar a {
+  color: var(--text-light);
+  text-decoration: none;
+  font-size: 0.75rem;
+}
 
-      {{ with .Params.tools_used }}
-      <div class="info-card">
-        <div class="info-title">tools / malware</div>
-        <div class="info-tags">{{ range . }}<span>{{ . }}</span>{{ end }}</div>
-      </div>
-      {{ end }}
+.nav-bar a:hover {
+  color: var(--accent);
+}
 
-      {{ with .Params.iocs }}
-      <div class="info-card full-width">
-        <div class="info-title">known IOCs</div>
-        <div class="info-iocs">{{ range . }}<code>{{ . }}</code>{{ end }}</div>
-      </div>
-      {{ end }}
-    </div>
+.breadcrumb {
+  font-size: 0.7rem;
+  color: var(--text-light);
+  margin-bottom: 1.5rem;
+}
 
-    <!-- Main Content -->
-    <div class="post-content">{{ .Content }}</div>
+.breadcrumb a {
+  color: var(--text-light);
+  text-decoration: none;
+}
 
-    <!-- Prev/Next -->
-    <div class="post-nav">
-      {{ with .PrevInSection }}<a href="{{ .Permalink }}">← {{ .Title }}</a>{{ else }}<span></span>{{ end }}
-      {{ with .NextInSection }}<a href="{{ .Permalink }}">{{ .Title }} →</a>{{ end }}
-    </div>
-  </div>
+.breadcrumb a:hover {
+  color: var(--accent);
+}
 
-  <!-- Sidebar -->
-  <div class="post-sidebar">
-    <div class="sidebar">
-      <div class="sidebar-title">profile</div>
-      {{ with .Params.first_seen }}<div class="sidebar-row"><span>first seen</span><span>{{ . }}</span></div>{{ end }}
-      {{ with .Params.last_seen }}<div class="sidebar-row"><span>last seen</span><span>{{ . }}</span></div>{{ end }}
-      {{ with .Params.motivation }}<div class="sidebar-row"><span>motivation</span><span>{{ . }}</span></div>{{ end }}
-    </div>
+/* Actor header */
+.actor-header {
+  margin-bottom: 1.5rem;
+}
 
-    {{ with .Params.tags }}
-    <div class="sidebar">
-      <div class="sidebar-title">tags</div>
-      <div class="sidebar-tags">{{ range . }}<span>#{{ . }}</span>{{ end }}</div>
-    </div>
-    {{ end }}
+.alias {
+  font-size: 0.7rem;
+  color: var(--text-light);
+  font-family: monospace;
+  margin-bottom: 0.3rem;
+}
 
-    <div class="sidebar">
-      <div class="sidebar-title">share</div>
-      <div class="share-row">
-        <a href="https://twitter.com/intent/tweet?text={{ .Title }}&url={{ .Permalink }}" target="_blank">tweet</a>
-        <button onclick="navigator.clipboard.writeText('{{ .Permalink }}')">copy link</button>
-      </div>
-    </div>
+h1 {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.3px;
+}
+
+.meta-row {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.meta-badge {
+  font-size: 0.6rem;
+  padding: 3px 10px;
+  border-radius: 4px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.meta-badge.cat {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.meta-badge.threat {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+.origin {
+  font-size: 0.7rem;
+  color: var(--text-light);
+}
+
+.edit-btn {
+  float: right;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-light);
+  font-size: 0.65rem;
+  padding: 4px 10px;
+  border-radius: 4px;
+  text-decoration: none;
+}
+
+.edit-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-light);
+}
+
+/* TL;DR */
+.tldr {
+  background: var(--card);
+  border-left: 3px solid var(--accent);
+  padding: 0.8rem 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.tldr-label {
+  font-size: 0.6rem;
+  color: var(--accent);
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.tldr p {
+  margin: 0.3rem 0 0 0;
+  font-size: 0.85rem;
+  color: var(--text-light);
+  line-height: 1.5;
+}
+
+/* Info sections */
+.section {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.section-title {
+  font-size: 0.65rem;
+  color: var(--accent);
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.6rem;
+}
+
+.tags {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.tag {
+  font-size: 0.7rem;
+  background: var(--bg);
+  padding: 3px 8px;
+  border-radius: 4px;
+  color: var(--text-light);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.list-item {
+  font-size: 0.75rem;
+  color: var(--text-light);
+  line-height: 1.5;
+}
+
+.ioc {
+  font-size: 0.7rem;
+  font-family: monospace;
+  background: var(--bg);
+  padding: 5px 8px;
+  border-radius: 4px;
+  display: block;
+  margin-bottom: 0.3rem;
+  color: var(--accent);
+}
+
+/* Profile sidebar */
+.profile-grid {
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+@media (max-width: 700px) {
+  .profile-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+.sidebar {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  height: fit-content;
+}
+
+.sidebar-title {
+  font-size: 0.65rem;
+  color: var(--accent);
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  padding: 0.4rem 0;
+}
+
+.sidebar-row:first-of-type {
+  padding-top: 0;
+}
+
+.sidebar-label {
+  color: var(--text-light);
+}
+
+.sidebar-value {
+  color: var(--text);
+  text-align: right;
+}
+
+.tags-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.tag-cloud {
+  font-size: 0.65rem;
+  background: var(--bg);
+  padding: 3px 8px;
+  border-radius: 4px;
+  color: var(--text-light);
+}
+
+/* Content */
+.content {
+  margin: 1rem 0;
+  line-height: 1.6;
+  font-size: 0.9rem;
+  color: var(--text-light);
+}
+
+.content h2 {
+  font-size: 1.2rem;
+  color: var(--text);
+  margin: 1.2rem 0 0.6rem 0;
+}
+
+.content code {
+  background: var(--card);
+  padding: 2px 5px;
+  border-radius: 3px;
+  font-size: 0.8rem;
+}
+
+/* Footer */
+.footer {
+  margin-top: 2.5rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.7rem;
+  color: var(--text-light);
+  text-align: center;
+}
+
+.footer-links {
+  margin-top: 0.5rem;
+}
+
+.footer-links a {
+  color: var(--text-light);
+  text-decoration: none;
+  margin: 0 0.4rem;
+}
+
+.footer-links a:hover {
+  color: var(--accent);
+}
+
+.nav-links {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+}
+
+.nav-links a {
+  color: var(--text-light);
+  text-decoration: none;
+  font-size: 0.75rem;
+}
+
+.nav-links a:hover {
+  color: var(--accent);
+}
+
+.clearfix::after {
+  content: "";
+  clear: both;
+  display: table;
+}
+</style>
+</head>
+<body>
+
+<div class="nav-bar">
+  <a href="/">~/home</a>
+  <a href="/about">~/about</a>
+  <a href="/osint">~/osint</a>
+  <a href="/writeups">~/writeups</a>
+  <a href="/blog">~/blog</a>
+  <a href="/services">~/services</a>
+  <a href="/tools">~/tools</a>
+  <a href="/alerts">~/alerts</a>
+</div>
+
+<div class="breadcrumb">
+  <a href="/">~/home</a> / <a href="/actors/">actors</a> / <span>{{ .File.BaseFileName }}</span>
+</div>
+
+<div class="actor-header clearfix">
+  <a href="/admin/#/collections/actors/entries/{{ .File.BaseFileName }}" class="edit-btn">edit</a>
+  {{ with .Params.alias }}<div class="alias">{{ . }}</div>{{ end }}
+  <h1>{{ .Title }}</h1>
+  <div class="meta-row">
+    {{ with .Params.category }}<span class="meta-badge cat">{{ . }}</span>{{ end }}
+    {{ with .Params.threat_level }}<span class="meta-badge threat">{{ . | upper }}</span>{{ end }}
+    {{ with .Params.status }}<span class="meta-badge">{{ . }}</span>{{ end }}
+    {{ with .Params.origin }}<span class="origin">📍 {{ . }}</span>{{ end }}
   </div>
 </div>
 
-<style>
-.post-layout {
-  display: grid;
-  grid-template-columns: 1fr 240px;
-  gap: 2rem;
-}
+{{ with .Params.tldr }}
+<div class="tldr">
+  <div class="tldr-label">TL;DR</div>
+  <p>{{ . }}</p>
+</div>
+{{ end }}
 
-@media (max-width: 768px) {
-  .post-layout { grid-template-columns: 1fr; gap: 1.5rem; }
-}
+<div class="profile-grid">
+  <div>
+    {{ if .Params.aliases }}
+    <div class="section">
+      <div class="section-title">aliases</div>
+      <div class="tags">
+        {{ range .Params.aliases }}<span class="tag">{{ . }}</span>{{ end }}
+      </div>
+    </div>
+    {{ end }}
 
-/* Eyebrow */
-.post-eyebrow { font-size: 0.7rem; color: #666; margin-bottom: 1.5rem; }
-.post-eyebrow a { color: #666; text-decoration: none; }
-.post-eyebrow a:hover { color: #0f0; }
+    {{ if .Params.ttps }}
+    <div class="section">
+      <div class="section-title">TTPs</div>
+      <div class="list">
+        {{ range .Params.ttps }}<div class="list-item">• {{ . }}</div>{{ end }}
+      </div>
+    </div>
+    {{ end }}
 
-/* Header */
-.actor-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
-.actor-alias { font-size: 0.7rem; color: #666; margin-bottom: 4px; font-family: monospace; }
-.post-title { font-size: 1.8rem; font-weight: 700; margin: 0 0 8px 0; color: #eaeaea; }
-.actor-meta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-.meta-badge { font-size: 0.6rem; padding: 2px 8px; border-radius: 3px; background: #1a1a1a; color: #aaa; }
-.meta-badge.cat { background: rgba(0, 255, 65, 0.1); color: #0f0; }
-.meta-badge.threat { background: rgba(255, 68, 68, 0.15); color: #f44; }
-.actor-origin { font-size: 0.7rem; color: #666; }
-.edit-btn { background: none; border: 1px solid #222; color: #666; font-size: 0.7rem; padding: 4px 10px; border-radius: 4px; text-decoration: none; }
-.edit-btn:hover { border-color: #0f0; color: #0f0; }
+    {{ if .Params.targets }}
+    <div class="section">
+      <div class="section-title">targets</div>
+      <div class="tags">
+        {{ range .Params.targets }}<span class="tag">{{ . }}</span>{{ end }}
+      </div>
+    </div>
+    {{ end }}
 
-/* TL;DR */
-.tldr-box { background: #111; border-left: 3px solid #0f0; padding: 0.75rem 1rem; margin-bottom: 1.5rem; }
-.tldr-label { font-size: 0.65rem; color: #0f0; text-transform: uppercase; }
-.tldr-box p { font-size: 0.85rem; color: #aaa; margin: 4px 0 0 0; line-height: 1.5; }
+    {{ if .Params.tools_used }}
+    <div class="section">
+      <div class="section-title">tools / malware</div>
+      <div class="tags">
+        {{ range .Params.tools_used }}<span class="tag">{{ . }}</span>{{ end }}
+      </div>
+    </div>
+    {{ end }}
 
-/* Info Grid */
-.info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 1.5rem; }
-@media (max-width: 640px) { .info-grid { grid-template-columns: 1fr; } }
-.info-card { background: #111; border: 1px solid #222; border-radius: 6px; padding: 0.75rem 1rem; }
-.info-card.full-width { grid-column: 1/-1; }
-.info-title { font-size: 0.65rem; color: #0f0; margin-bottom: 8px; text-transform: uppercase; }
-.info-tags { display: flex; gap: 4px; flex-wrap: wrap; }
-.info-tags span { font-size: 0.65rem; background: #1a1a1a; padding: 2px 6px; border-radius: 3px; color: #aaa; }
-.info-list { display: flex; flex-direction: column; gap: 4px; }
-.info-list span { font-size: 0.7rem; color: #aaa; }
-.info-iocs { display: flex; flex-direction: column; gap: 4px; }
-.info-iocs code { font-size: 0.7rem; color: #f86; background: #1a1a1a; padding: 3px 6px; border-radius: 3px; word-break: break-all; }
+    {{ if .Params.iocs }}
+    <div class="section">
+      <div class="section-title">known IOCs</div>
+      {{ range .Params.iocs }}<code class="ioc">{{ . }}</code>{{ end }}
+    </div>
+    {{ end }}
 
-/* Content */
-.post-content { color: #aaa; line-height: 1.6; font-size: 0.9rem; }
-.post-content h2 { font-size: 1.2rem; color: #eaeaea; margin-top: 1.5rem; }
-.post-content code { background: #1a1a1a; padding: 2px 4px; border-radius: 3px; font-size: 0.8rem; }
+    <div class="content">
+      {{ .Content }}
+    </div>
+  </div>
 
-/* Navigation */
-.post-nav { display: flex; justify-content: space-between; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #222; }
-.post-nav a { color: #666; text-decoration: none; font-size: 0.8rem; }
-.post-nav a:hover { color: #0f0; }
+  <div>
+    <div class="sidebar">
+      <div class="sidebar-title">profile</div>
+      {{ with .Params.first_seen }}
+      <div class="sidebar-row">
+        <span class="sidebar-label">first seen</span>
+        <span class="sidebar-value">{{ . }}</span>
+      </div>
+      {{ end }}
+      {{ with .Params.last_seen }}
+      <div class="sidebar-row">
+        <span class="sidebar-label">last seen</span>
+        <span class="sidebar-value">{{ . }}</span>
+      </div>
+      {{ end }}
+      {{ with .Params.motivation }}
+      <div class="sidebar-row">
+        <span class="sidebar-label">motivation</span>
+        <span class="sidebar-value">{{ . }}</span>
+      </div>
+      {{ end }}
+    </div>
 
-/* Sidebar */
-.post-sidebar { display: flex; flex-direction: column; gap: 1rem; }
-.sidebar { background: #111; border: 1px solid #222; border-radius: 6px; padding: 0.9rem; }
-.sidebar-title { font-size: 0.65rem; color: #0f0; margin-bottom: 10px; text-transform: uppercase; }
-.sidebar-row { display: flex; justify-content: space-between; font-size: 0.7rem; padding: 5px 0; border-bottom: 1px solid #222; }
-.sidebar-row:last-child { border-bottom: none; }
-.sidebar-row span:first-child { color: #666; }
-.sidebar-row span:last-child { color: #aaa; }
-.sidebar-tags { display: flex; flex-wrap: wrap; gap: 5px; }
-.sidebar-tags span { font-size: 0.65rem; color: #aaa; }
-.share-row { display: flex; gap: 8px; }
-.share-row a, .share-row button { background: #1a1a1a; border: 1px solid #222; color: #666; font-size: 0.65rem; padding: 4px 8px; border-radius: 4px; cursor: pointer; text-decoration: none; }
-.share-row a:hover, .share-row button:hover { border-color: #0f0; color: #0f0; }
-</style>
+    {{ with .Params.tags }}
+    <div class="sidebar" style="margin-top: 1rem;">
+      <div class="sidebar-title">tags</div>
+      <div class="tags-cloud">
+        {{ range . }}<span class="tag-cloud">#{{ . }}</span>{{ end }}
+      </div>
+    </div>
+    {{ end }}
+  </div>
+</div>
+
+<div class="nav-links">
+  {{ with .PrevInSection }}<a href="{{ .Permalink }}">← {{ .Title }}</a>{{ else }}<span></span>{{ end }}
+  {{ with .NextInSection }}<a href="{{ .Permalink }}">{{ .Title }} →</a>{{ end }}
+</div>
+
+<div class="footer">
+  <div>// Pritesh S Naik — Red Team · VAPT · OSINT · Web3</div>
+  <div class="footer-links">
+    <a href="#">github</a> · <a href="#">linkedin</a> · <a href="#">twitter/x</a> · <a href="#">rss</a>
+  </div>
+</div>
+
+</body>
+</html>
 {{ end }}
