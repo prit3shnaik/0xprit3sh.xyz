@@ -1,6 +1,5 @@
 {{ define "main" }}
 {{ $home := . }}
-
 <div class="home-hero">
   <div class="hero-cell c-green">
     <div class="hero-label">operator</div>
@@ -32,7 +31,9 @@
   <div class="post-row">
     <span class="post-section-badge badge-{{ .Section }}">{{ .Section }}</span>
     <a href="{{ .Permalink }}" class="post-row-title">{{ .Title }}</a>
-    {{ with index .Params.tags 0 }}<span class="post-row-tag">{{ . }}</span>{{ end }}
+    <span class="post-row-tags">
+      {{ range first 3 .Params.tags }}<span class="post-row-tag">{{ . }}</span>{{ end }}
+    </span>
     <span class="post-row-date">{{ .Date.Format "2006-01-02" }}</span>
   </div>
   {{ end }}
@@ -55,5 +56,62 @@
     <div><span style="color: var(--accent2)">tools     </span><span style="color: var(--text2)"> Python · Bash · JS · Solidity</span></div>
   </div>
 </div>
+
+<style>
+/* ── section badge base ── */
+.post-section-badge {
+  font-size: .6rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 3px;
+  border: 1px solid transparent;
+  flex-shrink: 0;
+  font-family: var(--font);
+  text-transform: lowercase;
+  letter-spacing: .03em;
+}
+
+/* ── per-section colors ── */
+.badge-alerts {
+  background: rgba(255,68,68,.12);
+  color: var(--red);
+  border-color: rgba(255,68,68,.25);
+}
+.badge-blog {
+  background: rgba(188,140,255,.12);
+  color: var(--purple);
+  border-color: rgba(188,140,255,.25);
+}
+.badge-actors {
+  background: rgba(240,136,62,.12);
+  color: var(--orange);
+  border-color: rgba(240,136,62,.25);
+}
+.badge-osint {
+  background: rgba(0,212,255,.1);
+  color: var(--accent2);
+  border-color: rgba(0,212,255,.2);
+}
+.badge-writeups {
+  background: rgba(232,197,71,.1);
+  color: var(--yellow);
+  border-color: rgba(232,197,71,.25);
+}
+.badge-tools {
+  background: rgba(0,255,65,.08);
+  color: var(--accent);
+  border-color: rgba(0,255,65,.2);
+}
+
+/* ── tags row ── */
+.post-row-tags {
+  display: flex;
+  gap: 4px;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  flex: 1;
+  min-width: 0;
+}
+</style>
 
 {{ end }}
