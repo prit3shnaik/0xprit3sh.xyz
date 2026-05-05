@@ -74,12 +74,12 @@
   <div class="post-sidebar">
     <div class="sidebar-box">
       <div class="sidebar-box-title">// actor profile</div>
-      {{ with .Params.origin }}<div class="contact-item"><span class="k">origin</span><span>{{ . }}</span></div>{{ end }}
-      {{ with .Params.threat_level }}<div class="contact-item"><span class="k">threat</span><span class="actor-threat threat-{{ . | lower }}">{{ . | upper }}</span></div>{{ end }}
-      {{ with .Params.status }}<div class="contact-item"><span class="k">status</span><span class="actor-status status-{{ . | lower }}">{{ . }}</span></div>{{ end }}
-      {{ with .Params.first_seen }}<div class="contact-item"><span class="k">first seen</span><span>{{ . }}</span></div>{{ end }}
-      {{ with .Params.last_seen }}<div class="contact-item"><span class="k">last seen</span><span>{{ . }}</span></div>{{ end }}
-      {{ with .Params.motivation }}<div class="contact-item"><span class="k">motivation</span><span>{{ . }}</span></div>{{ end }}
+      {{ with .Params.origin }}<div class="contact-item"><span class="k" style="min-width:72px;flex-shrink:0">origin</span><span>{{ . }}</span></div>{{ end }}
+      {{ with .Params.threat_level }}<div class="contact-item"><span class="k" style="min-width:72px;flex-shrink:0">threat</span><span class="actor-threat threat-{{ . | lower }}">{{ . | upper }}</span></div>{{ end }}
+      {{ with .Params.status }}<div class="contact-item"><span class="k" style="min-width:72px;flex-shrink:0">status</span><span class="actor-status status-{{ . | lower }}">{{ . }}</span></div>{{ end }}
+      {{ with .Params.first_seen }}<div class="contact-item"><span class="k" style="min-width:72px;flex-shrink:0">first seen</span><span>{{ . }}</span></div>{{ end }}
+      {{ with .Params.last_seen }}<div class="contact-item"><span class="k" style="min-width:72px;flex-shrink:0">last seen</span><span>{{ . }}</span></div>{{ end }}
+      {{ with .Params.motivation }}<div class="contact-item"><span class="k" style="min-width:72px;flex-shrink:0">motivation</span><span>{{ . }}</span></div>{{ end }}
     </div>
 
     {{ with .Params.tags }}
