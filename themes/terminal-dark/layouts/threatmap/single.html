@@ -155,15 +155,19 @@ window.ACTOR_DATA = [
 <style>
 /* ── PAGE ── */
 #tm-page{
-  display:flex;flex-direction:column;
-  height:calc(100vh - 52px);
-  position:fixed;
-  top:52px;left:0;right:0;bottom:0;
-  z-index:100;
-  overflow:hidden;
-  background:#080b10;
+  display:flex;
+  flex-direction:column;
+  /* Break out of Hugo content wrapper completely */
+  width: 100vw;
+  height: calc(100vh - var(--nav-h, 48px));
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  margin-top: -1rem;
+  overflow: hidden;
+  background: #080b10;
+  position: relative;
 }
-.tm-page{display:flex;flex-direction:column;height:calc(100vh - 52px);margin:-1rem -1rem 0;overflow:hidden;background:#080b10}
+.tm-page{display:flex;flex-direction:column;height:calc(100vh - 48px);margin:-1rem -1rem 0;overflow:hidden;background:#080b10}
 
 /* ── HUD ── */
 .tm-hud-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:.45rem .85rem;background:#0a0d14;border-bottom:1px solid rgba(0,255,65,.15);flex-shrink:0;flex-wrap:wrap}
@@ -299,13 +303,14 @@ window.ACTOR_DATA = [
 .leaflet-control-attribution{display:none !important}
 
 /* ── FULL BLEED FIX ── */
-/* Push Hugo's main content wrapper out of the way */
-body:has(#tm-page) > *:not(nav):not(header) { overflow: hidden; }
+/* Nuclear option: override every possible Hugo wrapper */
+body:has(#tm-page) { overflow: hidden !important; }
+body:has(#tm-page) main { padding: 0 !important; max-width: 100vw !important; overflow: visible !important; }
+body:has(#tm-page) .site-content,
 body:has(#tm-page) .site-main,
-body:has(#tm-page) main,
-body:has(#tm-page) .content,
-body:has(#tm-page) .container,
-body:has(#tm-page) .wrapper { padding: 0 !important; margin: 0 !important; max-width: none !important; overflow: visible !important; }
+body:has(#tm-page) .content-wrap,
+body:has(#tm-page) .post-wrap,
+body:has(#tm-page) article { padding: 0 !important; margin: 0 !important; max-width: 100vw !important; overflow: visible !important; }
 
 /* ── MARKER PULSE ── */
 @keyframes mk-pulse{0%{transform:scale(1);opacity:.5}50%{transform:scale(2.4);opacity:0}100%{transform:scale(1);opacity:.5}}
@@ -391,15 +396,30 @@ function parseYear(str) {
 // ── Stats ────────────────────────────────────────────────────
 function updateStats() {
   const c={critical:0,high:0,medium:0,low:0};
-  window.ACTOR_DATA.forEach(a=>{const t=(a.threat||'medium').toLowerCase();if(c[t]!==undefined)c[t]++;});
+  window.ACTOR_DATA.forEach(a=>{
+    const t=(a.threat||'medium').toLowerCase().trim();
+    if(c[t]!==undefined) c[t]++;
+  });
   document.getElementById('n-critical').textContent=c.critical;
   document.getElementById('n-high').textContent=c.high;
   document.getElementById('n-medium').textContent=c.medium;
   document.getElementById('n-low').textContent=c.low;
+  // Also update stat colors - highlight non-zero counts
+  ['critical','high','medium','low'].forEach(function(lvl){
+    const el=document.getElementById('n-'+lvl);
+    if(el) el.style.color = c[lvl]>0 ? '#fff' : 'rgba(255,255,255,0.3)';
+  });
 }
 
 // ── INIT ─────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
+  // Detect actual nav height and set CSS variable
+  const nav = document.querySelector('nav, header, .site-header, .nav-wrap, #site-nav');
+  if (nav) {
+    const navH = nav.offsetHeight;
+    document.getElementById('tm-page').style.height = 'calc(100vh - ' + navH + 'px)';
+    document.getElementById('tm-page').style.marginTop = '-1rem';
+  }
   updateStats();
   // Re-run after short delay to ensure data ready
   setTimeout(updateStats, 100);
@@ -513,13 +533,33 @@ function highlightCountry(origin) {
   activeHighlight = null;
   if (!origin) return;
   const o = origin.toLowerCase();
+
+  // Build a scored match — pick the BEST match only
+  let bestLayer = null, bestScore = 0;
   geoLayer.eachLayer(function(layer){
-    const name=(layer.feature.properties.ADMIN||layer.feature.properties.name||'').toLowerCase();
-    if(o.includes(name)||name.split(' ').some(w=>w.length>3&&o.includes(w))){
-      layer.setStyle({fillColor:'rgba(0,255,65,.12)',fillOpacity:1,weight:1.5,color:'rgba(0,255,65,.5)'});
-      activeHighlight=layer;
-    }
+    const props = layer.feature.properties;
+    const name = (props.ADMIN || props.name || '').toLowerCase();
+    const iso = (props.ISO_A2 || props.iso_a2 || '').toLowerCase();
+    let score = 0;
+
+    // Exact full match = highest score
+    if (o === name) score = 100;
+    // Origin starts with country name
+    else if (o.startsWith(name)) score = 80;
+    // Country name appears as whole word in origin
+    else if (new RegExp('\\b' + name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '\\b').test(o)) score = 60;
+    // ISO code match (e.g. "kp" for North Korea)  
+    else if (iso && o.includes(iso) && iso.length === 2) score = 70;
+    // Partial but only for longer names (avoid "india" matching "indian ocean" etc)
+    else if (name.length > 5 && o.includes(name)) score = 40;
+
+    if (score > bestScore) { bestScore = score; bestLayer = layer; }
   });
+
+  if (bestLayer && bestScore >= 40) {
+    bestLayer.setStyle({fillColor:'rgba(0,255,65,.14)',fillOpacity:1,weight:1.5,color:'rgba(0,255,65,.55)'});
+    activeHighlight = bestLayer;
+  }
 }
 
 // ── ARC LINES ────────────────────────────────────────────────
