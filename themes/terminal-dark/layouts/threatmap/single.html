@@ -32,6 +32,11 @@ window.ACTOR_DATA = [{{ range $actors }}{
       <span id="ti-live"><span id="ti-pulse"></span>LIVE</span>
       <span id="ti-title">THREAT INTELLIGENCE</span>
     </div>
+    <div id="ti-bar-c">
+      <span class="kb-hint">↑↓ Navigate</span>
+      <span class="kb-hint">F Fly</span>
+      <span class="kb-hint">ESC Close</span>
+    </div>
     <div id="ti-bar-r">
       <div class="ti-stat"><span class="ti-sd critical"></span><b id="n-c">0</b> CRIT</div>
       <div class="ti-stat"><span class="ti-sd high"></span><b id="n-h">0</b> HIGH</div>
@@ -49,11 +54,19 @@ window.ACTOR_DATA = [{{ range $actors }}{
     <!-- MAP -->
     <div id="map-panel">
       <div id="map"></div>
+      
+      <!-- Scan Line -->
+      <div id="scan-line"></div>
+      
+      <!-- Scan Origin Indicator -->
+      <div id="scan-origin"></div>
+      
       <div id="map-overlay">
         <div class="go-corner tl"></div><div class="go-corner tr"></div>
         <div class="go-corner bl"></div><div class="go-corner br"></div>
-        <div id="go-label">THREAT MAP — INTERACTIVE</div>
+        <div id="go-label">THREAT MAP — SURVEILLANCE MODE</div>
         <div id="go-coords"></div>
+        <div id="go-selected"></div>
       </div>
     </div>
 
@@ -99,9 +112,9 @@ window.ACTOR_DATA = [{{ range $actors }}{
   <div id="ti-status">
     <span class="sb-item">SCROLL: zoom</span>
     <span class="sb-sep">·</span>
-    <span class="sb-item">DRAG: pan</span>
+    <span class="sb-item">CLICK MARKER: select</span>
     <span class="sb-sep">·</span>
-    <span class="sb-item">CLICK MARKER: select actor</span>
+    <span class="sb-item">CLICK MAP: deselect</span>
     <span class="sb-sep" style="margin-left:auto">·</span>
     <span class="sb-item">
       <span class="ti-sd critical" style="display:inline-block"></span> Critical &nbsp;
@@ -141,6 +154,11 @@ window.ACTOR_DATA = [{{ range $actors }}{
   flex-shrink: 0;
 }
 #ti-bar-l { display:flex; align-items:center; gap:10px; }
+#ti-bar-c { display:flex; align-items:center; gap:8px; margin-left:auto; }
+.kb-hint {
+  font-size:.45rem; color:rgba(0,220,90,.25); 
+  padding:1px 5px; border:1px solid rgba(0,220,90,.1); border-radius:2px;
+}
 #ti-live { display:flex; align-items:center; gap:5px; font-size:.54rem; color:#00dc5a; letter-spacing:.14em; }
 #ti-pulse { width:5px; height:5px; border-radius:50%; background:#00dc5a; animation:tp 1.4s infinite; }
 @keyframes tp{0%,100%{box-shadow:0 0 0 0 rgba(0,220,90,.6)}60%{box-shadow:0 0 0 6px rgba(0,220,90,0)}}
@@ -168,17 +186,75 @@ window.ACTOR_DATA = [{{ range $actors }}{
 
 /* ── MAP ── */
 #map-panel { flex:1; position:relative; overflow:hidden; }
-#map { position:absolute; inset:0; z-index:1; background:#04060e !important; }
+#map { position:absolute; inset:0; z-index:1; background:#04060e !important; cursor:crosshair !important; }
 
-/* Force Leaflet dark theme overrides */
-.leaflet-container { background:#04060e !important; }
-.leaflet-control-zoom { border:1px solid rgba(0,220,90,.2) !important; }
+/* Force Leaflet dark theme */
+.leaflet-container { background:#04060e !important; cursor:crosshair !important; }
+.leaflet-control-zoom { border:1px solid rgba(0,220,90,.15) !important; }
 .leaflet-control-zoom a {
   background:#060810 !important; color:#00dc5a !important;
-  border-color:rgba(0,220,90,.2) !important; font-size:14px !important;
+  border-color:rgba(0,220,90,.15) !important; font-size:14px !important;
+  width:28px !important; height:28px !important; line-height:28px !important;
 }
 .leaflet-control-zoom a:hover { background:rgba(0,220,90,.1) !important; }
 .leaflet-control-attribution { display:none !important; }
+.leaflet-tooltip.leaflet-tooltip-top:before,
+.leaflet-tooltip.leaflet-tooltip-bottom:before,
+.leaflet-tooltip.leaflet-tooltip-left:before,
+.leaflet-tooltip.leaflet-tooltip-right:before { display:none; }
+
+/* Country label styling override */
+.leaflet-tile-pane { filter: saturate(0.3) brightness(0.7); }
+
+/* ── SCAN LINE ── */
+#scan-line {
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(0,220,90,0.05) 10%,
+    rgba(0,220,90,0.15) 40%,
+    rgba(0,220,90,0.4) 50%,
+    rgba(0,220,90,0.15) 60%,
+    rgba(0,220,90,0.05) 90%,
+    transparent 100%
+  );
+  z-index: 400;
+  pointer-events: none;
+  animation: scanSweep 6s linear infinite;
+  box-shadow: 0 0 20px rgba(0,220,90,0.15), 0 0 60px rgba(0,220,90,0.05);
+}
+#scan-line::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  top: 0; bottom: -80px;
+  background: linear-gradient(180deg, rgba(0,220,90,0.06) 0%, transparent 100%);
+}
+@keyframes scanSweep {
+  0% { top: -2px; }
+  100% { top: 100%; }
+}
+
+#scan-origin {
+  position: absolute;
+  bottom: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #00dc5a;
+  box-shadow: 0 0 10px #00dc5a, 0 0 30px rgba(0,220,90,0.3);
+  z-index: 400;
+  pointer-events: none;
+  animation: scanPulse 6s ease-in-out infinite;
+}
+@keyframes scanPulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
 
 /* ── MAP OVERLAY ── */
 #map-overlay {
@@ -189,24 +265,25 @@ window.ACTOR_DATA = [{{ range $actors }}{
 .go-corner.tr{top:12px;right:12px;border-top:1px solid rgba(0,220,90,.4);border-right:1px solid rgba(0,220,90,.4)}
 .go-corner.bl{bottom:12px;left:12px;border-bottom:1px solid rgba(0,220,90,.4);border-left:1px solid rgba(0,220,90,.4)}
 .go-corner.br{bottom:12px;right:12px;border-bottom:1px solid rgba(0,220,90,.4);border-right:1px solid rgba(0,220,90,.4)}
-#go-label { position:absolute; top:16px; left:50%; transform:translateX(-50%); font-size:.5rem; color:rgba(0,220,90,.4); letter-spacing:.14em; }
+#go-label { position:absolute; top:16px; left:50%; transform:translateX(-50%); font-size:.5rem; color:rgba(0,220,90,.4); letter-spacing:.14em; white-space:nowrap; }
 #go-coords { position:absolute; bottom:16px; right:16px; font-size:.48rem; color:rgba(255,255,255,.2); letter-spacing:.06em; }
+#go-selected { position:absolute; bottom:16px; left:16px; font-size:.48rem; color:rgba(0,220,90,.35); letter-spacing:.06em; max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
 /* ── MARKERS ── */
 .threat-marker {
   position: relative;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
+  width: 14px;
+  height: 14px;
   cursor: pointer;
-  transition: transform .15s;
+  transition: transform .2s ease;
 }
-.threat-marker:hover { transform: scale(1.5); }
+.threat-marker:hover { transform: scale(1.6); }
 .marker-core {
   position: absolute;
   inset: 2px;
   border-radius: 50%;
   z-index: 2;
+  transition: all .3s ease;
 }
 .marker-ring {
   position: absolute;
@@ -214,7 +291,7 @@ window.ACTOR_DATA = [{{ range $actors }}{
   border-radius: 50%;
   border: 1px solid;
   opacity: 0.6;
-  animation: markerPulse 2s ease-out infinite;
+  animation: markerPulse 2.5s ease-out infinite;
 }
 .marker-ring-2 {
   position: absolute;
@@ -222,41 +299,72 @@ window.ACTOR_DATA = [{{ range $actors }}{
   border-radius: 50%;
   border: 1px solid;
   opacity: 0.3;
-  animation: markerPulse 2s ease-out infinite 0.5s;
+  animation: markerPulse 2.5s ease-out infinite 0.8s;
+}
+.marker-glow {
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  opacity: 0.15;
+  filter: blur(4px);
+  transition: all .3s ease;
 }
 @keyframes markerPulse {
   0% { transform: scale(0.8); opacity: 0.6; }
-  100% { transform: scale(2); opacity: 0; }
+  100% { transform: scale(2.2); opacity: 0; }
 }
 
 /* Marker colors */
 .marker-critical .marker-core { background:#ff2244; box-shadow: 0 0 8px #ff2244; }
-.marker-critical .marker-ring,
-.marker-critical .marker-ring-2 { border-color:#ff2244; }
+.marker-critical .marker-ring, .marker-critical .marker-ring-2 { border-color:#ff2244; }
+.marker-critical .marker-glow { background:#ff2244; }
 
 .marker-high .marker-core { background:#ff6820; box-shadow: 0 0 8px #ff6820; }
-.marker-high .marker-ring,
-.marker-high .marker-ring-2 { border-color:#ff6820; }
+.marker-high .marker-ring, .marker-high .marker-ring-2 { border-color:#ff6820; }
+.marker-high .marker-glow { background:#ff6820; }
 
 .marker-medium .marker-core { background:#f0b830; box-shadow: 0 0 6px #f0b830; }
-.marker-medium .marker-ring,
-.marker-medium .marker-ring-2 { border-color:#f0b830; }
+.marker-medium .marker-ring, .marker-medium .marker-ring-2 { border-color:#f0b830; }
+.marker-medium .marker-glow { background:#f0b830; }
 
 .marker-low .marker-core { background:#00dc5a; box-shadow: 0 0 6px #00dc5a; }
-.marker-low .marker-ring,
-.marker-low .marker-ring-2 { border-color:#00dc5a; }
+.marker-low .marker-ring, .marker-low .marker-ring-2 { border-color:#00dc5a; }
+.marker-low .marker-glow { background:#00dc5a; }
 
 /* Selected state */
-.marker-selected .marker-core { box-shadow: 0 0 16px 4px currentColor !important; }
+.marker-selected { transform: scale(1.4) !important; }
+.marker-selected .marker-core { 
+  box-shadow: 0 0 20px 6px currentColor !important; 
+}
+.marker-selected .marker-glow {
+  inset: -16px;
+  opacity: 0.35;
+  filter: blur(8px);
+}
 .marker-selected .marker-ring { animation-duration: 1s; }
 
+/* Dimmed state (when another is selected) */
+.marker-dimmed { opacity: 0.15; transition: opacity .3s ease; }
+.marker-dimmed:hover { opacity: 0.5; }
+
 /* ── ARCS ── */
-.leaflet-overlay-pane svg path.threat-arc {
+.threat-arc {
   stroke-dasharray: 8, 12;
   animation: dashMove 1.5s linear infinite;
+  transition: opacity .4s ease;
 }
-@keyframes dashMove {
-  to { stroke-dashoffset: -40; }
+.arc-dimmed { opacity: 0.05 !important; }
+.arc-highlight { opacity: 0.7 !important; stroke-width: 2 !important; }
+@keyframes dashMove { to { stroke-dashoffset: -40; } }
+
+/* ── HOTSPOTS ── */
+.hotspot {
+  pointer-events: none;
+  animation: hotspotPulse 3s ease-in-out infinite;
+}
+@keyframes hotspotPulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.6; }
 }
 
 /* ── TOOLTIP ── */
@@ -267,18 +375,15 @@ window.ACTOR_DATA = [{{ range $actors }}{
   color: #c0cce0 !important;
   font-family: 'JetBrains Mono', monospace !important;
   font-size: 11px !important;
-  padding: 8px 10px !important;
-  box-shadow: 0 0 24px rgba(0,220,90,.15) !important;
-  min-width: 160px;
+  padding: 10px 12px !important;
+  box-shadow: 0 0 30px rgba(0,220,90,.2) !important;
+  min-width: 180px;
 }
-.threat-tooltip .leaflet-tooltip-tip {
-  border-right-color: #00dc5a !important;
-}
-.tt-name { font-weight:700; font-size:12px; margin-bottom:4px; }
-.tt-row { display:flex; gap:6px; margin-bottom:2px; }
-.tt-k { color:rgba(0,220,90,.45); width:42px; flex-shrink:0; }
-.tt-v { color:rgba(255,255,255,.55); }
-.tt-hint { color:#00dc5a; font-size:9px; margin-top:6px; letter-spacing:.06em; }
+.tt-name { font-weight:700; font-size:12px; margin-bottom:6px; letter-spacing:.02em; }
+.tt-row { display:flex; gap:6px; margin-bottom:3px; }
+.tt-k { color:rgba(0,220,90,.45); width:48px; flex-shrink:0; font-size:10px; }
+.tt-v { color:rgba(255,255,255,.6); font-size:10px; }
+.tt-hint { color:#00dc5a; font-size:9px; margin-top:8px; letter-spacing:.06em; border-top:1px solid rgba(0,220,90,.1); padding-top:6px; }
 
 /* ── SIDEBAR ── */
 #ti-side {
@@ -322,11 +427,13 @@ window.ACTOR_DATA = [{{ range $actors }}{
 .a-row {
   padding:.5rem .8rem;
   border-bottom:1px solid rgba(255,255,255,.04);
-  cursor:pointer; transition:all .15s;
+  cursor:pointer; transition:all .2s ease;
   border-left:2px solid transparent;
 }
 .a-row:hover { background:rgba(0,220,90,.04); }
 .a-row.sel { background:rgba(0,220,90,.09); border-left-color:#00dc5a; }
+.a-row.dimmed { opacity:0.25; }
+.a-row.dimmed:hover { opacity:0.5; }
 .a-row.hidden { display:none; }
 .a-row-top { display:flex; align-items:center; gap:7px; margin-bottom:2px; }
 .a-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
@@ -372,6 +479,7 @@ window.ACTOR_DATA = [{{ range $actors }}{
 @media (max-width: 768px) {
   #ti-side { width:220px; }
   .ti-stat:nth-child(n+3) { display:none; }
+  #ti-bar-c { display:none; }
 }
 </style>
 
@@ -413,6 +521,10 @@ const TARGET_COORDS = {
   "critical infrastructure":[38.89,-77.03],"military":[38.89,-77.03],
   "intellectual property":[37.38,-122.08],"technology":[37.38,-122.08],
   "financial":[40.71,-74.01],"banking":[51.5,-0.12],
+  "manufacturing":[42.36,-83.05],"retail":[40.71,-74.01],
+  "pharmaceutical":[40.71,-74.01],"insurance":[40.71,-74.01],
+  "research":[40.0,-74.0],"universities":[42.36,-71.06],
+  "e-commerce":[37.38,-122.08],
 };
 const TCOL = { critical:'#ff2244', high:'#ff6820', medium:'#f0b830', low:'#00dc5a' };
 const CCOL = {
@@ -441,8 +553,9 @@ function getTCoords(t) {
 // ══════════════════════════════════════════════════
 //  STATE
 // ══════════════════════════════════════════════════
-let map, selectedSlug = null;
-let markers = {}, arcs = [];
+let map, selectedSlug = null, currentFilter = 'all';
+let markersMap = {}, arcLayers = [], hotspotLayers = [];
+let actorSlugs = [];
 
 // ══════════════════════════════════════════════════
 //  INIT
@@ -452,6 +565,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (nav) document.getElementById('ti-root').style.top = nav.offsetHeight+'px';
 
   calcStats();
+  actorSlugs = window.ACTOR_DATA.map(a=>a.slug);
   document.getElementById('actor-count').textContent = '('+window.ACTOR_DATA.length+')';
 
   setInterval(function(){
@@ -460,6 +574,7 @@ document.addEventListener('DOMContentLoaded', function() {
   },1000);
 
   initMap();
+  initKeyboard();
 });
 
 // ══════════════════════════════════════════════════
@@ -467,20 +582,57 @@ document.addEventListener('DOMContentLoaded', function() {
 // ══════════════════════════════════════════════════
 function initMap() {
   map = L.map('map', {
-    center: [25, 40],
+    center: [25, 50],
     zoom: 2,
     minZoom: 2,
-    maxZoom: 8,
+    maxZoom: 6,
     zoomControl: true,
     attributionControl: false,
+    dragging: false,       // Fixed map
+    touchZoom: true,       // Allow pinch zoom
+    scrollWheelZoom: true, // Allow scroll zoom
+    doubleClickZoom: false,
+    boxZoom: false,
+    keyboard: false,
     worldCopyJump: true
   });
 
-  // Dark map tiles
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
+  // Dark map with labels
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
     subdomains: 'abcd',
     maxZoom: 19
   }).addTo(map);
+
+  // Collect target counts for hotspots
+  const targetCounts = {};
+  window.ACTOR_DATA.forEach(function(actor) {
+    (actor.targets||[]).forEach(function(target) {
+      const tc = getTCoords(target);
+      if (!tc) return;
+      const key = tc[0].toFixed(1) + ',' + tc[1].toFixed(1);
+      targetCounts[key] = (targetCounts[key]||0) + 1;
+    });
+  });
+
+  // Create hotspots
+  Object.entries(targetCounts).forEach(function([key, count]) {
+    if (count < 2) return;
+    const [lat, lng] = key.split(',').map(Number);
+    const radius = 200000 + (count * 150000);
+    const opacity = Math.min(0.15 + count * 0.05, 0.4);
+    
+    const hotspot = L.circle([lat, lng], {
+      radius: radius,
+      color: '#ff2244',
+      fillColor: '#ff2244',
+      fillOpacity: opacity,
+      weight: 0,
+      className: 'hotspot',
+      interactive: false
+    }).addTo(map);
+    
+    hotspotLayers.push(hotspot);
+  });
 
   // Add actors
   window.ACTOR_DATA.forEach(function(actor) {
@@ -488,38 +640,38 @@ function initMap() {
     const t = (actor.threat||'medium').toLowerCase();
     const col = TCOL[t] || TCOL.medium;
 
-    // Create custom marker
     const icon = L.divIcon({
       className: 'threat-marker marker-' + t,
-      html: '<div class="marker-core"></div><div class="marker-ring"></div><div class="marker-ring-2"></div>',
-      iconSize: [12, 12],
-      iconAnchor: [6, 6]
+      html: '<div class="marker-glow"></div><div class="marker-core"></div><div class="marker-ring"></div><div class="marker-ring-2"></div>',
+      iconSize: [14, 14],
+      iconAnchor: [7, 7]
     });
 
     const marker = L.marker([c[0], c[1]], { icon: icon }).addTo(map);
 
-    // Tooltip
     const tooltipContent = `
       <div class="tt-name" style="color:${col}">${actor.title}</div>
       <div class="tt-row"><span class="tt-k">origin</span><span class="tt-v">${actor.origin||'?'}</span></div>
       <div class="tt-row"><span class="tt-k">threat</span><span class="tt-v" style="color:${col}">${(actor.threat||'').toUpperCase()}</span></div>
       <div class="tt-row"><span class="tt-k">status</span><span class="tt-v">${actor.status||'?'}</span></div>
-      ${actor.tldr ? `<div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:6px;line-height:1.4">${actor.tldr.substring(0,80)}${actor.tldr.length>80?'…':''}</div>` : ''}
+      ${actor.targets?.length ? `<div class="tt-row"><span class="tt-k">targets</span><span class="tt-v">${actor.targets.length} sectors</span></div>` : ''}
+      ${actor.tldr ? `<div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:6px;line-height:1.4">${actor.tldr.substring(0,70)}${actor.tldr.length>70?'…':''}</div>` : ''}
       <div class="tt-hint">click for profile →</div>
     `;
 
     marker.bindTooltip(tooltipContent, {
       className: 'threat-tooltip',
       direction: 'right',
-      offset: [10, 0],
+      offset: [12, 0],
       opacity: 1
     });
 
-    marker.on('click', function() {
+    marker.on('click', function(e) {
+      L.DomEvent.stopPropagation(e);
       selectActor(actor.slug);
     });
 
-    markers[actor.slug] = { marker, actor, threat: t, color: col };
+    markersMap[actor.slug] = { marker, actor, threat: t, color: col, arcs: [] };
   });
 
   // Add arcs
@@ -534,28 +686,34 @@ function initMap() {
       const t = (actor.threat||'medium').toLowerCase();
       const col = TCOL[t] || TCOL.medium;
 
-      // Create curved path
       const points = [];
       const steps = 30;
       for (let i = 0; i <= steps; i++) {
         const frac = i / steps;
         const lat = src[0] + (tc[0] - src[0]) * frac;
         const lng = src[1] + (tc[1] - src[1]) * frac;
-        // Add arc bulge
-        const bulge = Math.sin(frac * Math.PI) * 15;
-        points.push([lat + bulge * 0.5, lng]);
+        const bulge = Math.sin(frac * Math.PI) * 12;
+        points.push([lat + bulge * 0.4, lng]);
       }
 
       const arc = L.polyline(points, {
         color: col,
-        weight: 1.2,
-        opacity: 0.35,
+        weight: 1,
+        opacity: 0.25,
         className: 'threat-arc',
-        dashArray: '8, 12'
+        interactive: false
       }).addTo(map);
 
-      arcs.push(arc);
+      arcLayers.push(arc);
+      if (markersMap[actor.slug]) {
+        markersMap[actor.slug].arcs.push(arc);
+      }
     });
+  });
+
+  // Click map to deselect
+  map.on('click', function() {
+    if (selectedSlug) closeDetail();
   });
 
   // Mouse coordinate display
@@ -564,15 +722,61 @@ function initMap() {
       'LAT ' + e.latlng.lat.toFixed(2) + ' · LNG ' + e.latlng.lng.toFixed(2);
   });
 
-  // Fix map size after render
   setTimeout(function() { map.invalidateSize(); }, 200);
   window.addEventListener('resize', function() { map.invalidateSize(); });
+}
+
+// ══════════════════════════════════════════════════
+//  KEYBOARD SHORTCUTS
+// ══════════════════════════════════════════════════
+function initKeyboard() {
+  document.addEventListener('keydown', function(e) {
+    // Don't trigger if typing in input
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      if (selectedSlug) closeDetail();
+    }
+    else if (e.key === 'f' || e.key === 'F') {
+      e.preventDefault();
+      if (selectedSlug) {
+        const actor = window.ACTOR_DATA.find(a=>a.slug===selectedSlug);
+        if (actor) {
+          const c = getCoords(actor.origin);
+          map.flyTo([c[0], c[1]], 4, { duration: 1.2 });
+        }
+      }
+    }
+    else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      navigateActor(1);
+    }
+    else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      navigateActor(-1);
+    }
+  });
+}
+
+function navigateActor(direction) {
+  let currentIndex = -1;
+  if (selectedSlug) {
+    currentIndex = actorSlugs.indexOf(selectedSlug);
+  }
+  
+  let newIndex = currentIndex + direction;
+  if (newIndex < 0) newIndex = actorSlugs.length - 1;
+  if (newIndex >= actorSlugs.length) newIndex = 0;
+  
+  selectActor(actorSlugs[newIndex]);
 }
 
 // ══════════════════════════════════════════════════
 //  FILTER
 // ══════════════════════════════════════════════════
 function filterActors(filter, btn) {
+  currentFilter = filter;
   document.querySelectorAll('.af-btn').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
 
@@ -586,8 +790,7 @@ function filterActors(filter, btn) {
     row.classList.toggle('hidden', !show);
   });
 
-  // Show/hide map markers
-  Object.values(markers).forEach(function(m) {
+  Object.values(markersMap).forEach(function(m) {
     const threat = m.threat;
     const status = m.actor.status;
     let show = true;
@@ -596,6 +799,74 @@ function filterActors(filter, btn) {
     else if (filter==='active') show = status==='active';
     if (show) { if (!map.hasLayer(m.marker)) map.addLayer(m.marker); }
     else { if (map.hasLayer(m.marker)) map.removeLayer(m.marker); }
+  });
+}
+
+// ══════════════════════════════════════════════════
+//  VISUAL STATES (Dim/Highlight)
+// ══════════════════════════════════════════════════
+function setVisualFocus(focusSlug) {
+  if (!focusSlug) {
+    // Reset all to normal
+    Object.values(markersMap).forEach(function(m) {
+      const el = m.marker.getElement();
+      if (el) {
+        el.classList.remove('marker-selected', 'marker-dimmed');
+      }
+      m.arcs.forEach(function(arc) {
+        const path = arc.getElement();
+        if (path) path.classList.remove('arc-dimmed', 'arc-highlight');
+        arc.setStyle({ opacity: 0.25 });
+      });
+    });
+    document.querySelectorAll('.a-row:not(.hidden)').forEach(function(r) {
+      r.classList.remove('dimmed');
+    });
+    hotspotLayers.forEach(function(h) {
+      h.setStyle({ fillOpacity: h.options._baseOpacity || 0.15 });
+    });
+    return;
+  }
+
+  // Dim everything, highlight selected
+  Object.entries(markersMap).forEach(function([slug, m]) {
+    const el = m.marker.getElement();
+    if (!el) return;
+    
+    if (slug === focusSlug) {
+      el.classList.add('marker-selected');
+      el.classList.remove('marker-dimmed');
+      m.arcs.forEach(function(arc) {
+        const path = arc.getElement();
+        if (path) path.classList.add('arc-highlight');
+        if (path) path.classList.remove('arc-dimmed');
+        arc.setStyle({ opacity: 0.7, weight: 2 });
+      });
+    } else {
+      el.classList.remove('marker-selected');
+      el.classList.add('marker-dimmed');
+      m.arcs.forEach(function(arc) {
+        const path = arc.getElement();
+        if (path) path.classList.add('arc-dimmed');
+        if (path) path.classList.remove('arc-highlight');
+        arc.setStyle({ opacity: 0.04 });
+      });
+    }
+  });
+
+  // Dim sidebar rows
+  document.querySelectorAll('.a-row:not(.hidden)').forEach(function(r) {
+    if (r.dataset.slug === focusSlug) {
+      r.classList.remove('dimmed');
+    } else {
+      r.classList.add('dimmed');
+    }
+  });
+
+  // Dim hotspots
+  hotspotLayers.forEach(function(h) {
+    if (!h.options._baseOpacity) h.options._baseOpacity = h.options.fillOpacity;
+    h.setStyle({ fillOpacity: h.options._baseOpacity * 0.3 });
   });
 }
 
@@ -612,11 +883,11 @@ function selectActor(slug) {
   const row = document.querySelector(`.a-row[data-slug="${slug}"]`);
   if (row) { row.classList.add('sel'); row.scrollIntoView({block:'nearest',behavior:'smooth'}); }
 
-  // Highlight marker
-  Object.values(markers).forEach(function(m) {
-    const el = m.marker.getElement();
-    if (el) el.classList.toggle('marker-selected', m.actor.slug===slug);
-  });
+  // Visual focus
+  setVisualFocus(slug);
+
+  // Update selected indicator
+  document.getElementById('go-selected').textContent = '► ' + actor.title.toUpperCase();
 
   // Fly to location
   const c = getCoords(actor.origin);
@@ -676,15 +947,13 @@ function closeDetail() {
   document.getElementById('side-list').style.display = 'flex';
   document.getElementById('side-detail').style.display = 'none';
   document.querySelectorAll('.a-row').forEach(r=>r.classList.remove('sel'));
+  document.getElementById('go-selected').textContent = '';
 
-  // Remove marker highlight
-  Object.values(markers).forEach(function(m) {
-    const el = m.marker.getElement();
-    if (el) el.classList.remove('marker-selected');
-  });
+  // Reset visual focus
+  setVisualFocus(null);
 
   // Zoom back out
-  map.flyTo([25, 40], 2, { duration: 1 });
+  map.flyTo([25, 50], 2, { duration: 1 });
 }
 
 // ══════════════════════════════════════════════════
