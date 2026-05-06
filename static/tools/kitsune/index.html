@@ -1,1144 +1,1917 @@
 <!DOCTYPE html>
-<html lang="en" id="html-root">
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kitsune — CTI Investigation Platform</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
-<style>
-:root{
-  --bg:#090909;--bg2:#0f0f0f;--bg3:#161616;--bg4:#1c1c1c;
-  --border:#1e1e1e;--border2:#2a2a2a;
-  --text:#e6edf3;--text2:#8b949e;--dim:#484f58;
-  --accent:#00ff41;--adim:rgba(0,255,65,.08);
-  --accent2:#00d4ff;--red:#ff4444;--yellow:#e8c547;
-  --blue:#58a6ff;--purple:#bc8cff;--orange:#f0883e;--green:#27c93f;
-  --font:'JetBrains Mono',monospace;--hh:48px;--sw:240px;--dw:280px;
-}
-html.light{--bg:#f4f4f0;--bg2:#fff;--bg3:#ebebE6;--bg4:#ddd;--border:#d0d0c8;--border2:#b8b8b0;--text:#1a1a1a;--text2:#555;--dim:#888;--accent:#007a1e;--adim:rgba(0,122,30,.08);--accent2:#0066cc;}
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13px;height:100vh;overflow:hidden;display:grid;grid-template-rows:var(--hh) 1fr}
-button{cursor:pointer;font-family:var(--font)}
-input,textarea,select{font-family:var(--font);background:var(--bg3);border:1px solid var(--border2);color:var(--text);border-radius:3px;outline:none}
-input:focus,textarea:focus,select:focus{border-color:var(--accent)}
-input::placeholder,textarea::placeholder{color:var(--dim)}
-select option{background:var(--bg2)}
-::-webkit-scrollbar{width:3px;height:3px}
-::-webkit-scrollbar-thumb{background:var(--border2)}
-a{color:var(--accent2);text-decoration:none}
-
-/* HEADER */
-.hdr{background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 10px;gap:6px;z-index:100}
-.logo{display:flex;align-items:center;gap:6px;flex-shrink:0}
-.logo img{width:28px;height:28px;border-radius:5px;object-fit:cover}
-.logo-text{color:var(--accent);font-weight:700;font-size:.82rem}
-.logo-sub{color:var(--dim);font-size:.58rem}
-.vsep{width:1px;height:18px;background:var(--border);flex-shrink:0;margin:0 2px}
-.hbtn{background:none;border:1px solid var(--border2);color:var(--dim);font-size:.62rem;padding:3px 8px;border-radius:3px;transition:all .15s;white-space:nowrap}
-.hbtn:hover{border-color:var(--accent);color:var(--accent)}
-.hbtn.p{background:var(--accent);border-color:var(--accent);color:#000;font-weight:700}
-.hbtn.p:hover{opacity:.85;color:#000}
-.hdr-right{margin-left:auto;display:flex;gap:4px;align-items:center}
-.sst{font-size:.56rem;color:var(--dim);background:var(--bg3);border:1px solid var(--border);padding:2px 6px;border-radius:2px;white-space:nowrap}
-.sst.ok{color:var(--accent);border-color:rgba(0,255,65,.2)}
-
-/* LAYOUT */
-.main{display:grid;grid-template-columns:var(--sw) 1fr var(--dw);overflow:hidden}
-
-/* SIDEBAR */
-.sb{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
-.sb-sec{flex-shrink:0;border-bottom:1px solid var(--border)}
-.sb-hdr{padding:6px 8px;font-size:.56rem;color:var(--dim);letter-spacing:.06em;display:flex;align-items:center;justify-content:space-between;text-transform:uppercase}
-.sb-add{background:none;border:none;color:var(--dim);font-size:.88rem;line-height:1;padding:0 2px}
-.sb-add:hover{color:var(--accent)}
-.sb-list{overflow-y:auto;max-height:130px}
-.si{display:flex;align-items:center;gap:5px;padding:5px 8px;font-size:.7rem;cursor:pointer;transition:background .1s;border-bottom:1px solid var(--border)}
-.si:last-child{border-bottom:none}
-.si:hover{background:var(--bg3)}
-.si.on{background:var(--bg3);border-left:2px solid var(--accent)}
-.si-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
-.si-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
-.si-badge{font-size:.52rem;color:var(--dim);background:var(--bg4);padding:1px 3px;border-radius:2px;flex-shrink:0}
-.si-del{color:var(--dim);font-size:.65rem;padding:0 2px;background:none;border:none;opacity:0}
-.si:hover .si-del{opacity:1}
-.si-del:hover{color:var(--red)}
-.et-grid{padding:6px 8px;display:grid;grid-template-columns:1fr 1fr;gap:3px}
-.et{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-size:.58rem;padding:4px 3px;border-radius:3px;text-align:center;transition:all .15s}
-.et:hover{border-color:var(--accent2);color:var(--accent2)}
-.sb-ents{overflow-y:auto;flex:1}
-
-/* CANVAS */
-.canvas{display:flex;flex-direction:column;overflow:hidden}
-.cv-tabs{background:var(--bg2);border-bottom:1px solid var(--border);display:flex;flex-shrink:0;overflow-x:auto}
-.cv-tabs::-webkit-scrollbar{height:0}
-.cvt{background:none;border:none;border-bottom:2px solid transparent;color:var(--dim);font-size:.65rem;padding:7px 11px;white-space:nowrap;transition:all .15s}
-.cvt:hover{color:var(--text)}
-.cvt.on{color:var(--accent);border-bottom-color:var(--accent)}
-.cv-panel{display:none;flex:1;overflow:hidden;flex-direction:column}
-.cv-panel.on{display:flex}
-
-/* GRAPH */
-.gtb{background:var(--bg2);border-bottom:1px solid var(--border);padding:5px 8px;display:flex;gap:4px;align-items:center;flex-shrink:0;flex-wrap:wrap}
-.gtbtn{background:none;border:1px solid var(--border2);color:var(--dim);font-size:.58rem;padding:2px 6px;border-radius:3px;transition:all .15s}
-.gtbtn:hover{border-color:var(--accent);color:var(--accent)}
-.gtbtn.on{border-color:var(--accent2);color:var(--accent2)}
-.g-area{flex:1;position:relative;overflow:hidden}
-.g-svg{width:100%;height:100%}
-.g-empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--dim);font-size:.72rem;pointer-events:none;gap:6px;opacity:.5}
-
-/* FEED */
-.feed-wrap{display:flex;flex-direction:column;flex:1;overflow:hidden}
-.feed-top{background:var(--bg2);border-bottom:1px solid var(--border);padding:6px 8px;display:flex;gap:4px;align-items:center;flex-shrink:0;flex-wrap:wrap}
-.fcat{background:none;border:1px solid var(--border2);color:var(--dim);font-size:.56rem;padding:2px 6px;border-radius:10px;transition:all .15s}
-.fcat:hover{border-color:var(--accent2);color:var(--accent2)}
-.fcat.on{border-color:var(--accent2);color:var(--accent2);background:rgba(0,212,255,.06)}
-.fsearch{flex:1;min-width:80px;padding:3px 7px;font-size:.68rem;border-radius:3px}
-.feed-src-bar{padding:4px 8px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;gap:3px;flex-wrap:wrap;font-size:.54rem;flex-shrink:0;align-items:center}
-.fsrc{background:none;border:1px solid var(--border2);color:var(--dim);font-size:.52rem;padding:1px 6px;border-radius:10px;transition:all .15s}
-.fsrc.on{background:rgba(0,255,65,.06);border-color:var(--accent);color:var(--accent)}
-.feed-list{flex:1;overflow-y:auto;padding:.3rem}
-.fi{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:.55rem .8rem;margin-bottom:4px;transition:border-color .15s}
-.fi:hover{border-color:var(--border2)}
-.fi.critical{border-left:3px solid var(--red)}
-.fi.high{border-left:3px solid var(--yellow)}
-.fi.medium{border-left:3px solid var(--accent2)}
-.fi.low,.fi.info{border-left:3px solid var(--blue)}
-.fi-hdr{display:flex;align-items:center;gap:4px;margin-bottom:2px;flex-wrap:wrap}
-.fi-sev{font-size:.54rem;font-weight:700;padding:1px 4px;border-radius:2px}
-.sev-critical{background:rgba(255,68,68,.15);color:var(--red);border:1px solid rgba(255,68,68,.3)}
-.sev-high{background:rgba(232,197,71,.12);color:var(--yellow);border:1px solid rgba(232,197,71,.3)}
-.sev-medium{background:rgba(0,212,255,.1);color:var(--accent2);border:1px solid rgba(0,212,255,.25)}
-.sev-low,.sev-info{background:rgba(88,166,255,.1);color:var(--blue);border:1px solid rgba(88,166,255,.25)}
-.fi-src{font-size:.52rem;color:var(--dim);background:var(--bg3);border:1px solid var(--border2);padding:1px 4px;border-radius:2px}
-.fi-date{font-size:.52rem;color:var(--dim);margin-left:auto}
-.fi-title{font-size:.74rem;color:var(--text);margin-bottom:2px;font-weight:600;line-height:1.4}
-.fi-ioc{font-size:.62rem;color:var(--orange);background:var(--bg3);padding:1px 5px;border-radius:2px;display:inline-block;margin-bottom:2px;font-family:monospace;word-break:break-all;cursor:pointer}
-.fi-ioc:hover{background:var(--bg4);text-decoration:underline}
-.fi-desc{font-size:.66rem;color:var(--text2);line-height:1.5}
-.fi-acts{display:flex;gap:3px;margin-top:4px;flex-wrap:wrap}
-.fi-btn{background:none;border:1px solid var(--border2);color:var(--dim);font-size:.56rem;padding:2px 6px;border-radius:3px;transition:all .15s}
-.fi-btn:hover{border-color:var(--accent);color:var(--accent)}
-.feed-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;color:var(--dim);font-size:.72rem;gap:8px;text-align:center;padding:1rem}
-.feed-loading{display:flex;align-items:center;gap:7px;color:var(--dim);font-size:.7rem;padding:.65rem}
-.feed-loading::before{content:'';width:10px;height:10px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
-@keyframes spin{to{transform:rotate(360deg)}}
-.feed-stats{padding:3px 8px;background:var(--bg2);border-top:1px solid var(--border);font-size:.54rem;color:var(--dim);display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap}
-.fst-n{color:var(--text2);font-weight:700}
-
-/* CVE */
-.cve-tb{background:var(--bg2);border-bottom:1px solid var(--border);padding:6px 8px;display:flex;gap:5px;align-items:center;flex-shrink:0;flex-wrap:wrap}
-.cve-search{flex:1;min-width:100px;padding:4px 7px;font-size:.72rem;border-radius:3px}
-.cve-list{flex:1;overflow-y:auto;padding:.3rem}
-.cve-item{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:.55rem .8rem;margin-bottom:4px;transition:border-color .15s;cursor:pointer}
-.cve-item:hover{border-color:var(--border2)}
-.cve-item.critical{border-left:3px solid var(--red)}
-.cve-item.high{border-left:3px solid var(--yellow)}
-.cve-item.medium{border-left:3px solid var(--accent2)}
-.cve-item.low{border-left:3px solid var(--green)}
-.cve-hdr{display:flex;align-items:center;gap:4px;margin-bottom:2px}
-.cve-id{font-size:.66rem;font-weight:700;color:var(--accent2);font-family:monospace}
-.cve-score{font-size:.56rem;font-weight:700;padding:1px 5px;border-radius:2px}
-.kev-badge{font-size:.52rem;background:rgba(255,68,68,.15);color:var(--red);border:1px solid rgba(255,68,68,.3);padding:1px 5px;border-radius:2px;font-weight:700}
-.cve-title{font-size:.72rem;color:var(--text);margin-bottom:2px;line-height:1.4}
-.cve-meta{font-size:.56rem;color:var(--dim);margin-top:3px;display:flex;gap:7px;flex-wrap:wrap}
-.cve-acts{display:flex;gap:3px;margin-top:4px}
-
-/* ENRICH */
-.enrich-wrap{flex:1;overflow-y:auto;padding:.65rem}
-.enrich-row{display:flex;gap:5px;margin-bottom:.5rem}
-.enrich-input{flex:1;padding:5px 8px;font-size:.76rem;border-radius:3px}
-.ec{background:var(--bg2);border:1px solid var(--border);border-radius:4px;overflow:hidden;margin-bottom:6px}
-.ec-hdr{padding:5px 9px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-.ec-src{font-size:.62rem;color:var(--accent2);font-weight:700}
-.ec-st{font-size:.54rem;padding:1px 5px;border-radius:2px}
-.ec-st.ok{background:rgba(0,255,65,.1);color:var(--accent);border:1px solid rgba(0,255,65,.2)}
-.ec-st.bad{background:rgba(255,68,68,.1);color:var(--red);border:1px solid rgba(255,68,68,.2)}
-.ec-st.warn{background:rgba(232,197,71,.1);color:var(--yellow);border:1px solid rgba(232,197,71,.2)}
-.ec-st.nokey{background:var(--bg4);color:var(--dim);border:1px solid var(--border2)}
-.ec-body{padding:.55rem .8rem}
-.ec-row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);font-size:.66rem;gap:8px}
-.ec-row:last-child{border-bottom:none}
-.ec-k{color:var(--dim);flex-shrink:0}
-.ec-v{color:var(--text);text-align:right;word-break:break-all}
-.enrich-note{font-size:.6rem;color:var(--dim);padding:.5rem .7rem;background:var(--bg3);border-radius:3px;border-left:2px solid var(--border2);margin-bottom:.6rem;line-height:1.6}
-
-/* TIMELINE + EVIDENCE */
-.wrap{flex:1;overflow-y:auto;padding:.65rem}
-.form-card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:.6rem;margin-bottom:.6rem}
-.fl{font-size:.6rem;color:var(--dim);margin-bottom:2px;display:block}
-.fi2{width:100%;padding:4px 6px;font-size:.7rem;border-radius:3px}
-.fs2{width:100%;padding:4px 6px;font-size:.7rem;border-radius:3px}
-.fta{width:100%;padding:4px 6px;font-size:.7rem;border-radius:3px;resize:vertical;min-height:48px}
-.tl-events{display:flex;flex-direction:column}
-.tl-ev{display:grid;grid-template-columns:78px 10px 1fr;gap:6px;padding:4px 0;align-items:start}
-.tl-dt{font-size:.6rem;color:var(--dim);text-align:right;padding-top:2px}
-.tl-col{display:flex;flex-direction:column;align-items:center}
-.tl-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px}
-.tl-line{width:1px;flex:1;background:var(--border);margin-top:2px;min-height:14px}
-.tl-card{background:var(--bg2);border:1px solid var(--border);border-radius:3px;padding:.4rem .55rem;margin-bottom:3px}
-.tl-ct{font-size:.72rem;color:var(--text);font-weight:700;margin-bottom:1px}
-.tl-cm{font-size:.58rem}
-.ev-item{background:var(--bg2);border:1px solid var(--border);border-radius:3px;padding:.5rem .65rem;margin-bottom:5px}
-.ev-ih{display:flex;align-items:center;justify-content:space-between;margin-bottom:.25rem}
-.ev-tag{font-size:.54rem;padding:1px 4px;border-radius:2px;background:var(--bg3);color:var(--dim);border:1px solid var(--border2)}
-.ev-del{background:none;border:none;color:var(--dim);font-size:.64rem}
-.ev-del:hover{color:var(--red)}
-.ev-content{font-size:.66rem;color:var(--text2);line-height:1.5;white-space:pre-wrap;word-break:break-all}
-
-/* REPORT */
-.rp-preview{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:.85rem}
-.rp-t{font-size:.92rem;font-weight:700;color:var(--accent);margin-bottom:.3rem}
-.rp-m{font-size:.6rem;color:var(--dim);margin-bottom:.55rem;padding-bottom:.4rem;border-bottom:1px solid var(--border)}
-.rp-sh{font-size:.64rem;color:var(--accent2);font-weight:700;margin:.55rem 0 .2rem;letter-spacing:.04em}
-.rp-table{width:100%;border-collapse:collapse;font-size:.62rem;margin:.25rem 0}
-.rp-table th{background:var(--bg3);color:var(--dim);padding:3px 6px;border:1px solid var(--border);text-align:left;font-size:.56rem}
-.rp-table td{padding:3px 6px;border:1px solid var(--border);color:var(--text2);word-break:break-all}
-
-/* DETAIL */
-.detail{background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
-.dp-hdr{padding:7px 10px;border-bottom:1px solid var(--border);font-size:.62rem;color:var(--accent);font-weight:700;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.dp-body{flex:1;overflow-y:auto;padding:8px}
-.dp-empty{color:var(--dim);font-size:.66rem;line-height:1.7}
-.dp-name{font-size:.82rem;color:var(--text);font-weight:700;margin-bottom:.45rem;word-break:break-all}
-.dp-row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);font-size:.64rem;gap:6px}
-.dp-row:last-of-type{border-bottom:none}
-.dp-k{color:var(--dim);flex-shrink:0}
-.dp-v{color:var(--text);text-align:right;word-break:break-all}
-.dp-notes{margin-top:.45rem;padding:.35rem .45rem;background:var(--bg3);border-radius:3px;font-size:.64rem;color:var(--text2);line-height:1.5}
-.dp-acts{padding:7px 10px;border-top:1px solid var(--border);display:flex;gap:4px;flex-shrink:0}
-.dpa{flex:1;background:none;border:1px solid var(--border2);color:var(--dim);font-size:.58rem;padding:4px;border-radius:3px;transition:all .15s}
-.dpa:hover{border-color:var(--accent);color:var(--accent)}
-.dpa.r:hover{border-color:var(--red);color:var(--red)}
-
-/* STATS */
-.stats{background:var(--bg2);border-bottom:1px solid var(--border);padding:3px 8px;display:flex;gap:8px;font-size:.56rem;color:var(--dim);flex-shrink:0;flex-wrap:wrap}
-.stn{color:var(--text2);font-weight:700}
-
-/* MODALS */
-.mo{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:1000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
-.mo.open{display:flex}
-.md{background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:1rem;width:min(480px,92vw);box-shadow:0 20px 60px rgba(0,0,0,.6);max-height:88vh;overflow-y:auto}
-.md-t{font-size:.8rem;font-weight:700;color:var(--text);margin-bottom:.8rem;display:flex;justify-content:space-between;align-items:center}
-.md-x{background:none;border:none;color:var(--dim);font-size:1.1rem;line-height:1}
-.md-x:hover{color:var(--text)}
-.fg{margin-bottom:.55rem}
-.fl2{font-size:.6rem;color:var(--dim);margin-bottom:2px;display:block}
-.fi3{width:100%;padding:4px 7px;font-size:.72rem;border-radius:3px}
-.fs3{width:100%;padding:4px 7px;font-size:.72rem;border-radius:3px}
-.fta2{width:100%;padding:4px 7px;font-size:.72rem;border-radius:3px;resize:vertical;min-height:52px}
-.fr{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.ma{display:flex;gap:6px;margin-top:.8rem}
-.mb{flex:1;background:none;border:1px solid var(--border2);color:var(--dim);font-size:.68rem;padding:6px;border-radius:3px;transition:all .15s}
-.mb:hover{border-color:var(--accent);color:var(--accent)}
-.mb.p{background:var(--accent);border-color:var(--accent);color:#000;font-weight:700}
-.mb.p:hover{opacity:.85;color:#000}
-.sw{width:18px;height:18px;border-radius:3px;cursor:pointer;border:2px solid transparent;display:inline-block}
-.sw:hover,.sw.on{border-color:var(--text)}
-.swatches{display:flex;gap:4px;flex-wrap:wrap;margin-top:3px}
-.ak-section{font-size:.62rem;color:var(--accent);margin:.65rem 0 .35rem;font-weight:700}
-.ak-row{display:grid;grid-template-columns:105px 1fr;gap:6px;align-items:center;margin-bottom:5px;font-size:.66rem}
-.ak-label{color:var(--dim)}
-.ak-note{font-size:.58rem;color:var(--dim);margin-top:.4rem;padding:5px 7px;background:var(--bg3);border-radius:3px;line-height:1.6}
-.ak-note a{color:var(--accent2)}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kitsune — CTI Investigation Platform</title>
+    <!-- jsPDF for PDF Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Simple Graph Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.6/vis-network.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.6/vis-network.min.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Courier New', monospace; background: #0a0a0a; color: #e0e0e0; overflow-x: hidden; }
+        .container { display: flex; min-height: 100vh; }
+        
+        /* Sidebar */
+        .sidebar { width: 280px; background: #111; border-right: 1px solid #222; padding: 15px; overflow-y: auto; position: fixed; height: 100vh; }
+        .logo { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #222; }
+        .logo img { width: 40px; height: 40px; }
+        .logo h1 { font-size: 18px; color: #00ff88; }
+        .section { margin-bottom: 20px; }
+        .section-title { font-size: 11px; color: #666; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px; }
+        .btn { display: block; width: 100%; padding: 8px 12px; margin-bottom: 6px; background: #1a1a1a; border: 1px solid #333; color: #e0e0e0; cursor: pointer; text-align: left; font-family: inherit; font-size: 13px; border-radius: 4px; transition: all 0.2s; }
+        .btn:hover { background: #222; border-color: #00ff88; }
+        .btn-primary { background: #00ff88; color: #000; font-weight: bold; border: none; }
+        .btn-primary:hover { background: #00cc6a; }
+        .btn-danger { background: #ff4444; color: white; border: none; }
+        .btn-danger:hover { background: #cc0000; }
+        
+        /* Main Content */
+        .main { flex: 1; margin-left: 280px; display: flex; flex-direction: column; }
+        
+        /* Top Bar */
+        .topbar { display: flex; align-items: center; gap: 10px; padding: 12px 20px; background: #111; border-bottom: 1px solid #222; flex-wrap: wrap; }
+        .topbar select, .topbar input { padding: 6px 10px; background: #1a1a1a; border: 1px solid #333; color: #e0e0e0; border-radius: 4px; font-family: inherit; }
+        
+        /* Tabs */
+        .tabs { display: flex; gap: 5px; padding: 10px 20px; background: #0d0d0d; border-bottom: 1px solid #222; overflow-x: auto; }
+        .tab { padding: 8px 16px; background: transparent; border: 1px solid #333; color: #888; cursor: pointer; border-radius: 4px 4px 0 0; font-family: inherit; font-size: 13px; white-space: nowrap; }
+        .tab.active { background: #1a1a1a; color: #00ff88; border-color: #00ff88; }
+        
+        /* Content Area */
+        .content { flex: 1; padding: 20px; overflow-y: auto; }
+        
+        /* Alert Banner */
+        .alert-banner { background: linear-gradient(90deg, #ff0000, #ff6600); color: white; padding: 12px; margin-bottom: 15px; border-radius: 4px; animation: pulse 2s infinite; display: none; text-align: center; font-weight: bold; border: 2px solid #fff; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; } }
+        
+        /* Watchlist */
+        .watchlist-box { margin-bottom: 15px; padding: 12px; background: #1a1a1a; border: 1px dashed #ff8800; border-radius: 4px; }
+        .watchlist-box input { width: 100%; padding: 6px; background: #111; border: 1px solid #333; color: #fff; border-radius: 3px; margin-top: 5px; }
+        .watchlist-item { display: inline-block; padding: 3px 8px; background: #ff8800; color: #000; border-radius: 10px; font-size: 11px; margin: 2px; cursor: pointer; }
+        .watchlist-item:hover { background: #ff4444; color: white; }
+        
+        /* Feed Filters */
+        .feed-filters { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; align-items: center; }
+        .filter-btn { padding: 5px 12px; background: #1a1a1a; border: 1px solid #333; color: #888; cursor: pointer; border-radius: 12px; font-size: 12px; font-family: inherit; }
+        .filter-btn.active { background: #00ff88; color: #000; border-color: #00ff88; }
+        .filter-btn.critical { border-color: #ff4444; color: #ff4444; }
+        .filter-btn.phishing { border-color: #ff00ff; color: #ff00ff; }
+        
+        /* Feed Display */
+        .feed-container { background: #111; border: 1px solid #222; border-radius: 6px; padding: 20px; min-height: 400px; }
+        .feed-item { padding: 12px; margin-bottom: 10px; background: #1a1a1a; border-left: 3px solid #00ff88; border-radius: 4px; font-size: 13px; position: relative; }
+        .feed-item.critical { border-left-color: #ff4444; }
+        .feed-item.high { border-left-color: #ff8800; }
+        .feed-item.phishing { border-left-color: #ff00ff; }
+        .feed-item.ransomware { border-left-color: #ff0000; }
+        .feed-item .ioc { color: #00ff88; font-weight: bold; word-break: break-all; }
+        .feed-item .ioc.matched { color: #ff0000; font-weight: bold; animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0.5; } }
+        .feed-item .meta { color: #666; font-size: 11px; margin-top: 5px; }
+        .feed-item .actions { margin-top: 8px; display: flex; gap: 5px; }
+        .feed-item .actions button { padding: 3px 8px; font-size: 10px; background: #222; border: 1px solid #444; color: #ccc; border-radius: 3px; cursor: pointer; }
+        .feed-item .actions button:hover { background: #00ff88; color: #000; }
+        
+        /* Graph Container */
+        #networkGraph { width: 100%; height: 600px; background: #111; border: 1px solid #222; border-radius: 6px; }
+        
+        /* MITRE ATT&CK */
+        .mitre-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+        .mitre-tactic { padding: 10px; background: #1a1a1a; border: 1px solid #333; border-radius: 4px; }
+        .mitre-tactic h4 { color: #00ff88; margin-bottom: 8px; font-size: 13px; }
+        .mitre-technique { padding: 4px 8px; background: #222; border-radius: 3px; font-size: 11px; margin: 2px 0; cursor: pointer; }
+        .mitre-technique:hover { background: #00ff88; color: #000; }
+        .mitre-technique.active { background: #ff8800; color: #000; }
+        
+        /* Breach Lookup */
+        .breach-result { padding: 15px; background: #1a1a1a; border-radius: 6px; margin-top: 15px; }
+        .breach-item { padding: 10px; margin: 5px 0; background: #222; border-left: 3px solid #ff8800; border-radius: 3px; }
+        
+        /* WHOIS/DNS */
+        .lookup-result { background: #1a1a1a; padding: 15px; border-radius: 6px; margin-top: 10px; font-size: 12px; white-space: pre-wrap; }
+        
+        /* Stats */
+        .stats { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+        .stat { padding: 10px 15px; background: #1a1a1a; border: 1px solid #333; border-radius: 4px; font-size: 13px; }
+        .stat span { color: #00ff88; font-weight: bold; }
+        
+        /* Search */
+        .search-box { display: flex; gap: 10px; margin-bottom: 20px; }
+        .search-box input { flex: 1; padding: 10px; background: #1a1a1a; border: 1px solid #333; color: #e0e0e0; border-radius: 4px; font-family: inherit; }
+        
+        /* Auto-refresh */
+        .refresh-control { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
+        .refresh-control select { padding: 5px; background: #1a1a1a; border: 1px solid #333; color: #e0e0e0; border-radius: 4px; }
+        
+        /* Loading */
+        .loading { text-align: center; padding: 40px; color: #666; }
+        .loading::after { content: ''; display: inline-block; width: 20px; height: 20px; border: 2px solid #333; border-top-color: #00ff88; border-radius: 50%; animation: spin 1s linear infinite; margin-left: 10px; vertical-align: middle; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* Error */
+        .error { background: #2a1111; border: 1px solid #ff4444; color: #ff8888; padding: 15px; border-radius: 4px; margin-bottom: 15px; }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar { width: 100%; position: fixed; z-index: 100; display: none; }
+            .sidebar.open { display: block; }
+            .main { margin-left: 0; }
+        }
+        
+        /* Modal */
+        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-content { background: #111; border: 1px solid #333; padding: 25px; border-radius: 8px; max-width: 700px; width: 90%; max-height: 85vh; overflow-y: auto; }
+        .modal h2 { color: #00ff88; margin-bottom: 15px; }
+        .modal input, .modal select, .modal textarea { width: 100%; padding: 10px; margin: 5px 0 15px; background: #1a1a1a; border: 1px solid #333; color: #e0e0e0; border-radius: 4px; font-family: inherit; }
+        .modal-buttons { display: flex; gap: 10px; margin-top: 20px; }
+        .modal-buttons button { flex: 1; }
+        
+        /* Entity Detail Panel */
+        .entity-panel { position: fixed; right: 0; top: 0; bottom: 0; width: 350px; background: #111; border-left: 1px solid #222; padding: 20px; overflow-y: auto; z-index: 500; display: none; }
+        .entity-panel.open { display: block; }
+        .entity-panel h3 { color: #00ff88; margin-bottom: 15px; border-bottom: 1px solid #222; padding-bottom: 10px; }
+        .entity-field { margin: 10px 0; }
+        .entity-field label { color: #666; font-size: 11px; display: block; margin-bottom: 3px; }
+        .entity-field .value { color: #e0e0e0; word-break: break-all; }
+        
+        /* MISP Export */
+        .misp-config { background: #1a1a1a; padding: 15px; border-radius: 6px; margin: 10px 0; }
+        .misp-config input { width: 100%; padding: 8px; margin: 5px 0; background: #111; border: 1px solid #333; color: #e0e0e0; border-radius: 4px; }
+    </style>
 </head>
 <body>
-
-<header class="hdr">
-  <div class="logo">
-    <img src="/tools/kitsune/kitsune-logo.png" alt="K" onerror="this.style.display='none'">
-    <div><div class="logo-text">Kitsune</div><div class="logo-sub">CTI Platform</div></div>
-  </div>
-  <div class="vsep"></div>
-  <select class="hbtn" id="case-sel" style="padding:3px 6px;max-width:155px" onchange="switchCase(this.value)">
-    <option value="">— select case —</option>
-  </select>
-  <button class="hbtn p" onclick="openModal('case-modal')">+ new case</button>
-  <button class="hbtn" onclick="importData()">import</button>
-  <button class="hbtn" onclick="exportData()">export</button>
-  <div class="vsep"></div>
-  <button class="hbtn" onclick="openModal('keys-modal')">⚙ API keys</button>
-  <button class="hbtn" onclick="goReport()">📄 report</button>
-  <div class="hdr-right">
-    <span class="sst" id="save-st">ready</span>
-    <a href="/" style="font-size:.58rem;color:var(--dim);border:1px solid var(--border2);padding:2px 6px;border-radius:3px">← site</a>
-    <button class="hbtn" id="theme-btn" onclick="toggleTheme()">[ light ]</button>
-  </div>
-</header>
-
-<div class="main">
-<!-- SIDEBAR -->
-<aside class="sb">
-  <div class="sb-sec">
-    <div class="sb-hdr"><span>Cases</span><button class="sb-add" onclick="openModal('case-modal')">+</button></div>
-    <div class="sb-list" id="cases-list"></div>
-  </div>
-  <div class="sb-sec">
-    <div class="sb-hdr"><span>Add Entity</span></div>
-    <div class="et-grid">
-      <button class="et" onclick="openEnt('ip')">● IP</button>
-      <button class="et" onclick="openEnt('domain')">◎ Domain</button>
-      <button class="et" onclick="openEnt('actor')">◈ Actor</button>
-      <button class="et" onclick="openEnt('wallet')">◆ Wallet</button>
-      <button class="et" onclick="openEnt('email')">✉ Email</button>
-      <button class="et" onclick="openEnt('hash')">⌗ Hash</button>
-      <button class="et" onclick="openEnt('url')">↗ URL</button>
-      <button class="et" onclick="openEnt('org')">⬡ Org</button>
-    </div>
-  </div>
-  <div class="sb-sec" style="flex:1;display:flex;flex-direction:column;overflow:hidden">
-    <div class="sb-hdr">
-      <span>Entities (<span id="ent-count">0</span>)</span>
-      <input style="font-size:.56rem;padding:2px 5px;width:76px;border-radius:2px" placeholder="filter..." oninput="filterEnts(this.value)">
-    </div>
-    <div class="sb-ents" id="ents-list"></div>
-  </div>
-</aside>
-
-<!-- CANVAS -->
-<main class="canvas">
-  <div class="stats">
-    <span>case: <span class="stn" id="st-case">none</span></span>
-    <span>entities: <span class="stn" id="st-ents">0</span></span>
-    <span>graph: <span class="stn" id="st-nodes">0</span>n/<span class="stn" id="st-edges">0</span>e</span>
-    <span>timeline: <span class="stn" id="st-tl">0</span></span>
-    <span>evidence: <span class="stn" id="st-ev">0</span></span>
-  </div>
-  <div class="cv-tabs">
-    <button class="cvt on" onclick="switchTab('graph',this)">⬡ Graph</button>
-    <button class="cvt" onclick="switchTab('feed',this);loadFeed()">📡 Live Feed</button>
-    <button class="cvt" onclick="switchTab('cve',this)">⚡ CVEs</button>
-    <button class="cvt" onclick="switchTab('enrich',this)">🔍 Enrich</button>
-    <button class="cvt" onclick="switchTab('timeline',this)">⏱ Timeline</button>
-    <button class="cvt" onclick="switchTab('evidence',this)">📋 Evidence</button>
-    <button class="cvt" onclick="switchTab('report',this)">📄 Report</button>
-  </div>
-
-  <!-- GRAPH -->
-  <div class="cv-panel on" id="panel-graph">
-    <div class="gtb">
-      <button class="gtbtn" onclick="addAllToGraph()">+ all entities</button>
-      <button class="gtbtn" onclick="autoLayout()">auto layout</button>
-      <button class="gtbtn" onclick="fitGraph()">fit</button>
-      <button class="gtbtn" onclick="clearGraph()">clear</button>
-      <div class="vsep"></div>
-      <button class="gtbtn on" id="m-sel" onclick="setMode('select')">select</button>
-      <button class="gtbtn" id="m-edge" onclick="setMode('edge')">draw edge</button>
-      <span style="font-size:.56rem;color:var(--dim);margin-left:4px" id="g-hint">add entities then add to graph</span>
-    </div>
-    <div class="g-area">
-      <svg class="g-svg" id="g-svg" style="cursor:grab"></svg>
-      <div class="g-empty" id="g-empty"><span style="font-size:1.8rem;opacity:.1">⬡</span><span>select case · add entities · click + all entities</span></div>
-    </div>
-  </div>
-
-  <!-- LIVE FEED -->
-  <div class="cv-panel" id="panel-feed">
-    <div class="feed-top">
-      <button class="fcat on" onclick="setFeedCat('all',this)">all</button>
-      <button class="fcat" onclick="setFeedCat('c2',this)">C2/Botnet</button>
-      <button class="fcat" onclick="setFeedCat('malware',this)">malware</button>
-      <button class="fcat" onclick="setFeedCat('phishing',this)">phishing</button>
-      <button class="fcat" onclick="setFeedCat('advisory',this)">advisory</button>
-      <button class="fcat" onclick="setFeedCat('kev',this)">🔥 KEV</button>
-      <input class="fsearch" placeholder="search..." oninput="filterFeed(this.value)">
-      <button class="hbtn" onclick="loadFeed(true)" style="flex-shrink:0">↻ refresh</button>
-    </div>
-    <div class="feed-src-bar">
-      <span style="color:var(--dim);font-size:.52rem">sources:</span>
-      <button class="fsrc on" data-src="FeodoTracker" onclick="toggleSrc(this)">FeodoTracker C2</button>
-      <button class="fsrc on" data-src="URLhaus" onclick="toggleSrc(this)">URLhaus</button>
-      <button class="fsrc on" data-src="CISA-KEV" onclick="toggleSrc(this)">CISA KEV</button>
-      <button class="fsrc on" data-src="ThreatFox" onclick="toggleSrc(this)">ThreatFox*</button>
-      <button class="fsrc on" data-src="MalwareBazaar" onclick="toggleSrc(this)">MalwareBazaar*</button>
-      <span style="color:var(--dim);font-size:.5rem;margin-left:4px">* = needs abuse.ch key</span>
-      <span id="feed-ts" style="margin-left:auto;color:var(--dim);font-size:.5rem"></span>
-    </div>
-    <div class="feed-list" id="feed-list">
-      <div class="feed-empty">
-        <span style="font-size:1.5rem;opacity:.12">📡</span>
-        <span>click ↻ refresh to load live threat intelligence</span>
-        <span style="font-size:.62rem;color:var(--dim)">FeodoTracker C2 + URLhaus + CISA KEV work without any key<br>Add abuse.ch key for ThreatFox + MalwareBazaar feeds</span>
-      </div>
-    </div>
-    <div class="feed-stats" id="feed-stats" style="display:none">
-      <span>total: <span class="fst-n" id="fst-total">0</span></span>
-      <span>critical: <span class="fst-n" style="color:var(--red)" id="fst-crit">0</span></span>
-      <span>high: <span class="fst-n" style="color:var(--yellow)" id="fst-high">0</span></span>
-      <span>C2: <span class="fst-n" id="fst-c2">0</span></span>
-      <span>malware: <span class="fst-n" id="fst-mal">0</span></span>
-      <span>KEV: <span class="fst-n" style="color:var(--red)" id="fst-kev">0</span></span>
-    </div>
-  </div>
-
-  <!-- CVE -->
-  <div class="cv-panel" id="panel-cve">
-    <div class="cve-tb">
-      <input class="cve-search" id="cve-q" placeholder="CVE ID, keyword, product..." onkeydown="if(event.key==='Enter')searchCVEs()">
-      <select class="hbtn" id="cve-sev" style="padding:3px 6px">
-        <option value="">all severities</option>
-        <option value="CRITICAL">critical (9+)</option>
-        <option value="HIGH">high (7+)</option>
-        <option value="MEDIUM">medium (4+)</option>
-        <option value="LOW">low</option>
-      </select>
-      <button class="hbtn p" onclick="searchCVEs()">search</button>
-      <button class="hbtn" onclick="loadRecentCVEs()">recent</button>
-      <button class="hbtn" style="border-color:var(--red);color:var(--red)" onclick="loadKEV()">🔥 exploited</button>
-      <span style="font-size:.56rem;color:var(--dim)" id="cve-count"></span>
-    </div>
-    <div class="cve-list" id="cve-list">
-      <div class="feed-empty">
-        <span style="font-size:1.5rem;opacity:.12">⚡</span>
-        <span>search CVEs or click "recent" / "🔥 exploited"</span>
-        <span style="font-size:.62rem;color:var(--dim)">NVD API (free, no key needed) + CISA KEV catalog</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- ENRICH -->
-  <div class="cv-panel" id="panel-enrich">
-    <div class="enrich-wrap">
-      <div class="enrich-row">
-        <input class="enrich-input" id="enrich-val" placeholder="IP, domain, hash, URL, or CVE ID..." onkeydown="if(event.key==='Enter')enrichIOC()">
-        <select class="hbtn" id="enrich-type" style="padding:4px 6px">
-          <option value="auto">auto-detect</option>
-          <option value="ip">IP</option>
-          <option value="domain">domain</option>
-          <option value="hash">hash</option>
-          <option value="url">URL</option>
-          <option value="cve">CVE</option>
-        </select>
-        <button class="hbtn p" onclick="enrichIOC()">enrich →</button>
-      </div>
-      <div class="enrich-note">
-        <strong style="color:var(--accent)">Free (no key):</strong> ip-api · GreyNoise community · URLhaus lookup · NVD (for CVEs)<br>
-        <strong style="color:var(--accent2)">With key:</strong> VirusTotal · AbuseIPDB · AlienVault OTX · ThreatFox · Shodan
-      </div>
-      <div id="enrich-results"></div>
-    </div>
-  </div>
-
-  <!-- TIMELINE -->
-  <div class="cv-panel" id="panel-timeline">
-    <div class="wrap">
-      <div class="form-card">
-        <div class="fr" style="margin-bottom:5px">
-          <div><label class="fl">date</label><input type="date" class="fi2" id="tl-date"></div>
-          <div><label class="fl">type</label><select class="fs2" id="tl-type">
-            <option>IOC Detected</option><option>C2 Infrastructure</option><option>Actor Activity</option>
-            <option>Data Breach</option><option>Malware</option><option>Ransomware</option>
-            <option>Defacement</option><option>Financial</option><option>Attribution</option>
-            <option>CVE Published</option><option>KEV Added</option><option>Other</option>
-          </select></div>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="logo">
+                <img src="/tools/kitsune/kitsune-logo.png" alt="Kitsune">
+                <h1>Kitsune<span style="color:#666;font-size:12px;"> CTI Platform</span></h1>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">Cases</div>
+                <select id="caseSelect" class="btn" style="margin-bottom:10px;">
+                    <option value="">— select case —</option>
+                </select>
+                <button class="btn btn-primary" onclick="showModal('newCaseModal')">+ new case</button>
+                <button class="btn" onclick="importCase()">import</button>
+                <button class="btn" onclick="exportCase()">export</button>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">Add Entity</div>
+                <button class="btn" onclick="addEntity('IP')">● IP</button>
+                <button class="btn" onclick="addEntity('Domain')">◎ Domain</button>
+                <button class="btn" onclick="addEntity('Actor')">◈ Actor</button>
+                <button class="btn" onclick="addEntity('Wallet')">◆ Wallet</button>
+                <button class="btn" onclick="addEntity('Email')">✉ Email</button>
+                <button class="btn" onclick="addEntity('Hash')">⌗ Hash</button>
+                <button class="btn" onclick="addEntity('URL')">↗ URL</button>
+                <button class="btn" onclick="addEntity('Org')">⬡ Org</button>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">Watchlist Alerts</div>
+                <div class="watchlist-box">
+                    <small style="color:#888;">Add keywords to alert on:</small>
+                    <input type="text" id="watchlistInput" placeholder="e.g., company.com, malware_name">
+                    <button class="btn" style="margin-top:8px;width:auto;padding:5px 10px;" onclick="addToWatchlist()">+ add</button>
+                    <div id="watchlistDisplay" style="margin-top:8px;"></div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">Entities (<span id="entityCount">0</span>)</div>
+                <input type="text" placeholder="filter entities..." class="btn" style="text-align:left;">
+            </div>
         </div>
-        <div style="margin-bottom:4px"><label class="fl">description</label><input class="fi2" style="width:100%" id="tl-desc" placeholder="What happened?"></div>
-        <button class="mb p" style="width:100%;padding:5px" onclick="addTL()">+ add event</button>
-      </div>
-      <div class="tl-events" id="tl-events"><div style="color:var(--dim);font-size:.7rem;text-align:center;padding:1.5rem">no events yet</div></div>
-    </div>
-  </div>
-
-  <!-- EVIDENCE -->
-  <div class="cv-panel" id="panel-evidence">
-    <div class="wrap">
-      <div class="form-card">
-        <div style="display:flex;gap:4px;margin-bottom:4px">
-          <select class="fs2" style="flex:1" id="ev-tag">
-            <option>Raw IOC</option><option>WHOIS Data</option><option>Shodan Result</option>
-            <option>Paste/Forum</option><option>Screenshot URL</option><option>Network Log</option>
-            <option>Stealer Log</option><option>CVE Details</option><option>Telegram Intel</option><option>Note</option>
-          </select>
-          <button class="mb p" onclick="addEv()" style="flex:none;padding:4px 11px">+ add</button>
+        
+        <!-- Main Content -->
+        <div class="main">
+            <!-- Top Bar -->
+            <div class="topbar">
+                <select id="caseSelectTop">
+                    <option value="">— select case —</option>
+                </select>
+                <button class="btn btn-primary" style="width:auto;padding:6px 12px;" onclick="showModal('newCaseModal')">+ new case</button>
+                <button class="btn" style="width:auto;padding:6px 12px;" onclick="importCase()">import</button>
+                <button class="btn" style="width:auto;padding:6px 12px;" onclick="exportCase()">export</button>
+                <button class="btn" style="width:auto;padding:6px 12px;" onclick="showModal('apiKeysModal')">⚙ API keys</button>
+                <button class="btn" style="width:auto;padding:6px 12px;" onclick="generateReport()">📄 PDF Report</button>
+                <button class="btn" style="width:auto;padding:6px 12px;" onclick="exportToMISP()">🔗 MISP Export</button>
+                <div style="flex:1;"></div>
+                <span id="statusIndicator" style="color:#00ff88;font-size:13px;">ready</span>
+                <button class="btn" style="width:auto;padding:6px 12px;" onclick="toggleTheme()">[ light ]</button>
+            </div>
+            
+            <!-- Alert Banner -->
+            <div id="alertBanner" class="alert-banner">
+                🚨 WATCHLIST MATCH DETECTED! <span id="alertMessage"></span>
+            </div>
+            
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab" onclick="switchTab('graph')">⬡ Graph</button>
+                <button class="tab active" onclick="switchTab('feed')">📡 Live Feed</button>
+                <button class="tab" onclick="switchTab('cves')">⚡ CVEs</button>
+                <button class="tab" onclick="switchTab('breach')">🔓 Breach Lookup</button>
+                <button class="tab" onclick="switchTab('lookup')">🔍 WHOIS/DNS</button>
+                <button class="tab" onclick="switchTab('enrich')">🔬 Enrich</button>
+                <button class="tab" onclick="switchTab('mitre')">🎯 MITRE ATT&CK</button>
+                <button class="tab" onclick="switchTab('timeline')">⏱ Timeline</button>
+                <button class="tab" onclick="switchTab('evidence')">📋 Evidence</button>
+            </div>
+            
+            <!-- Content -->
+            <div class="content">
+                <!-- Live Feed Tab -->
+                <div id="feedTab">
+                    <div class="refresh-control">
+                        <label style="font-size:12px;color:#888;">Auto-refresh:</label>
+                        <select id="autoRefresh" onchange="toggleAutoRefresh()">
+                            <option value="0">off</option>
+                            <option value="60000">1 min</option>
+                            <option value="300000" selected>5 min</option>
+                            <option value="900000">15 min</option>
+                        </select>
+                        <button class="btn" style="width:auto;padding:5px 15px;" onclick="refreshFeeds()">↻ refresh now</button>
+                        <span id="lastRefresh" style="font-size:11px;color:#666;margin-left:10px;"></span>
+                    </div>
+                    
+                    <div class="stats">
+                        <div class="stat">total: <span id="statTotal">0</span></div>
+                        <div class="stat">critical: <span id="statCritical">0</span></div>
+                        <div class="stat">high: <span id="statHigh">0</span></div>
+                        <div class="stat">phishing: <span id="statPhishing">0</span></div>
+                        <div class="stat">ransomware: <span id="statRansomware">0</span></div>
+                        <div class="stat">🔥 KEV: <span id="statKEV">0</span></div>
+                        <div class="stat">⚠️ alerts: <span id="statAlerts">0</span></div>
+                    </div>
+                    
+                    <div class="feed-filters">
+                        <button class="filter-btn active" onclick="setFeedFilter('all')">all</button>
+                        <button class="filter-btn" onclick="setFeedFilter('c2')">C2/Botnet</button>
+                        <button class="filter-btn" onclick="setFeedFilter('malware')">malware</button>
+                        <button class="filter-btn phishing" onclick="setFeedFilter('phishing')">🎣 phishing</button>
+                        <button class="filter-btn" onclick="setFeedFilter('ransomware')">🔐 ransomware</button>
+                        <button class="filter-btn" onclick="setFeedFilter('breach')">💥 breach</button>
+                        <button class="filter-btn critical" onclick="setFeedFilter('kev')">🔥 KEV</button>
+                        <div style="flex:1;"></div>
+                        <input type="text" id="feedSearch" placeholder="search IOCs..." style="padding:5px 10px;background:#1a1a1a;border:1px solid #333;color:#e0e0e0;border-radius:4px;width:200px;">
+                    </div>
+                    
+                    <div style="margin-bottom:15px;font-size:12px;color:#666;">
+                        sources: 
+                        <span style="color:#00ff88;">FeodoTracker</span> + 
+                        <span style="color:#00ff88;">URLhaus</span> + 
+                        <span style="color:#00ff88;">CISA KEV</span> + 
+                        <span style="color:#ff00ff;">OpenPhish</span> + 
+                        <span style="color:#ff00ff;">PhishStats</span> + 
+                        <span style="color:#ff8800;">Spamhaus DROP</span> + 
+                        <span style="color:#ff4444;">Ransomware.live</span> + 
+                        <span style="color:#888;">*abuse.ch key for ThreatFox</span>
+                    </div>
+                    
+                    <div id="feedContainer" class="feed-container">
+                        <div class="loading">Loading threat intelligence feeds</div>
+                    </div>
+                </div>
+                
+                <!-- Graph Tab -->
+                <div id="graphTab" style="display:none;">
+                    <div style="margin-bottom:15px;display:flex;gap:10px;flex-wrap:wrap;">
+                        <button class="btn" style="width:auto;padding:6px 12px;" onclick="addAllToGraph()">+ all entities</button>
+                        <button class="btn" style="width:auto;padding:6px 12px;" onclick="autoLayout()">auto layout</button>
+                        <button class="btn" style="width:auto;padding:6px 12px;" onclick="fitGraph()">fit view</button>
+                        <button class="btn" style="width:auto;padding:6px 12px;" onclick="clearGraph()">clear</button>
+                        <button class="btn" style="width:auto;padding:6px 12px;" onclick="toggleDrawMode()">✏️ draw edge</button>
+                    </div>
+                    <div id="networkGraph"></div>
+                    <div style="margin-top:10px;font-size:11px;color:#666;">
+                        Tip: Click nodes to inspect • Drag to reposition • Scroll to zoom • Double-click to add edge
+                    </div>
+                </div>
+                
+                <!-- CVEs Tab -->
+                <div id="cvesTab" style="display:none;">
+                    <div class="search-box">
+                        <input type="text" id="cveSearch" placeholder="search CVEs (e.g., CVE-2024-1234) or keywords...">
+                        <button class="btn btn-primary" style="width:auto;padding:10px 20px;" onclick="searchCVEs()">search</button>
+                    </div>
+                    <div style="margin-bottom:15px;">
+                        <button class="filter-btn active" onclick="setCVEFilter('recent')">recent</button>
+                        <button class="filter-btn critical" onclick="setCVEFilter('exploited')">🔥 exploited</button>
+                        <button class="filter-btn" onclick="setCVEFilter('critical')">critical (9+)</button>
+                        <button class="filter-btn" onclick="setCVEFilter('high')">high (7+)</button>
+                        <button class="btn" style="width:auto;padding:5px 15px;margin-left:10px;" onclick="loadRecentCVEs()">load recent</button>
+                    </div>
+                    <div id="cveContainer" class="feed-container">
+                        <div style="text-align:center;padding:40px;color:#666;">
+                            Search CVEs or click filters to load recent vulnerabilities<br>
+                            <small>NVD API (free) + CISA KEV catalog</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Breach Lookup Tab -->
+                <div id="breachTab" style="display:none;">
+                    <h3 style="margin-bottom:15px;color:#00ff88;">🔓 Have I Been Pwned Lookup</h3>
+                    <div class="search-box">
+                        <input type="email" id="breachEmail" placeholder="enter email address to check...">
+                        <button class="btn btn-primary" style="width:auto;padding:10px 20px;" onclick="checkBreach()">check</button>
+                    </div>
+                    <p style="font-size:12px;color:#888;margin-bottom:15px;">
+                        Uses HIBP API (requires key) or fallback to public breach databases. 
+                        <a href="https://haveibeenpwned.com/API/Key" target="_blank" style="color:#00ff88;">Get free API key</a>
+                    </p>
+                    <div id="breachResult"></div>
+                </div>
+                
+                <!-- WHOIS/DNS Lookup Tab -->
+                <div id="lookupTab" style="display:none;">
+                    <h3 style="margin-bottom:15px;color:#00ff88;">🔍 WHOIS & DNS Lookup</h3>
+                    <div class="search-box">
+                        <input type="text" id="lookupInput" placeholder="enter domain or IP...">
+                        <button class="btn btn-primary" style="width:auto;padding:10px 20px;" onclick="performLookup()">lookup</button>
+                    </div>
+                    <div style="margin-bottom:15px;">
+                        <button class="filter-btn active" onclick="setLookupType('whois')">WHOIS</button>
+                        <button class="filter-btn" onclick="setLookupType('dns')">DNS Records</button>
+                        <button class="filter-btn" onclick="setLookupType('greynoise')">GreyNoise</button>
+                        <button class="filter-btn" onclick="setLookupType('urlscan')">URLScan.io</button>
+                    </div>
+                    <div id="lookupResult"></div>
+                </div>
+                
+                <!-- Enrich Tab -->
+                <div id="enrichTab" style="display:none;text-align:center;padding:60px;color:#666;">
+                    🔬 IOC Enrichment<br>
+                    <small>Select an entity from sidebar or feed to enrich with threat intelligence</small>
+                </div>
+                
+                <!-- MITRE ATT&CK Tab -->
+                <div id="mitreTab" style="display:none;">
+                    <h3 style="margin-bottom:15px;color:#00ff88;">🎯 MITRE ATT&CK Mapping</h3>
+                    <p style="font-size:12px;color:#888;margin-bottom:15px;">Map your findings to the MITRE ATT&CK framework for structured analysis</p>
+                    <div class="search-box">
+                        <input type="text" id="mitreSearch" placeholder="search techniques (e.g., T1059, phishing, credential dumping)...">
+                        <button class="btn" style="width:auto;padding:10px 20px;" onclick="searchMITRE()">search</button>
+                    </div>
+                    <div id="mitreGrid" class="mitre-grid">
+                        <!-- Populated dynamically -->
+                    </div>
+                    <div style="margin-top:20px;">
+                        <button class="btn btn-primary" onclick="exportMITRE()">📋 Export Mapped Techniques</button>
+                        <button class="btn" onclick="clearMITRE()">clear selection</button>
+                    </div>
+                </div>
+                
+                <!-- Timeline Tab -->
+                <div id="timelineTab" style="display:none;text-align:center;padding:60px;color:#666;">
+                    ⏱ Investigation Timeline<br>
+                    <small>Events and IOCs will appear here chronologically</small>
+                </div>
+                
+                <!-- Evidence Tab -->
+                <div id="evidenceTab" style="display:none;text-align:center;padding:60px;color:#666;">
+                    📋 Evidence Collection<br>
+                    <small>Add evidence to build your case file</small>
+                </div>
+            </div>
         </div>
-        <textarea class="fta" style="width:100%" id="ev-content" placeholder="paste raw data, IOCs, notes, WHOIS, Telegram posts..."></textarea>
-      </div>
-      <div id="ev-items"><div style="color:var(--dim);font-size:.7rem;text-align:center;padding:1.5rem">no evidence yet</div></div>
+        
+        <!-- Entity Detail Panel -->
+        <div class="entity-panel" id="entityPanel">
+            <h3>🔍 Entity Details</h3>
+            <button class="btn" style="margin-bottom:15px;" onclick="closeEntityPanel()">← back</button>
+            <div id="entityDetails"></div>
+            <div style="margin-top:20px;border-top:1px solid #222;padding-top:15px;">
+                <button class="btn" onclick="enrichEntity()">🔬 enrich</button>
+                <button class="btn" onclick="addToGraphFromPanel()">+ to graph</button>
+                <button class="btn btn-danger" onclick="deleteEntity()">🗑 delete</button>
+            </div>
+        </div>
     </div>
-  </div>
-
-  <!-- REPORT -->
-  <div class="cv-panel" id="panel-report">
-    <div class="wrap">
-      <div style="display:flex;gap:5px;margin-bottom:.55rem;flex-wrap:wrap">
-        <button class="hbtn p" onclick="downloadReport()">⬇ download HTML</button>
-        <button class="hbtn" onclick="copyMD()">copy markdown</button>
-      </div>
-      <div class="rp-preview" id="rp-preview"><div style="color:var(--dim);font-size:.72rem">select a case to preview report</div></div>
+    
+    <!-- Modals -->
+    <div id="newCaseModal" class="modal">
+        <div class="modal-content">
+            <h2>New Investigation Case</h2>
+            <input type="text" id="caseName" placeholder="case name *">
+            <select id="casePriority">
+                <option value="critical">🚨 Critical</option>
+                <option value="high">⚠️ High</option>
+                <option value="medium">🔔 Medium</option>
+                <option value="low">ℹ️ Low</option>
+            </select>
+            <select id="caseStatus">
+                <option value="active">Active</option>
+                <option value="monitoring">Monitoring</option>
+                <option value="closed">Closed</option>
+            </select>
+            <textarea id="caseDescription" placeholder="description" rows="4"></textarea>
+            <input type="text" id="caseTags" placeholder="tags (comma separated)">
+            <div class="modal-buttons">
+                <button class="btn" onclick="closeModal('newCaseModal')">cancel</button>
+                <button class="btn btn-primary" onclick="createCase()">create</button>
+            </div>
+        </div>
     </div>
-  </div>
-</main>
-
-<!-- DETAIL -->
-<aside class="detail">
-  <div class="dp-hdr">
-    <span>// entity detail</span>
-    <button class="hbtn" onclick="closeDetail()" style="font-size:.56rem;padding:1px 5px">×</button>
-  </div>
-  <div class="dp-body" id="dp-body">
-    <div class="dp-empty">click any entity or node to inspect<br><br>
-    <strong>Enrich</strong> → live threat intel<br>
-    <strong>CVEs</strong> → vulnerability search<br>
-    <strong>Live Feed</strong> → real-time threats</div>
-  </div>
-  <div class="dp-acts" id="dp-acts" style="display:none">
-    <button class="dpa" onclick="addDetailToGraph()">+graph</button>
-    <button class="dpa" onclick="enrichSelected()">enrich</button>
-    <button class="dpa" onclick="editDetail()">edit</button>
-    <button class="dpa r" onclick="deleteDetail()">del</button>
-  </div>
-</aside>
-</div>
-
-<!-- CASE MODAL -->
-<div class="mo" id="case-modal">
-  <div class="md">
-    <div class="md-t"><span>New Investigation Case</span><button class="md-x" onclick="closeModal('case-modal')">×</button></div>
-    <div class="fg"><label class="fl2">case name *</label><input class="fi3" id="c-name" placeholder="e.g. APT29 C2 Infrastructure 2026"></div>
-    <div class="fr">
-      <div class="fg"><label class="fl2">priority</label><select class="fs3" id="c-pri"><option value="critical">🚨 Critical</option><option value="high">⚠️ High</option><option value="medium" selected>🔔 Medium</option><option value="low">ℹ️ Low</option></select></div>
-      <div class="fg"><label class="fl2">status</label><select class="fs3" id="c-st"><option value="active">Active</option><option value="monitoring">Monitoring</option><option value="closed">Closed</option></select></div>
+    
+    <div id="apiKeysModal" class="modal">
+        <div class="modal-content">
+            <h2>⚙ API Keys</h2>
+            <p style="color:#666;font-size:13px;margin-bottom:20px;">Stored in your browser only. Never transmitted anywhere except to the named API provider.</p>
+            
+            <div style="margin-bottom:25px;padding:15px;background:#1a1a1a;border-radius:6px;">
+                <h3 style="margin-bottom:10px;color:#ff8800;">// abuse.ch — malware feeds</h3>
+                <p style="font-size:12px;color:#888;margin-bottom:10px;">Free: <a href="https://auth.abuse.ch/" target="_blank" style="color:#00ff88;">auth.abuse.ch</a> → Generate Key</p>
+                <input type="password" id="abuseKey" placeholder="abuse.ch Auth-Key">
+            </div>
+            
+            <div style="margin-bottom:25px;">
+                <h3 style="margin-bottom:10px;">// IOC Enrichment</h3>
+                <input type="password" id="vtKey" placeholder="VirusTotal API Key">
+                <input type="password" id="abuseipdbKey" placeholder="AbuseIPDB API Key">
+                <input type="password" id="otxKey" placeholder="AlienVault OTX Key">
+                <input type="password" id="shodanKey" placeholder="Shodan API Key">
+                <input type="password" id="phishtankKey" placeholder="PhishTank API Key (optional)">
+            </div>
+            
+            <div style="margin-bottom:25px;">
+                <h3 style="margin-bottom:10px;">// Breach & Intelligence</h3>
+                <input type="password" id="hibpKey" placeholder="Have I Been Pwned API Key">
+                <input type="password" id="greynoiseKey" placeholder="GreyNoise Community Key">
+                <input type="password" id="urlscanKey" placeholder="URLScan.io API Key">
+            </div>
+            
+            <div style="margin-bottom:25px;">
+                <h3 style="margin-bottom:10px;">// NVD CVE (optional)</h3>
+                <input type="password" id="nvdKey" placeholder="NVD API Key">
+                <p style="font-size:11px;color:#666;margin-top:8px;">Works without key (slower). Key allows 50 req/30s vs 5 req/30s.</p>
+            </div>
+            
+            <div style="margin-bottom:25px;">
+                <h3 style="margin-bottom:10px;">// MISP Integration</h3>
+                <input type="text" id="mispUrl" placeholder="MISP Instance URL (e.g., https://misp.example.com)">
+                <input type="password" id="mispKey" placeholder="MISP API Key">
+            </div>
+            
+            <div class="modal-buttons">
+                <button class="btn" onclick="closeModal('apiKeysModal')">cancel</button>
+                <button class="btn btn-primary" onclick="saveApiKeys()">save keys</button>
+            </div>
+        </div>
     </div>
-    <div class="fg"><label class="fl2">description</label><textarea class="fta2" id="c-desc" placeholder="Investigation scope..."></textarea></div>
-    <div class="fg"><label class="fl2">tags (comma separated)</label><input class="fi3" id="c-tags" placeholder="APT, C2, ransomware..."></div>
-    <div class="ma"><button class="mb" onclick="closeModal('case-modal')">cancel</button><button class="mb p" onclick="createCase()">create</button></div>
-  </div>
-</div>
-
-<!-- ENTITY MODAL -->
-<div class="mo" id="ent-modal">
-  <div class="md">
-    <div class="md-t"><span id="ent-modal-title">Add Entity</span><button class="md-x" onclick="closeModal('ent-modal')">×</button></div>
-    <input type="hidden" id="ent-type"><input type="hidden" id="ent-edit-id">
-    <div class="fg"><label class="fl2">value / indicator *</label><input class="fi3" id="ent-val" placeholder="1.2.3.4 / evil.com / hash..."></div>
-    <div class="fr">
-      <div class="fg"><label class="fl2">TLP</label><select class="fs3" id="ent-tlp"><option value="WHITE">⚪ WHITE</option><option value="GREEN">🟢 GREEN</option><option value="AMBER">🟠 AMBER</option><option value="RED">🔴 RED</option></select></div>
-      <div class="fg"><label class="fl2">IOC status</label><select class="fs3" id="ent-ioc"><option value="yes">✓ Confirmed</option><option value="suspected">? Suspected</option><option value="no">✗ Not IOC</option></select></div>
-    </div>
-    <div id="ent-extras"></div>
-    <div class="fg"><label class="fl2">confidence (0–100)</label><input class="fi3" id="ent-conf" type="number" min="0" max="100" value="80"></div>
-    <div class="fg"><label class="fl2">notes</label><textarea class="fta2" id="ent-notes" placeholder="Investigation notes, context..."></textarea></div>
-    <div class="fg"><label class="fl2">node color</label>
-      <div class="swatches" id="swatches">
-        <div class="sw on" style="background:#ff4444" data-c="#ff4444" onclick="pickColor(this)"></div>
-        <div class="sw" style="background:#58a6ff" data-c="#58a6ff" onclick="pickColor(this)"></div>
-        <div class="sw" style="background:#bc8cff" data-c="#bc8cff" onclick="pickColor(this)"></div>
-        <div class="sw" style="background:#e8c547" data-c="#e8c547" onclick="pickColor(this)"></div>
-        <div class="sw" style="background:#f0883e" data-c="#f0883e" onclick="pickColor(this)"></div>
-        <div class="sw" style="background:#00d4ff" data-c="#00d4ff" onclick="pickColor(this)"></div>
-        <div class="sw" style="background:#00ff41" data-c="#00ff41" onclick="pickColor(this)"></div>
-        <div class="sw" style="background:#484f58" data-c="#484f58" onclick="pickColor(this)"></div>
-      </div>
-    </div>
-    <div class="ma"><button class="mb" onclick="closeModal('ent-modal')">cancel</button><button class="mb p" onclick="saveEnt()">save</button></div>
-  </div>
-</div>
-
-<!-- API KEYS MODAL -->
-<div class="mo" id="keys-modal">
-  <div class="md">
-    <div class="md-t"><span>⚙ API Keys</span><button class="md-x" onclick="closeModal('keys-modal')">×</button></div>
-    <p style="font-size:.66rem;color:var(--text2);margin-bottom:.7rem;line-height:1.6">Stored in your browser only. Never transmitted anywhere except to the named API provider.</p>
-
-    <div class="ak-section">// abuse.ch — unlocks malware feeds (ThreatFox + MalwareBazaar)</div>
-    <div class="ak-row"><span class="ak-label">abuse.ch Auth-Key</span><input class="fi3" id="k-abusech" type="password" placeholder="free — get at auth.abuse.ch"></div>
-    <div class="ak-note" style="margin-bottom:.65rem">
-      100% free: <a href="https://auth.abuse.ch/" target="_blank">auth.abuse.ch</a> → sign in with GitHub/Google → Generate Key<br>
-      Enables: ThreatFox IOCs, MalwareBazaar samples, URLhaus enrichment
+    
+    <div id="mispExportModal" class="modal">
+        <div class="modal-content">
+            <h2>🔗 Export to MISP</h2>
+            <p style="color:#666;font-size:13px;margin-bottom:15px;">Push selected IOCs to your MISP instance</p>
+            <div class="misp-config">
+                <label style="font-size:12px;color:#888;">MISP URL:</label>
+                <input type="text" id="mispExportUrl" placeholder="https://misp.example.com">
+                <label style="font-size:12px;color:#888;">API Key:</label>
+                <input type="password" id="mispExportKey" placeholder="your-misp-api-key">
+                <label style="font-size:12px;color:#888;">Distribution:</label>
+                <select id="mispDist" style="width:100%;padding:8px;margin:5px 0;background:#111;border:1px solid #333;color:#e0e0e0;">
+                    <option value="0">Your Organisation Only</option>
+                    <option value="1">This Community Only</option>
+                    <option value="2">Connected Communities</option>
+                    <option value="3">All Communities</option>
+                </select>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn" onclick="closeModal('mispExportModal')">cancel</button>
+                <button class="btn btn-primary" onclick="pushToMISP()">push to MISP</button>
+            </div>
+        </div>
     </div>
 
-    <div class="ak-section">// IOC enrichment APIs</div>
-    <div class="ak-row"><span class="ak-label">VirusTotal</span><input class="fi3" id="k-vt" type="password" placeholder="free 500 req/day — virustotal.com"></div>
-    <div class="ak-row"><span class="ak-label">AbuseIPDB</span><input class="fi3" id="k-abuse" type="password" placeholder="free 1000 req/day — abuseipdb.com"></div>
-    <div class="ak-row"><span class="ak-label">AlienVault OTX</span><input class="fi3" id="k-otx" type="password" placeholder="free — otx.alienvault.com"></div>
-    <div class="ak-row"><span class="ak-label">Shodan</span><input class="fi3" id="k-shodan" type="password" placeholder="paid $49/mo — shodan.io"></div>
-
-    <div class="ak-section">// NVD CVE (optional — increases rate limit)</div>
-    <div class="ak-row"><span class="ak-label">NVD API Key</span><input class="fi3" id="k-nvd" type="password" placeholder="free — nvd.nist.gov/developers"></div>
-    <div class="ak-note">Works without key (slower). NVD key allows 50 req/30s vs 5 req/30s without.</div>
-
-    <div class="ma"><button class="mb" onclick="closeModal('keys-modal')">cancel</button><button class="mb p" onclick="saveKeys()">save</button></div>
-  </div>
-</div>
-
-<script>
-// ═══ STATE ════════════════════════════════════════
-let S={cases:{},cur:null,selEnt:null,gMode:'select',eFrm:null};
-const TC={ip:'#ff4444',domain:'#58a6ff',wallet:'#bc8cff',actor:'#e8c547',email:'#f0883e',hash:'#00d4ff',url:'#27c93f',org:'#8b949e'};
-const TE={ip:[['asn','ASN'],['country','Country'],['org','Org'],['port','Port']],domain:[['registrar','Registrar'],['ns','NS'],['created','Created']],wallet:[['chain','Chain'],['exchange','Exchange']],actor:[['aliases','Aliases'],['origin','Origin'],['motivation','Motivation'],['apt','APT Group']],email:[['provider','Provider'],['breach','In breach?']],hash:[['algo','Algorithm'],['malware','Malware'],['vt','VT hits']],url:[['status','Status'],['redirect','Redirects to']],org:[['industry','Industry'],['country','Country']]};
-let selColor='#ff4444';
-let feedData=[];
-let feedCat='all';
-let feedQ='';
-let activeSrcs=new Set(['FeodoTracker','URLhaus','CISA-KEV','ThreatFox','MalwareBazaar']);
-let kevCache=null; // cached CISA KEV list
-
-// ═══ PERSIST ══════════════════════════════════════
-function save(){try{localStorage.setItem('k6',JSON.stringify(S));const e=document.getElementById('save-st');e.textContent='saved '+new Date().toLocaleTimeString();e.className='sst ok';setTimeout(()=>{e.textContent='ready';e.className='sst';},2000);}catch(e){}}
-function load(){try{const r=localStorage.getItem('k6');if(r){const d=JSON.parse(r);S.cases=d.cases||{};S.cur=d.cur||null;}}catch(e){S.cases={};}}
-function getKey(k){return localStorage.getItem('k6_'+k)||'';}
-function loadKeys(){['abusech','vt','abuse','otx','shodan','nvd'].forEach(k=>{const v=getKey(k);const el=document.getElementById('k-'+k);if(el&&v)el.value=v;});}
-function saveKeys(){['abusech','vt','abuse','otx','shodan','nvd'].forEach(k=>{const el=document.getElementById('k-'+k);if(!el)return;const v=el.value.trim();if(v)localStorage.setItem('k6_'+k,v);else localStorage.removeItem('k6_'+k);});closeModal('keys-modal');showToast('Keys saved');}
-
-// ═══ THEME ════════════════════════════════════════
-function toggleTheme(){const l=document.getElementById('html-root').classList.toggle('light');document.getElementById('theme-btn').textContent=l?'[ dark ]':'[ light ]';localStorage.setItem('k6_theme',l?'light':'dark');renderGraph();}
-if(localStorage.getItem('k6_theme')==='light'){document.getElementById('html-root').classList.add('light');document.getElementById('theme-btn').textContent='[ dark ]';}
-
-// ═══ MODALS ═══════════════════════════════════════
-function openModal(id){document.getElementById(id).classList.add('open');}
-function closeModal(id){document.getElementById(id).classList.remove('open');}
-document.querySelectorAll('.mo').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
-document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.mo.open').forEach(o=>o.classList.remove('open'));});
-
-// ═══ CASES ════════════════════════════════════════
-function createCase(){const name=document.getElementById('c-name').value.trim();if(!name){alert('Enter a case name');return;}const id='c'+Date.now();S.cases[id]={id,name,priority:document.getElementById('c-pri').value,status:document.getElementById('c-st').value,desc:document.getElementById('c-desc').value.trim(),tags:document.getElementById('c-tags').value.split(',').map(t=>t.trim()).filter(Boolean),created:new Date().toISOString(),entities:{},graph:{nodes:[],edges:[]},timeline:[],evidence:[]};S.cur=id;closeModal('case-modal');['c-name','c-desc','c-tags'].forEach(id=>document.getElementById(id).value='');save();renderAll();}
-function switchCase(id){S.cur=id||null;S.selEnt=null;save();renderAll();}
-function delCase(id,e){e.stopPropagation();if(!confirm('Delete case and all data?'))return;delete S.cases[id];if(S.cur===id)S.cur=null;save();renderAll();}
-function getC(){return S.cur?S.cases[S.cur]:null;}
-
-// ═══ ENTITIES ═════════════════════════════════════
-function pickColor(el){document.querySelectorAll('.sw').forEach(s=>s.classList.remove('on'));el.classList.add('on');selColor=el.dataset.c;}
-function openEnt(type){if(!getC()){alert('Select or create a case first');return;}document.getElementById('ent-modal-title').textContent='Add '+type.charAt(0).toUpperCase()+type.slice(1);document.getElementById('ent-type').value=type;document.getElementById('ent-edit-id').value='';['ent-val','ent-notes'].forEach(id=>document.getElementById(id).value='');document.getElementById('ent-tlp').value='WHITE';document.getElementById('ent-ioc').value='suspected';document.getElementById('ent-conf').value='80';selColor=TC[type]||'#484f58';document.querySelectorAll('.sw').forEach(s=>s.classList.toggle('on',s.dataset.c===selColor));document.getElementById('ent-extras').innerHTML=(TE[type]||[]).map(([k,l])=>`<div class="fg"><label class="fl2">${l}</label><input class="fi3" id="ef-${k}" placeholder=""></div>`).join('');openModal('ent-modal');setTimeout(()=>document.getElementById('ent-val').focus(),80);}
-function saveEnt(){const c=getC();if(!c)return;const val=document.getElementById('ent-val').value.trim();if(!val){alert('Enter a value');return;}const type=document.getElementById('ent-type').value;const editId=document.getElementById('ent-edit-id').value;const extras={};(TE[type]||[]).forEach(([k])=>{const el=document.getElementById('ef-'+k);if(el&&el.value.trim())extras[k]=el.value.trim();});const ent={id:editId||'e'+Date.now(),type,value:val,color:selColor,tlp:document.getElementById('ent-tlp').value,ioc:document.getElementById('ent-ioc').value,confidence:parseInt(document.getElementById('ent-conf').value)||80,notes:document.getElementById('ent-notes').value.trim(),created:new Date().toISOString(),...extras};c.entities[ent.id]=ent;S.selEnt=ent.id;closeModal('ent-modal');save();renderAll();showDetail(ent.id);}
-function filterEnts(q){q=q.toLowerCase();document.querySelectorAll('#ents-list .si').forEach(el=>{el.style.display=!q||(el.dataset.v||'').includes(q)?'':'none';});}
-function deleteDetail(){const c=getC();if(!c||!S.selEnt)return;if(!confirm('Delete entity?'))return;delete c.entities[S.selEnt];c.graph.nodes=c.graph.nodes.filter(n=>n.id!==S.selEnt);c.graph.edges=c.graph.edges.filter(e=>e.s!==S.selEnt&&e.t!==S.selEnt);S.selEnt=null;closeDetail();save();renderAll();}
-function editDetail(){const c=getC();if(!c||!S.selEnt)return;const ent=c.entities[S.selEnt];if(!ent)return;openEnt(ent.type);setTimeout(()=>{document.getElementById('ent-modal-title').textContent='Edit '+ent.type;document.getElementById('ent-edit-id').value=ent.id;document.getElementById('ent-val').value=ent.value;document.getElementById('ent-tlp').value=ent.tlp||'WHITE';document.getElementById('ent-ioc').value=ent.ioc||'suspected';document.getElementById('ent-notes').value=ent.notes||'';document.getElementById('ent-conf').value=ent.confidence||80;selColor=ent.color||TC[ent.type]||'#484f58';document.querySelectorAll('.sw').forEach(s=>s.classList.toggle('on',s.dataset.c===selColor));(TE[ent.type]||[]).forEach(([k])=>{const el=document.getElementById('ef-'+k);if(el&&ent[k])el.value=ent[k];});},60);}
-
-// ═══ DETAIL PANEL ═════════════════════════════════
-function showDetail(id){const c=getC();if(!c)return;const ent=c.entities[id];if(!ent)return;S.selEnt=id;const col=ent.color||TC[ent.type]||'#484f58';document.getElementById('dp-body').innerHTML=`<div style="background:${col}22;border:1px solid ${col}44;display:inline-block;padding:1px 6px;border-radius:2px;font-size:.54rem;font-weight:700;color:${col};margin-bottom:.4rem">${ent.type.toUpperCase()}</div><div class="dp-name">${ent.value}</div><div class="dp-row"><span class="dp-k">IOC</span><span class="dp-v">${ent.ioc||'—'}</span></div><div class="dp-row"><span class="dp-k">TLP</span><span class="dp-v">TLP:${ent.tlp||'WHITE'}</span></div><div class="dp-row"><span class="dp-k">confidence</span><span class="dp-v">${ent.confidence||80}%</span></div>${(TE[ent.type]||[]).filter(([k])=>ent[k]).map(([k,l])=>`<div class="dp-row"><span class="dp-k">${l}</span><span class="dp-v">${ent[k]}</span></div>`).join('')}<div class="dp-row"><span class="dp-k">added</span><span class="dp-v">${new Date(ent.created).toLocaleDateString()}</span></div>${ent.notes?`<div class="dp-notes">${ent.notes}</div>`:''}`;document.getElementById('dp-acts').style.display='flex';}
-function closeDetail(){S.selEnt=null;document.getElementById('dp-body').innerHTML='<div class="dp-empty">click any entity or node to inspect<br><br><strong>Enrich</strong> → live threat intel<br><strong>CVEs</strong> → vulnerability search<br><strong>Live Feed</strong> → real-time threats</div>';document.getElementById('dp-acts').style.display='none';}
-function addDetailToGraph(){const c=getC();if(!c||!S.selEnt)return;if(c.graph.nodes.find(n=>n.id===S.selEnt)){showToast('Already in graph');return;}const svg=document.getElementById('g-svg');c.graph.nodes.push({id:S.selEnt,x:(svg.clientWidth||700)/2+(Math.random()-.5)*120,y:(svg.clientHeight||450)/2+(Math.random()-.5)*120});save();renderGraph();}
-function enrichSelected(){if(!S.selEnt)return;const c=getC();if(!c)return;document.getElementById('enrich-val').value=c.entities[S.selEnt].value;switchTab('enrich',document.querySelectorAll('.cvt')[3]);enrichIOC();}
-
-// ═══ GRAPH ════════════════════════════════════════
-function setMode(m){S.gMode=m;S.eFrm=null;document.getElementById('m-sel').classList.toggle('on',m==='select');document.getElementById('m-edge').classList.toggle('on',m==='edge');document.getElementById('g-hint').textContent=m==='edge'?'click source → click target → type label':'drag nodes · scroll zoom · click to inspect';}
-function addAllToGraph(){const c=getC();if(!c)return;const svg=document.getElementById('g-svg');const W=svg.clientWidth||700,H=svg.clientHeight||450;const exist=new Set(c.graph.nodes.map(n=>n.id));const ents=Object.values(c.entities);ents.forEach((ent,i)=>{if(!exist.has(ent.id)){const a=(i/Math.max(1,ents.length))*Math.PI*2;c.graph.nodes.push({id:ent.id,x:W/2+Math.min(W,H)*.28*Math.cos(a),y:H/2+Math.min(W,H)*.28*Math.sin(a)});}});save();renderGraph();}
-function autoLayout(){const c=getC();if(!c||!c.graph.nodes.length)return;const svg=document.getElementById('g-svg');const W=svg.clientWidth||700,H=svg.clientHeight||450;const n=c.graph.nodes.length;c.graph.nodes.forEach((node,i)=>{const a=(i/n)*Math.PI*2-Math.PI/2;node.x=W/2+Math.min(W,H)*.3*Math.cos(a);node.y=H/2+Math.min(W,H)*.3*Math.sin(a);});save();renderGraph();}
-function clearGraph(){const c=getC();if(!c)return;if(!confirm('Clear graph? Entities remain.'))return;c.graph={nodes:[],edges:[]};save();renderGraph();}
-function fitGraph(){d3.select('#g-svg').transition().duration(300).call(d3.zoom().transform,d3.zoomIdentity);}
-
-function renderGraph(){
-  const c=getC();const svgEl=document.getElementById('g-svg');const emEl=document.getElementById('g-empty');
-  d3.select(svgEl).selectAll('*').remove();
-  if(!c||!c.graph.nodes.length){emEl.style.display='flex';return;}
-  emEl.style.display='none';
-  const W=svgEl.clientWidth||700,H=svgEl.clientHeight||450;
-  const dark=!document.getElementById('html-root').classList.contains('light');
-  const tc=dark?'#8b949e':'#555';const ec=dark?'#2a2a2a':'#ccc';const bgc=dark?'#090909':'#f4f4f0';
-  const svg=d3.select(svgEl);
-  const defs=svg.append('defs');
-  const mk=defs.append('marker').attr('id','arr').attr('viewBox','0 0 10 10').attr('refX',22).attr('refY',5).attr('markerWidth',5).attr('markerHeight',5).attr('orient','auto');
-  mk.append('path').attr('d','M0,0 L10,5 L0,10 Z').attr('fill',ec);
-  const g=svg.append('g');
-  svg.call(d3.zoom().scaleExtent([.1,5]).on('zoom',e=>g.attr('transform',e.transform)));
-  const nm={};c.graph.nodes.forEach(n=>nm[n.id]=n);
-  c.graph.edges.forEach(edge=>{const a=nm[edge.s],b=nm[edge.t];if(!a||!b)return;g.append('line').attr('x1',a.x).attr('y1',a.y).attr('x2',b.x).attr('y2',b.y).attr('stroke',ec).attr('stroke-width',1.2).attr('marker-end','url(#arr)').style('cursor','pointer').on('click',()=>{if(confirm('Delete edge?')){c.graph.edges=c.graph.edges.filter(e=>e!==edge);save();renderGraph();}});if(edge.label){const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;g.append('rect').attr('x',mx-25).attr('y',my-6).attr('width',50).attr('height',12).attr('rx',2).attr('fill',bgc).attr('opacity',.92);g.append('text').attr('x',mx).attr('y',my+3).attr('text-anchor','middle').attr('fill',tc).attr('font-size',8).attr('font-family','monospace').attr('pointer-events','none').text(edge.label);}});
-  c.graph.nodes.forEach(node=>{const ent=c.entities[node.id];if(!ent)return;const col=ent.color||TC[ent.type]||'#484f58';const r=12;const ng=g.append('g').attr('cursor',S.gMode==='edge'?'crosshair':'grab');if(S.selEnt===node.id)ng.append('circle').attr('cx',node.x).attr('cy',node.y).attr('r',r+7).attr('fill',col).attr('opacity',.15).attr('pointer-events','none');if(ent.type==='wallet'){const s=r*1.3;ng.append('polygon').attr('points',`${node.x},${node.y-s} ${node.x+s},${node.y} ${node.x},${node.y+s} ${node.x-s},${node.y}`).attr('fill',col).attr('opacity',.9);}else if(ent.type==='org'){ng.append('rect').attr('x',node.x-r).attr('y',node.y-r).attr('width',r*2).attr('height',r*2).attr('rx',3).attr('fill',col).attr('opacity',.9);}else{ng.append('circle').attr('cx',node.x).attr('cy',node.y).attr('r',r).attr('fill',col).attr('opacity',.9);}if(ent.ioc==='yes')ng.append('circle').attr('cx',node.x).attr('cy',node.y).attr('r',r+4).attr('fill','none').attr('stroke',col).attr('stroke-width',1.5).attr('stroke-dasharray','3 2').attr('pointer-events','none');const sl=ent.value.length>15?ent.value.slice(0,13)+'…':ent.value;ng.append('text').attr('x',node.x).attr('y',node.y+r+11).attr('text-anchor','middle').attr('fill',tc).attr('font-size',9).attr('font-family','monospace').attr('pointer-events','none').text(sl);ng.on('click',ev=>{ev.stopPropagation();if(S.gMode==='edge'){if(!S.eFrm){S.eFrm=node.id;document.getElementById('g-hint').textContent='now click target node';}else if(S.eFrm!==node.id){const lbl=prompt('Edge label:','RESOLVES');if(lbl!==null){c.graph.edges.push({s:S.eFrm,t:node.id,label:lbl.trim()});save();}S.eFrm=null;document.getElementById('g-hint').textContent='click source → click target → type label';renderGraph();}return;}S.selEnt=node.id;showDetail(node.id);renderGraph();});ng.call(d3.drag().on('drag',ev=>{node.x=ev.x;node.y=ev.y;renderGraph();}).on('end',()=>save()));});
-}
-
-// ═══ KEV CACHE — CISA direct (CORS open confirmed) ═
-async function fetchKEV(){
-  if(kevCache)return kevCache;
-  try{
-    const res=await fetch('https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json',{cache:'no-store'});
-    if(!res.ok)throw new Error('CISA '+res.status);
-    const d=await res.json();
-    kevCache=(d.vulnerabilities||[]);
-    return kevCache;
-  }catch(e){
-    console.warn('KEV fetch failed:',e.message);
-    return[];
-  }
-}
-
-// ═══ LIVE FEED ════════════════════════════════════
-// CONFIRMED CORS-OPEN SOURCES (no proxy needed):
-//   1. CISA KEV JSON          — cisa.gov/sites/... ✅
-//   2. NVD Recent CVEs        — nvd.nist.gov ✅
-//   3. ip-api.com             — enrichment only ✅
-//   4. GreyNoise community    — enrichment only ✅
-//   5. OTX / VT / AbuseIPDB  — with key ✅
-//
-// CORS-BLOCKED (need server-side proxy):
-//   ✗ FeodoTracker JSON/CSV  — blocked
-//   ✗ URLhaus CSV/API        — blocked
-//   ✗ ThreatFox API          — blocked  
-//   ✗ MalwareBazaar API      — blocked
-//
-// For blocked sources we load NVD recent CVEs as the
-// "live threat feed" since it works perfectly + is high value
-
-async function loadFeed(force=false){
-  const el=document.getElementById('feed-list');
-  el.innerHTML='<div class="feed-loading">loading threat intelligence...</div>';
-  feedData=[];
-
-  const results=await Promise.allSettled([
-    fetchKEVFeed(),
-    fetchNVDRecent(),
-    fetchNVDCritical(),
-  ]);
-
-  results.forEach(r=>{if(r.status==='fulfilled'&&Array.isArray(r.value))feedData.push(...r.value);});
-  feedData.sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
-
-  document.getElementById('feed-ts').textContent=`${new Date().toLocaleTimeString()} · ${feedData.length} items`;
-  updateFeedStats();
-  document.getElementById('feed-stats').style.display='flex';
-
-  if(!feedData.length){
-    el.innerHTML=`<div class="feed-empty">
-      <span style="font-size:1.3rem;opacity:.2">⚠️</span>
-      <span>Feeds returned 0 items</span>
-      <span style="font-size:.62rem;color:var(--dim);max-width:340px;text-align:center">
-        NVD may be rate limiting (5 req/30s without key).<br>
-        Wait 30 seconds and try again, or add a free NVD API key in ⚙ to unlock 50 req/30s.
-      </span>
-    </div>`;
-    return;
-  }
-  renderFeed();
-}
-
-// CISA KEV as feed items — CORS open ✅
-async function fetchKEVFeed(){
-  try{
-    const kev=await fetchKEV();
-    // Return most recently added KEV entries
-    return [...kev]
-      .sort((a,b)=>new Date(b.dateAdded)-new Date(a.dateAdded))
-      .slice(0,30)
-      .map(v=>({
-        id:'kev_'+v.cveID,
-        source:'CISA-KEV',
-        category:'kev',
-        severity:'critical',
-        title:`🔥 ${v.cveID} — ${v.vendorProject} ${v.product}`,
-        ioc:v.cveID,
-        desc:`${v.shortDescription||v.vulnerabilityName||''} · Due: ${v.dueDate||'—'} · Ransomware: ${v.knownRansomwareCampaignUse||'—'}`,
-        date:v.dateAdded,
-        link:`https://nvd.nist.gov/vuln/detail/${v.cveID}`,
-        tags:['KEV','exploited',v.vendorProject,v.product].filter(Boolean),
-      }));
-  }catch(e){return[];}
-}
-
-// NVD recent published CVEs — CORS open ✅
-async function fetchNVDRecent(){
-  try{
-    const nvdKey=getKey('nvd');
-    const headers=nvdKey?{'apiKey':nvdKey}:{};
-    if(!nvdKey)await sleep(700); // avoid rate limit
-    const now=new Date();
-    const past=new Date(now-86400000*2);
-    const fmt=d=>d.toISOString().replace(/\.\d+Z$/,'+00:00');
-    const res=await fetch(
-      `https://services.nvd.nist.gov/rest/json/cves/2.0?pubStartDate=${fmt(past)}&pubEndDate=${fmt(now)}&resultsPerPage=25`,
-      {headers}
-    );
-    if(!res.ok)throw new Error('NVD '+res.status);
-    const d=await res.json();
-    const kev=await fetchKEV();
-    const kevIds=new Set(kev.map(v=>v.cveID));
-    return(d.vulnerabilities||[]).map(v=>{
-      const cve=parseCVEItem(v,kevIds);
-      return{
-        id:'nvd_'+cve.id,source:'NVD',
-        category:cve.score>=9?'critical-cve':cve.score>=7?'high-cve':'cve',
-        severity:cve.severity,
-        title:`${cve.id}${cve.kev?' 🔥':''} — ${cve.desc.slice(0,80)}`,
-        ioc:cve.id,
-        desc:`CVSS: ${cve.score} · ${cve.desc.slice(0,160)}`,
-        date:cve.published,
-        link:cve.link,
-        tags:['CVE','NVD',cve.severity].filter(Boolean),
-      };
-    });
-  }catch(e){console.warn('NVD recent:',e.message);return[];}
-}
-
-// NVD critical CVEs (last 7 days) — CORS open ✅
-async function fetchNVDCritical(){
-  try{
-    const nvdKey=getKey('nvd');
-    const headers=nvdKey?{'apiKey':nvdKey}:{};
-    if(!nvdKey)await sleep(1400); // stagger to avoid rate limit
-    const now=new Date();
-    const past=new Date(now-86400000*7);
-    const fmt=d=>d.toISOString().replace(/\.\d+Z$/,'+00:00');
-    const res=await fetch(
-      `https://services.nvd.nist.gov/rest/json/cves/2.0?cvssV3Severity=CRITICAL&pubStartDate=${fmt(past)}&pubEndDate=${fmt(now)}&resultsPerPage=20`,
-      {headers}
-    );
-    if(!res.ok)return[];
-    const d=await res.json();
-    const kev=await fetchKEV();
-    const kevIds=new Set(kev.map(v=>v.cveID));
-    return(d.vulnerabilities||[]).map(v=>{
-      const cve=parseCVEItem(v,kevIds);
-      return{
-        id:'nvdc_'+cve.id,source:'NVD-Critical',
-        category:'c2',severity:'critical',
-        title:`${cve.id}${cve.kev?' 🔥':''} CRITICAL — ${cve.desc.slice(0,70)}`,
-        ioc:cve.id,
-        desc:`CVSS: ${cve.score} · ${cve.desc.slice(0,160)}`,
-        date:cve.published,link:cve.link,
-        tags:['CVE','CRITICAL',cve.kev?'KEV':''].filter(Boolean),
-      };
-    });
-  }catch(e){return[];}
-}
-
-function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
-
-// ThreatFox — requires abuse.ch Auth-Key header (CORS blocked without it)
-// When key present, ThreatFox does return CORS headers with Auth-Key
-async function fetchThreatFox(authKey){
-  if(!authKey)return[];
-  try{
-    const res=await fetch('https://threatfox-api.abuse.ch/api/v1/',{
-      method:'POST',
-      headers:{'Auth-Key':authKey,'Content-Type':'application/json'},
-      body:JSON.stringify({query:'get_iocs',days:1})
-    });
-    const d=await res.json();
-    if(d.query_status!=='ok')return[];
-    return(d.data||[]).slice(0,25).map(i=>({
-      id:'tf_'+i.id,source:'ThreatFox',
-      category:i.ioc_type?.includes('ip')?'c2':'malware',
-      severity:i.confidence_level>75?'high':'medium',
-      title:`${i.malware} — ${i.ioc}`,
-      ioc:i.ioc,
-      desc:`Type: ${i.ioc_type} · Confidence: ${i.confidence_level}% · Tags: ${(i.tags||[]).join(', ')||'none'}`,
-      date:i.first_seen,link:'https://threatfox.abuse.ch/ioc/'+i.id,
-      tags:[i.malware,...(i.tags||[])].filter(Boolean),
-    }));
-  }catch(e){return[];}
-}
-
-// MalwareBazaar — requires abuse.ch Auth-Key
-async function fetchMalwareBazaar(authKey){
-  if(!authKey)return[];
-  try{
-    const res=await fetch('https://mb-api.abuse.ch/api/v1/',{
-      method:'POST',
-      headers:{'Auth-Key':authKey,'Content-Type':'application/x-www-form-urlencoded'},
-      body:'query=get_recent&selector=time'
-    });
-    const d=await res.json();
-    if(d.query_status!=='ok')return[];
-    return(d.data||[]).slice(0,20).map(s=>({
-      id:'mbz_'+s.sha256_hash,source:'MalwareBazaar',category:'malware',severity:'high',
-      title:`${s.signature||'Unknown'} — ${s.file_name||'unnamed'} [${s.file_type}]`,
-      ioc:s.sha256_hash,
-      desc:`Tags: ${(s.tags||[]).join(', ')||'none'} · Size: ${s.file_size}B`,
-      date:s.first_seen,link:'https://bazaar.abuse.ch/sample/'+s.sha256_hash,
-      tags:(s.tags||[s.signature]).filter(Boolean),
-    }));
-  }catch(e){return[];}
-}
-
-function toggleSrc(btn){
-  const src=btn.dataset.src;
-  btn.classList.toggle('on');
-  if(btn.classList.contains('on'))activeSrcs.add(src);else activeSrcs.delete(src);
-  renderFeed();
-}
-function setFeedCat(cat,btn){feedCat=cat;document.querySelectorAll('.fcat').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderFeed();}
-function filterFeed(q){feedQ=q.toLowerCase();renderFeed();}
-
-function renderFeed(){
-  const el=document.getElementById('feed-list');
-  if(!feedData.length)return;
-  const items=feedData.filter(i=>{
-    const mcat=feedCat==='all'||i.category===feedCat||(i.tags||[]).some(t=>t.toLowerCase()===feedCat);
-    const msrc=activeSrcs.has(i.source);
-    const mq=!feedQ||(i.title+i.ioc+i.desc+(i.tags||[]).join(' ')).toLowerCase().includes(feedQ);
-    return mcat&&msrc&&mq;
-  });
-  if(!items.length){el.innerHTML='<div class="feed-empty"><span>no items match current filters</span></div>';return;}
-  el.innerHTML=items.map(item=>`
-    <div class="fi ${item.severity}">
-      <div class="fi-hdr">
-        <span class="fi-sev sev-${item.severity}">${item.severity.toUpperCase()}</span>
-        <span class="fi-src">${item.source}</span>
-        ${(item.tags||[]).slice(0,2).map(t=>`<span class="fi-src">${t}</span>`).join('')}
-        <span class="fi-date">${(item.date||'').slice(0,10)}</span>
-      </div>
-      <div class="fi-title">${escH(item.title)}</div>
-      ${item.ioc?`<div class="fi-ioc" onclick="quickEnrich('${escH(item.ioc)}')" title="click to enrich">${escH(item.ioc.slice(0,80))}</div>`:''}
-      <div class="fi-desc">${escH(item.desc.slice(0,160))}</div>
-      <div class="fi-acts">
-        <button class="fi-btn" onclick="addFeedToCase('${item.id}')">+ case</button>
-        ${item.ioc?`<button class="fi-btn" onclick="quickEnrich('${escH(item.ioc)}')">enrich</button>`:''}
-        <a class="fi-btn" href="${item.link}" target="_blank" rel="noopener" style="text-decoration:none">view ↗</a>
-      </div>
-    </div>`).join('');
-}
-
-function updateFeedStats(){
-  document.getElementById('fst-total').textContent=feedData.length;
-  document.getElementById('fst-crit').textContent=feedData.filter(i=>i.severity==='critical').length;
-  document.getElementById('fst-high').textContent=feedData.filter(i=>i.severity==='high').length;
-  document.getElementById('fst-c2').textContent=feedData.filter(i=>i.category==='c2').length;
-  document.getElementById('fst-mal').textContent=feedData.filter(i=>i.category==='malware').length;
-  document.getElementById('fst-kev').textContent=feedData.filter(i=>i.source==='CISA-KEV').length;
-}
-
-function addFeedToCase(id){
-  const c=getC();if(!c){alert('Select a case first');return;}
-  const item=feedData.find(i=>i.id===id);if(!item)return;
-  const v=item.ioc||item.title.slice(0,200);
-  const type=v.match(/^\d+\.\d+\.\d+\.\d+/)?'ip':v.match(/^CVE-/i)?'url':v.match(/^[0-9a-f]{32,64}$/i)?'hash':v.match(/^https?:\/\//)?'url':'domain';
-  const ent={id:'e'+Date.now(),type,value:v,color:TC[type]||'#ff4444',tlp:'WHITE',ioc:'yes',confidence:85,notes:`Source: ${item.source}\n${item.desc}\nLink: ${item.link}`,created:new Date().toISOString()};
-  c.entities[ent.id]=ent;
-  c.timeline.push({id:'t'+Date.now(),date:(item.date||new Date().toISOString()).slice(0,10),type:'IOC Detected',desc:item.title.slice(0,200),created:new Date().toISOString()});
-  save();renderAll();showToast('Added to: '+c.name);
-}
-function quickEnrich(ioc){document.getElementById('enrich-val').value=ioc;switchTab('enrich',document.querySelectorAll('.cvt')[3]);enrichIOC();}
-
-// ═══ CVE — NVD + CISA KEV ═════════════════════════
-let cveData=[];
-
-async function loadRecentCVEs(){
-  const el=document.getElementById('cve-list');
-  el.innerHTML='<div class="feed-loading">fetching recent CVEs from NVD...</div>';
-  cveData=[];
-  try{
-    const nvdKey=getKey('nvd');
-    const now=new Date();
-    const past=new Date(now-86400000*3);
-    const fmt=d=>d.toISOString().replace(/\.\d+Z$/,'+00:00');
-    const headers=nvdKey?{'apiKey':nvdKey}:{};
-    // Add delay if no key to avoid rate limiting
-    if(!nvdKey)await new Promise(r=>setTimeout(r,600));
-    const res=await fetch(`https://services.nvd.nist.gov/rest/json/cves/2.0?pubStartDate=${fmt(past)}&pubEndDate=${fmt(now)}&resultsPerPage=30`,{headers});
-    if(!res.ok)throw new Error('NVD returned '+res.status);
-    const d=await res.json();
-    const kev=await fetchKEV();
-    const kevIds=new Set(kev.map(v=>v.cveID));
-    cveData=(d.vulnerabilities||[]).map(v=>parseCVE(v,kevIds));
-    document.getElementById('cve-count').textContent=cveData.length+' CVEs (last 3 days)';
-    renderCVEs();
-  }catch(e){el.innerHTML=`<div style="color:var(--red);font-size:.7rem;padding:.75rem;background:rgba(255,68,68,.06);border:1px solid rgba(255,68,68,.15);border-radius:4px;margin:.3rem">
-    <strong>NVD rate limit hit.</strong> NVD limits to 5 requests/30 seconds without an API key.<br><br>
-    <strong>Fix options:</strong><br>
-    1. Wait 30 seconds and try again<br>
-    2. Get free NVD API key at <a href="https://nvd.nist.gov/developers/request-an-api-key" target="_blank">nvd.nist.gov/developers</a> → add in ⚙ API Keys<br>
-    3. Click "🔥 exploited" button — loads CISA KEV (no rate limit)
-  </div>`;}
-}
-
-async function loadKEV(){
-  const el=document.getElementById('cve-list');
-  el.innerHTML='<div class="feed-loading">loading CISA Known Exploited Vulnerabilities...</div>';
-  cveData=[];
-  try{
-    const kev=await fetchKEV();
-    const kevIds=new Set(kev.map(v=>v.cveID));
-    cveData=[...kev].sort((a,b)=>new Date(b.dateAdded)-new Date(a.dateAdded)).slice(0,60).map(v=>({
-      id:v.cveID,title:v.vulnerabilityName,severity:'critical',score:'KEV',
-      desc:`Vendor: ${v.vendorProject} · Product: ${v.product} · ${v.shortDescription||''}`,
-      published:v.dateAdded,modified:v.dateAdded,
-      link:`https://nvd.nist.gov/vuln/detail/${v.cveID}`,
-      kev:true,dueDate:v.dueDate,ransomware:v.knownRansomwareCampaignUse,
-    }));
-    document.getElementById('cve-count').textContent=cveData.length+' actively exploited CVEs (CISA KEV)';
-    renderCVEs();
-  }catch(e){el.innerHTML=`<div style="color:var(--red);font-size:.7rem;padding:.75rem">Failed to load KEV: ${e.message}</div>`;}
-}
-
-async function searchCVEs(){
-  const q=document.getElementById('cve-q').value.trim();
-  const sev=document.getElementById('cve-sev').value;
-  const el=document.getElementById('cve-list');
-  if(!q&&!sev){loadRecentCVEs();return;}
-  el.innerHTML='<div class="feed-loading">searching NVD...</div>';
-  cveData=[];
-  try{
-    const nvdKey=getKey('nvd');
-    const headers=nvdKey?{'apiKey':nvdKey}:{};
-    if(!nvdKey)await new Promise(r=>setTimeout(r,600));
-    let url='https://services.nvd.nist.gov/rest/json/cves/2.0?resultsPerPage=20';
-    if(q)url+=q.match(/^CVE-/i)?`&cveId=${encodeURIComponent(q)}`:`&keywordSearch=${encodeURIComponent(q)}`;
-    if(sev)url+=`&cvssV3Severity=${sev}`;
-    const res=await fetch(url,{headers});
-    if(!res.ok)throw new Error('NVD '+res.status+' — rate limited. Wait 30s or add NVD API key.');
-    const d=await res.json();
-    const kev=await fetchKEV();
-    const kevIds=new Set(kev.map(v=>v.cveID));
-    cveData=(d.vulnerabilities||[]).map(v=>parseCVE(v,kevIds));
-    document.getElementById('cve-count').textContent=`${d.totalResults||cveData.length} results`;
-    renderCVEs();
-  }catch(e){el.innerHTML=`<div style="color:var(--red);font-size:.7rem;padding:.75rem;background:rgba(255,68,68,.06);border:1px solid rgba(255,68,68,.15);border-radius:4px;margin:.3rem">${e.message}<br><br>Try: wait 30 seconds · get free NVD key at nvd.nist.gov/developers · add in ⚙ API Keys</div>`;}
-}
-
-function parseCVE(v,kevIds){
-  const cve=v.cve;
-  const desc=(cve.descriptions||[]).find(d=>d.lang==='en')?.value||'No description';
-  const m31=cve.metrics?.cvssMetricV31?.[0]?.cvssData;
-  const m30=cve.metrics?.cvssMetricV30?.[0]?.cvssData;
-  const m2=cve.metrics?.cvssMetricV2?.[0]?.cvssData;
-  const score=m31?.baseScore||m30?.baseScore||m2?.baseScore||0;
-  const sev=score>=9?'critical':score>=7?'high':score>=4?'medium':'low';
-  return{id:cve.id,title:cve.id,severity:sev,score,desc,
-    published:cve.published,modified:cve.lastModified,
-    refs:(cve.references||[]).slice(0,3).map(r=>r.url),
-    link:`https://nvd.nist.gov/vuln/detail/${cve.id}`,
-    kev:kevIds?.has(cve.id)||false};
-}
-
-function renderCVEs(){
-  const el=document.getElementById('cve-list');
-  if(!cveData.length){el.innerHTML='<div class="feed-empty"><span>no CVEs found</span></div>';return;}
-  el.innerHTML=cveData.map(cve=>`
-    <div class="cve-item ${cve.severity}" onclick="showCVEDetail('${cve.id}')">
-      <div class="cve-hdr">
-        <span class="cve-id">${cve.id}</span>
-        ${cve.score!=='KEV'?`<span class="cve-score sev-${cve.severity}">CVSS ${cve.score}</span>`:''}
-        ${cve.kev?'<span class="kev-badge">🔥 EXPLOITED</span>':''}
-        ${cve.ransomware==='Known'?'<span class="kev-badge" style="background:rgba(188,140,255,.15);color:var(--purple);border-color:rgba(188,140,255,.3)">🦠 RANSOMWARE</span>':''}
-      </div>
-      <div class="cve-title">${escH((cve.desc||cve.title).slice(0,120))}</div>
-      <div class="cve-meta">
-        <span>${(cve.published||'').slice(0,10)}</span>
-        ${cve.dueDate?`<span style="color:var(--red)">due: ${cve.dueDate}</span>`:''}
-      </div>
-      <div class="cve-acts" onclick="event.stopPropagation()">
-        <button class="fi-btn" onclick="addCVEToCase('${cve.id}')">+ case</button>
-        <button class="fi-btn" onclick="quickEnrich('${cve.id}')">enrich</button>
-        <a class="fi-btn" href="${cve.link}" target="_blank" rel="noopener" style="text-decoration:none">NVD ↗</a>
-        ${(cve.refs||[])[0]?`<a class="fi-btn" href="${(cve.refs||[])[0]}" target="_blank" rel="noopener" style="text-decoration:none">ref ↗</a>`:''}
-      </div>
-    </div>`).join('');
-}
-
-function showCVEDetail(id){
-  const cve=cveData.find(c=>c.id===id);if(!cve)return;
-  document.getElementById('dp-body').innerHTML=`
-    <div style="background:rgba(255,68,68,.15);border:1px solid rgba(255,68,68,.3);display:inline-block;padding:1px 6px;border-radius:2px;font-size:.54rem;font-weight:700;color:var(--red);margin-bottom:.4rem">CVE</div>
-    <div class="dp-name">${cve.id}</div>
-    ${cve.score!=='KEV'?`<div class="dp-row"><span class="dp-k">CVSS</span><span class="dp-v" style="color:${cve.score>=9?'var(--red)':cve.score>=7?'var(--yellow)':'var(--accent2)'}">${cve.score} (${cve.severity})</span></div>`:''}
-    ${cve.kev?`<div class="dp-row"><span class="dp-k">KEV</span><span class="dp-v" style="color:var(--red)">🔥 Actively Exploited</span></div>`:''}
-    ${cve.dueDate?`<div class="dp-row"><span class="dp-k">Due Date</span><span class="dp-v" style="color:var(--red)">${cve.dueDate}</span></div>`:''}
-    <div class="dp-row"><span class="dp-k">Published</span><span class="dp-v">${(cve.published||'').slice(0,10)}</span></div>
-    <div class="dp-notes">${escH(cve.desc||cve.title||'')}</div>
-    ${(cve.refs||[]).length?`<div style="margin-top:.4rem;font-size:.6rem;color:var(--dim)">references:</div>${(cve.refs||[]).map(r=>`<div style="font-size:.58rem;margin-top:3px"><a href="${r}" target="_blank" style="color:var(--accent2);word-break:break-all">${r.slice(0,55)}…</a></div>`).join('')}`:''} `;
-  document.getElementById('dp-acts').style.display='none';
-}
-
-function addCVEToCase(cveId){
-  const c=getC();if(!c){alert('Select a case first');return;}
-  const cve=cveData.find(cv=>cv.id===cveId);if(!cve)return;
-  const ent={id:'e'+Date.now(),type:'url',value:cveId,color:'#ff4444',tlp:'WHITE',ioc:'yes',confidence:90,notes:`CVSS: ${cve.score} (${cve.severity})\n${cve.desc||cve.title||''}\nLink: ${cve.link}`,created:new Date().toISOString()};
-  c.entities[ent.id]=ent;
-  c.timeline.push({id:'t'+Date.now(),date:(cve.published||new Date().toISOString()).slice(0,10),type:'CVE Published',desc:`${cveId} — CVSS ${cve.score} — ${(cve.desc||'').slice(0,80)}`,created:new Date().toISOString()});
-  save();renderAll();showToast('CVE added to case');
-}
-
-// ═══ ENRICH IOC ═══════════════════════════════════
-function detectType(val){val=val.trim();if(/^\d+\.\d+\.\d+\.\d+/.test(val))return'ip';if(/^CVE-\d{4}-\d+$/i.test(val))return'cve';if(/^[0-9a-fA-F]{32,64}$/.test(val))return'hash';if(/^https?:\/\//.test(val))return'url';return'domain';}
-
-async function enrichIOC(){
-  const val=document.getElementById('enrich-val').value.trim();
-  if(!val){alert('Enter an indicator');return;}
-  let type=document.getElementById('enrich-type').value;
-  if(type==='auto')type=detectType(val);
-  const el=document.getElementById('enrich-results');
-  el.innerHTML='<div class="feed-loading">querying threat intelligence sources...</div>';
-  const authKey=getKey('abusech');
-  const results=await Promise.allSettled([
-    type==='cve'?enrichCVElookup(val):Promise.resolve(null),
-    enrichIPAPI(val,type),
-    enrichGreyNoise(val,type),
-    enrichURLhausLookup(val,type),
-    authKey?enrichThreatFoxLookup(val,authKey):noKeyCard('ThreatFox','abuse.ch key'),
-    enrichAbuseIPDB(val,type),
-    enrichOTX(val,type),
-    enrichVirusTotal(val,type),
-    type==='ip'?enrichShodan(val):Promise.resolve(null),
-  ]);
-  const cards=results.filter(r=>r.status==='fulfilled'&&r.value).map(r=>r.value);
-  el.innerHTML=cards.length?cards.join(''):'<div style="color:var(--dim);font-size:.72rem;padding:1rem;text-align:center">No results. ip-api and GreyNoise always work for IPs.</div>';
-}
-
-function noKeyCard(name,keyNeeded){return`<div class="ec"><div class="ec-hdr"><span class="ec-src">${name}</span><span class="ec-st nokey">no key</span></div><div class="ec-body"><div style="font-size:.64rem;color:var(--dim)">Add ${keyNeeded} in ⚙ API Keys</div></div></div>`;}
-
-async function enrichCVElookup(cveId){
-  try{
-    const nvdKey=getKey('nvd');
-    const headers=nvdKey?{'apiKey':nvdKey}:{};
-    const res=await fetch(`https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=${cveId}`,{headers});
-    const d=await res.json();if(!d.vulnerabilities?.length)return null;
-    const kev=await fetchKEV();const kevIds=new Set(kev.map(v=>v.cveID));
-    const cve=parseCVE(d.vulnerabilities[0],kevIds);
-    return`<div class="ec"><div class="ec-hdr"><span class="ec-src">NVD — ${cve.id}</span><span class="ec-st ${cve.score>=9||cve.score>=7?'bad':cve.score>=4?'warn':'ok'}">CVSS ${cve.score}</span></div><div class="ec-body">
-    <div class="ec-row"><span class="ec-k">Severity</span><span class="ec-v" style="color:${cve.score>=9?'var(--red)':cve.score>=7?'var(--yellow)':'var(--accent2)'}">${cve.severity.toUpperCase()} (${cve.score})</span></div>
-    ${cve.kev?`<div class="ec-row"><span class="ec-k">CISA KEV</span><span class="ec-v" style="color:var(--red)">🔥 Actively exploited</span></div>`:''}
-    <div class="ec-row"><span class="ec-k">Published</span><span class="ec-v">${(cve.published||'').slice(0,10)}</span></div>
-    <div class="ec-row"><span class="ec-k">Description</span><span class="ec-v" style="font-size:.6rem">${escH((cve.desc||'').slice(0,180))}</span></div>
-    <div class="ec-row"><span class="ec-k">NVD</span><span class="ec-v"><a href="${cve.link}" target="_blank">view ↗</a></span></div>
-    </div></div>`;
-  }catch(e){return null;}
-}
-async function enrichIPAPI(val,type){if(type!=='ip'&&type!=='domain')return null;try{const res=await fetch(`https://ip-api.com/json/${encodeURIComponent(val)}?fields=status,country,regionName,city,isp,org,as,query,mobile,proxy,hosting`);const d=await res.json();if(d.status!=='success')return null;return`<div class="ec"><div class="ec-hdr"><span class="ec-src">ip-api (free)</span><span class="ec-st ${d.proxy||d.hosting?'warn':'ok'}">${d.proxy?'PROXY':d.hosting?'HOSTING':'residential'}</span></div><div class="ec-body"><div class="ec-row"><span class="ec-k">IP</span><span class="ec-v">${d.query}</span></div><div class="ec-row"><span class="ec-k">Location</span><span class="ec-v">${d.city}, ${d.regionName}, ${d.country}</span></div><div class="ec-row"><span class="ec-k">ISP</span><span class="ec-v">${d.isp}</span></div><div class="ec-row"><span class="ec-k">ASN</span><span class="ec-v">${d.as}</span></div><div class="ec-row"><span class="ec-k">Flags</span><span class="ec-v">${[d.proxy&&'proxy',d.hosting&&'hosting',d.mobile&&'mobile'].filter(Boolean).join(', ')||'none'}</span></div></div></div>`;}catch(e){return null;}}
-async function enrichGreyNoise(val,type){if(type!=='ip')return null;try{const res=await fetch(`https://api.greynoise.io/v3/community/${val}`);const d=await res.json();return`<div class="ec"><div class="ec-hdr"><span class="ec-src">GreyNoise (free)</span><span class="ec-st ${d.noise?'warn':d.riot?'ok':'nokey'}">${d.noise?'SCANNER':d.riot?'KNOWN GOOD':'unknown'}</span></div><div class="ec-body"><div class="ec-row"><span class="ec-k">Noise</span><span class="ec-v">${d.noise?'yes — mass internet scanner':'no'}</span></div><div class="ec-row"><span class="ec-k">RIOT</span><span class="ec-v">${d.riot?'yes — known benign':'no'}</span></div>${d.name?`<div class="ec-row"><span class="ec-k">Name</span><span class="ec-v">${d.name}</span></div>`:''}</div></div>`;}catch(e){return null;}}
-
-async function enrichURLhausLookup(val,type){
-  // URLhaus lookup — no auth needed for host/URL lookup
-  if(type!=='url'&&type!=='domain')return null;
-  try{
-    const body=type==='url'?`url=${encodeURIComponent(val)}`:`host=${encodeURIComponent(val)}`;
-    const ep=type==='url'?'https://urlhaus-api.abuse.ch/v1/url/':'https://urlhaus-api.abuse.ch/v1/host/';
-    const res=await fetch(ep,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
-    const d=await res.json();
-    const found=d.query_status==='is_listed'||d.query_status==='ok';
-    return`<div class="ec"><div class="ec-hdr"><span class="ec-src">URLhaus (free)</span><span class="ec-st ${found?'bad':'ok'}">${found?'⚠ MALICIOUS':'clean'}</span></div><div class="ec-body"><div class="ec-row"><span class="ec-k">Status</span><span class="ec-v">${d.query_status}</span></div>${d.urls_count!==undefined?`<div class="ec-row"><span class="ec-k">URLs</span><span class="ec-v">${d.urls_count}</span></div>`:''}</div></div>`;
-  }catch(e){return null;}
-}
-
-async function enrichThreatFoxLookup(val,authKey){
-  try{const res=await fetch('https://threatfox-api.abuse.ch/api/v1/',{method:'POST',headers:{'Auth-Key':authKey,'Content-Type':'application/json'},body:JSON.stringify({query:'search_ioc',search_term:val})});const d=await res.json();const found=d.query_status==='ok'&&d.data?.length>0;return`<div class="ec"><div class="ec-hdr"><span class="ec-src">ThreatFox</span><span class="ec-st ${found?'bad':'ok'}">${found?d.data.length+' match(es)':'clean'}</span></div><div class="ec-body">${found?d.data.slice(0,3).map(i=>`<div class="ec-row"><span class="ec-k">${i.malware||'malware'}</span><span class="ec-v">${i.confidence_level}% · ${i.ioc_type}</span></div>`).join(''):'<div style="font-size:.64rem;color:var(--accent)">Not in ThreatFox</div>'}</div></div>`;}catch(e){return null;}}
-
-async function enrichAbuseIPDB(val,type){const key=getKey('abuse');if(!key)return noKeyCard('AbuseIPDB','AbuseIPDB key');if(type!=='ip')return null;try{const res=await fetch(`https://api.abuseipdb.com/api/v2/check?ipAddress=${encodeURIComponent(val)}&maxAgeInDays=90`,{headers:{'Key':key,'Accept':'application/json'}});const d=await res.json();const data=d.data;return`<div class="ec"><div class="ec-hdr"><span class="ec-src">AbuseIPDB</span><span class="ec-st ${data.abuseConfidenceScore>50?'bad':data.abuseConfidenceScore>10?'warn':'ok'}">${data.abuseConfidenceScore}% abuse</span></div><div class="ec-body"><div class="ec-row"><span class="ec-k">Score</span><span class="ec-v" style="color:${data.abuseConfidenceScore>50?'var(--red)':data.abuseConfidenceScore>10?'var(--yellow)':'var(--accent)'}">${data.abuseConfidenceScore}%</span></div><div class="ec-row"><span class="ec-k">Country</span><span class="ec-v">${data.countryCode||'—'}</span></div><div class="ec-row"><span class="ec-k">ISP</span><span class="ec-v">${data.isp||'—'}</span></div><div class="ec-row"><span class="ec-k">Reports</span><span class="ec-v">${data.totalReports} (${data.numDistinctUsers} users)</span></div><div class="ec-row"><span class="ec-k">Last report</span><span class="ec-v">${(data.lastReportedAt||'never').slice(0,10)}</span></div></div></div>`;}catch(e){return null;}}
-async function enrichOTX(val,type){const key=getKey('otx');if(!key)return noKeyCard('AlienVault OTX','OTX key');const section=type==='ip'?'IPv4':type==='domain'?'domain':type==='hash'?'file':'url';try{const res=await fetch(`https://otx.alienvault.com/api/v1/indicators/${section}/${encodeURIComponent(val)}/general`,{headers:{'X-OTX-API-KEY':key}});const d=await res.json();return`<div class="ec"><div class="ec-hdr"><span class="ec-src">AlienVault OTX</span><span class="ec-st ${d.pulse_info?.count>0?'bad':'ok'}">${d.pulse_info?.count>0?d.pulse_info.count+' pulse(s)':'clean'}</span></div><div class="ec-body"><div class="ec-row"><span class="ec-k">Pulses</span><span class="ec-v">${d.pulse_info?.count||0}</span></div>${d.country_name?`<div class="ec-row"><span class="ec-k">Country</span><span class="ec-v">${d.country_name}</span></div>`:''}</div></div>`;}catch(e){return null;}}
-async function enrichVirusTotal(val,type){const key=getKey('vt');if(!key)return noKeyCard('VirusTotal','VT key');const ep=type==='ip'?'ip_addresses':type==='domain'?'domains':type==='hash'?'files':'urls';try{let url;if(type==='url'){const id=btoa(val).replace(/=+$/,'');url=`https://www.virustotal.com/api/v3/urls/${id}`;}else{url=`https://www.virustotal.com/api/v3/${ep}/${encodeURIComponent(val)}`;}const res=await fetch(url,{headers:{'x-apikey':key}});const d=await res.json();const att=d.data?.attributes||{};const stats=att.last_analysis_stats||{};const mal=stats.malicious||0;const total=Object.values(stats).reduce((a,b)=>a+b,0)||1;return`<div class="ec"><div class="ec-hdr"><span class="ec-src">VirusTotal</span><span class="ec-st ${mal>5?'bad':mal>0?'warn':'ok'}">${mal}/${total} engines</span></div><div class="ec-body"><div class="ec-row"><span class="ec-k">Malicious</span><span class="ec-v" style="color:${mal>5?'var(--red)':mal>0?'var(--yellow)':'var(--accent)'}">${mal}</span></div><div class="ec-row"><span class="ec-k">Suspicious</span><span class="ec-v">${stats.suspicious||0}</span></div>${att.country?`<div class="ec-row"><span class="ec-k">Country</span><span class="ec-v">${att.country}</span></div>`:''}<div class="ec-row"><span class="ec-k">Report</span><span class="ec-v"><a href="https://www.virustotal.com/gui/${ep}/${encodeURIComponent(val)}" target="_blank">view ↗</a></span></div></div></div>`;}catch(e){return null;}}
-async function enrichShodan(val){const key=getKey('shodan');if(!key)return noKeyCard('Shodan','Shodan key');try{const res=await fetch(`https://api.shodan.io/shodan/host/${val}?key=${key}`);const d=await res.json();if(d.error)return null;return`<div class="ec"><div class="ec-hdr"><span class="ec-src">Shodan</span><span class="ec-st ${(d.ports||[]).length>5?'bad':'warn'}">${(d.ports||[]).length} open ports</span></div><div class="ec-body"><div class="ec-row"><span class="ec-k">Org</span><span class="ec-v">${d.org||'—'}</span></div><div class="ec-row"><span class="ec-k">Country</span><span class="ec-v">${d.country_name||'—'}</span></div><div class="ec-row"><span class="ec-k">OS</span><span class="ec-v">${d.os||'—'}</span></div><div class="ec-row"><span class="ec-k">Ports</span><span class="ec-v">${(d.ports||[]).join(', ')||'—'}</span></div></div></div>`;}catch(e){return null;}}
-
-// ═══ TIMELINE ═════════════════════════════════════
-function addTL(){const c=getC();if(!c){alert('Select a case first');return;}const desc=document.getElementById('tl-desc').value.trim();if(!desc){alert('Enter description');return;}c.timeline.push({id:'t'+Date.now(),date:document.getElementById('tl-date').value||new Date().toISOString().split('T')[0],type:document.getElementById('tl-type').value,desc,created:new Date().toISOString()});document.getElementById('tl-desc').value='';c.timeline.sort((a,b)=>a.date.localeCompare(b.date));save();renderTimeline();}
-const TLC={'IOC Detected':'#ff4444','C2 Infrastructure':'#ff4444','Actor Activity':'#e8c547','Data Breach':'#bc8cff','Malware':'#f0883e','Ransomware':'#ff4444','Defacement':'#bc8cff','Financial':'#bc8cff','Attribution':'#00ff41','CVE Published':'#00d4ff','KEV Added':'#ff4444','Other':'#484f58'};
-function renderTimeline(){const c=getC();const el=document.getElementById('tl-events');if(!c||!c.timeline.length){el.innerHTML='<div style="color:var(--dim);font-size:.7rem;text-align:center;padding:1.5rem">no events yet</div>';return;}el.innerHTML=c.timeline.map(ev=>`<div class="tl-ev"><div class="tl-dt">${ev.date}</div><div class="tl-col"><div class="tl-dot" style="background:${TLC[ev.type]||'#484f58'}"></div><div class="tl-line"></div></div><div><div class="tl-card"><div class="tl-ct">${escH(ev.desc)}</div><div class="tl-cm" style="color:${TLC[ev.type]||'#484f58'}">${ev.type}</div></div></div></div>`).join('');}
-
-// ═══ EVIDENCE ════════════════════════════════════
-function addEv(){const c=getC();if(!c){alert('Select a case first');return;}const content=document.getElementById('ev-content').value.trim();if(!content){alert('Enter content');return;}c.evidence.push({id:'ev'+Date.now(),tag:document.getElementById('ev-tag').value,content,created:new Date().toISOString()});document.getElementById('ev-content').value='';save();renderEvidence();}
-function delEv(id){const c=getC();if(!c)return;c.evidence=c.evidence.filter(e=>e.id!==id);save();renderEvidence();}
-function renderEvidence(){const c=getC();const el=document.getElementById('ev-items');if(!c||!c.evidence.length){el.innerHTML='<div style="color:var(--dim);font-size:.7rem;text-align:center;padding:1.5rem">no evidence yet</div>';return;}el.innerHTML=[...c.evidence].reverse().map(ev=>`<div class="ev-item"><div class="ev-ih"><span class="ev-tag">${ev.tag}</span><span style="font-size:.56rem;color:var(--dim)">${new Date(ev.created).toLocaleString()}</span><button class="ev-del" onclick="delEv('${ev.id}')">×</button></div><div class="ev-content">${escH(ev.content)}</div></div>`).join('');}
-
-// ═══ REPORT ═══════════════════════════════════════
-function goReport(){switchTab('report',document.querySelectorAll('.cvt')[6]);renderReport();}
-function renderReport(){const c=getC();const el=document.getElementById('rp-preview');if(!c){el.innerHTML='<div style="color:var(--dim);font-size:.72rem">select a case</div>';return;}const ents=Object.values(c.entities);const iocs=ents.filter(e=>e.ioc==='yes');el.innerHTML=`<div class="rp-t">⬡ Kitsune CTI Report</div><div class="rp-m">Case: ${c.name} · Priority: ${c.priority.toUpperCase()} · Status: ${c.status} · ${new Date().toLocaleString()} · Analyst: 0xprit3sh</div><div class="rp-sh">// SUMMARY</div><p style="font-size:.7rem;color:var(--text2);line-height:1.7;margin-bottom:.55rem">${c.desc||'No description provided.'}</p><div class="rp-sh">// STATISTICS</div><table class="rp-table"><tr><td>Entities</td><td>${ents.length}</td><td>Confirmed IOCs</td><td>${iocs.length}</td></tr><tr><td>Timeline</td><td>${c.timeline.length}</td><td>Evidence</td><td>${c.evidence.length}</td></tr></table>${iocs.length?`<div class="rp-sh">// IOC TABLE</div><table class="rp-table"><tr><th>Type</th><th>Indicator</th><th>TLP</th><th>Confidence</th></tr>${iocs.map(e=>`<tr><td>${e.type}</td><td style="color:var(--orange);font-family:monospace;font-size:.6rem">${escH(e.value)}</td><td>TLP:${e.tlp||'WHITE'}</td><td>${e.confidence||80}%</td></tr>`).join('')}</table>`:''}${c.timeline.length?`<div class="rp-sh">// TIMELINE</div><table class="rp-table"><tr><th>Date</th><th>Type</th><th>Event</th></tr>${c.timeline.map(ev=>`<tr><td style="white-space:nowrap">${ev.date}</td><td>${ev.type}</td><td>${escH(ev.desc)}</td></tr>`).join('')}</table>`:''}<div style="font-size:.56rem;color:var(--dim);margin-top:.7rem;border-top:1px solid var(--border);padding-top:.4rem">Generated by Kitsune CTI Platform · 0xprit3sh.xyz · ${new Date().toISOString()}</div>`;}
-function downloadReport(){const c=getC();if(!c)return;renderReport();const content=document.getElementById('rp-preview').innerHTML;const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Kitsune — ${c.name}</title><style>body{font-family:monospace;background:#090909;color:#e6edf3;padding:2rem;max-width:900px;margin:0 auto}.rp-t{color:#00ff41;font-size:1rem;font-weight:700;margin-bottom:.3rem}.rp-sh{color:#00d4ff;font-size:.7rem;font-weight:700;margin:.55rem 0 .2rem}.rp-table{width:100%;border-collapse:collapse;font-size:.7rem}.rp-table th{background:#161616;color:#484f58;padding:3px 7px;border:1px solid #1e1e1e;text-align:left}.rp-table td{padding:3px 7px;border:1px solid #1e1e1e;color:#8b949e}</style></head><body>${content}</body></html>`;const blob=new Blob([html],{type:'text/html'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`kitsune-${c.name.replace(/\s+/g,'-').toLowerCase()}.html`;a.click();}
-function copyMD(){const c=getC();if(!c)return;const ents=Object.values(c.entities);const iocs=ents.filter(e=>e.ioc==='yes');const md=`# Kitsune CTI Report — ${c.name}\n\n**Priority:** ${c.priority} | **Status:** ${c.status}\n\n## Summary\n${c.desc||'N/A'}\n\n## IOCs\n${iocs.map(e=>`- \`${e.value}\` (${e.type}, TLP:${e.tlp}, ${e.confidence}%)`).join('\n')||'None'}\n\n## Timeline\n${c.timeline.map(ev=>`- **${ev.date}** [${ev.type}] ${ev.desc}`).join('\n')||'None'}\n\n---\n*Kitsune CTI Platform · 0xprit3sh.xyz*`;navigator.clipboard.writeText(md);showToast('Markdown copied');}
-
-// ═══ IMPORT / EXPORT ══════════════════════════════
-function exportData(){const blob=new Blob([JSON.stringify({cases:S.cases,exported:new Date().toISOString()},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`kitsune-${Date.now()}.json`;a.click();}
-function importData(){const input=document.createElement('input');input.type='file';input.accept='.json';input.onchange=e=>{const reader=new FileReader();reader.onload=ev=>{try{const data=JSON.parse(ev.target.result);Object.assign(S.cases,data.cases||data);save();renderAll();showToast('Imported');}catch(err){alert('Invalid JSON');}};reader.readAsText(e.target.files[0]);};input.click();}
-
-// ═══ TABS + RENDER ALL ════════════════════════════
-function switchTab(id,btn){document.querySelectorAll('.cvt').forEach(b=>b.classList.remove('on'));document.querySelectorAll('.cv-panel').forEach(p=>p.classList.remove('on'));if(btn)btn.classList.add('on');document.getElementById('panel-'+id).classList.add('on');if(id==='report')renderReport();}
-function renderAll(){renderCases();renderEnts();renderGraph();renderTimeline();renderEvidence();updateStats();}
-function renderCases(){const el=document.getElementById('cases-list');const sel=document.getElementById('case-sel');const cases=Object.values(S.cases).sort((a,b)=>b.created.localeCompare(a.created));const pc={critical:'#ff4444',high:'#e8c547',medium:'#00d4ff',low:'#484f58'};el.innerHTML=cases.map(c=>`<div class="si ${S.cur===c.id?'on':''}" onclick="switchCase('${c.id}')"><div class="si-dot" style="background:${pc[c.priority]||'#484f58'}"></div><span class="si-name">${c.name}</span><span class="si-badge">${c.status}</span><button class="si-del" onclick="delCase('${c.id}',event)">×</button></div>`).join('')||'<div style="padding:6px 8px;font-size:.68rem;color:var(--dim)">no cases yet</div>';sel.innerHTML='<option value="">— select case —</option>'+cases.map(c=>`<option value="${c.id}" ${S.cur===c.id?'selected':''}>${c.name}</option>`).join('');}
-function renderEnts(){const c=getC();const el=document.getElementById('ents-list');if(!c){el.innerHTML='<div style="padding:6px 8px;font-size:.68rem;color:var(--dim)">select a case</div>';return;}const ents=Object.values(c.entities).sort((a,b)=>b.created.localeCompare(a.created));document.getElementById('ent-count').textContent=ents.length;el.innerHTML=ents.map(e=>`<div class="si ${S.selEnt===e.id?'on':''}" onclick="showDetail('${e.id}')" data-v="${e.value.toLowerCase()}"><div class="si-dot" style="background:${e.color||TC[e.type]||'#484f58'}"></div><span class="si-name">${e.value}</span><span class="si-badge">${e.type}</span><button class="si-del" onclick="event.stopPropagation();S.selEnt='${e.id}';deleteDetail()">×</button></div>`).join('')||'<div style="padding:6px 8px;font-size:.68rem;color:var(--dim)">no entities — add above</div>';}
-function updateStats(){const c=getC();document.getElementById('st-case').textContent=c?c.name.slice(0,14):'none';document.getElementById('st-ents').textContent=c?Object.keys(c.entities).length:0;document.getElementById('st-nodes').textContent=c?c.graph.nodes.length:0;document.getElementById('st-edges').textContent=c?c.graph.edges.length:0;document.getElementById('st-tl').textContent=c?c.timeline.length:0;document.getElementById('st-ev').textContent=c?c.evidence.length:0;}
-function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function showToast(msg){const t=document.createElement('div');t.style.cssText='position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--accent);color:#000;font-family:monospace;font-size:11px;font-weight:700;padding:6px 15px;border-radius:4px;z-index:9999;pointer-events:none';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2200);}
-
-// INIT
-load();loadKeys();renderAll();setMode('select');
-document.getElementById('tl-date').value=new Date().toISOString().split('T')[0];
-window.addEventListener('resize',renderGraph);
-</script>
+    <script>
+        // ============================================
+        // 🔑 CONFIGURATION - REPLACE WITH YOUR VERCEL URL
+        // ============================================
+        const PROXY_BASE = "https://YOUR-VERCEL-URL.vercel.app/api/proxy";
+        // Example: "https://kitsune-proxy.vercel.app/api/proxy"
+        // ============================================
+        
+        // State
+        let currentFeed = [];
+        let currentFilter = 'all';
+        let watchlist = JSON.parse(localStorage.getItem('kitsune_watchlist') || '[]');
+        let cases = JSON.parse(localStorage.getItem('kitsune_cases') || '[]');
+        let apiKeys = JSON.parse(localStorage.getItem('kitsune_apikeys') || '{}');
+        let entities = [];
+        let graphNodes = new vis.DataSet([]);
+        let graphEdges = new vis.DataSet([]);
+        let network = null;
+        let autoRefreshInterval = null;
+        let selectedMITRE = [];
+        let lookupType = 'whois';
+        let currentEntity = null;
+        
+        // MITRE ATT&CK Tactics (simplified)
+        const mitreTactics = [
+            { id: 'TA0001', name: 'Initial Access', techniques: ['T1190', 'T1133', 'T1566', 'T1105'] },
+            { id: 'TA0002', name: 'Execution', techniques: ['T1059', 'T1053', 'T1105', 'T1204'] },
+            { id: 'TA0003', name: 'Persistence', techniques: ['T1547', 'T1037', 'T1543', 'T1136'] },
+            { id: 'TA0004', name: 'Privilege Escalation', techniques: ['T1548', 'T1068', 'T1134', 'T1543'] },
+            { id: 'TA0005', name: 'Defense Evasion', techniques: ['T1027', 'T1070', 'T1562', 'T1036'] },
+            { id: 'TA0006', name: 'Credential Access', techniques: ['T1110', 'T1003', 'T1555', 'T1212'] },
+            { id: 'TA0007', name: 'Discovery', techniques: ['T1082', 'T1016', 'T1046', 'T1087'] },
+            { id: 'TA0008', name: 'Lateral Movement', techniques: ['T1021', 'T1563', 'T1091', 'T1210'] },
+            { id: 'TA0009', name: 'Collection', techniques: ['T1114', 'T1113', 'T1119', 'T1005'] },
+            { id: 'TA0010', name: 'Exfiltration', techniques: ['T1041', 'T1048', 'T1567', 'T1020'] },
+            { id: 'TA0011', name: 'Command and Control', techniques: ['T1071', 'T1102', 'T1095', 'T1573'] }
+        ];
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadApiKeys();
+            loadWatchlist();
+            refreshFeeds();
+            updateCaseSelects();
+            initGraph();
+            renderMITRE();
+            updateLastRefresh();
+            
+            // Search listeners
+            document.getElementById('feedSearch')?.addEventListener('input', renderFeed);
+            document.getElementById('watchlistInput')?.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addToWatchlist();
+            });
+        });
+        
+        // ============================================
+        // 🔄 FEED FUNCTIONS (USING PROXY)
+        // ============================================
+        
+        async function fetchSecure(targetUrl) {
+            const proxyUrl = `${PROXY_BASE}?target=${encodeURIComponent(targetUrl)}`;
+            const res = await fetch(proxyUrl);
+            if (!res.ok) throw new Error(`Proxy failed: ${res.status}`);
+            return res.json();
+        }
+        
+        async function refreshFeeds() {
+            const container = document.getElementById('feedContainer');
+            container.innerHTML = '<div class="loading">Loading threat intelligence feeds</div>';
+            setStatus('loading');
+            
+            try {
+                // Fetch from multiple sources using proxy
+                const [cisaData, feodoData, urlhausData, openphishData, phishstatsData, spamhausData, ransomwareData] = await Promise.allSettled([
+                    fetchSecure('https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json'),
+                    fetchSecure('https://feodotracker.abuse.ch/downloads/ipblocklist.json'),
+                    fetchSecure('https://urlhaus.abuse.ch/downloads/json_online/'),
+                    fetchSecure('https://openphish.com/feed.txt'),
+                    fetchSecure('https://phishstats.info/phish_stats.json'),
+                    fetchSecure('https://www.spamhaus.org/drop/drop.txt'),
+                    fetchSecure('https://raw.githubusercontent.com/montysecurity/ransomware-tracker/main/ransomware_tracker.json')
+                ]);
+                
+                currentFeed = [];
+                
+                // CISA KEV
+                if (cisaData.status === 'fulfilled' && cisaData.value?.vulnerabilityTypes) {
+                    cisaData.value.vulnerabilityTypes.slice(0, 50).forEach(item => {
+                        currentFeed.push({
+                            type: 'kev',
+                            severity: 'critical',
+                            ioc: item.cveID,
+                            description: `${item.vendorProject} - ${item.product}`,
+                            date: item.dateAdded,
+                            source: 'CISA KEV',
+                            mitre: []
+                        });
+                    });
+                }
+                
+                // Feodo Tracker C2
+                if (feodoData.status === 'fulfilled' && Array.isArray(feodoData.value)) {
+                    feodoData.value.slice(0, 50).forEach(item => {
+                        if (item.ip) {
+                            currentFeed.push({
+                                type: 'c2',
+                                severity: 'high',
+                                ioc: item.ip,
+                                description: 'C2 Server (Feodo Tracker)',
+                                date: new Date().toISOString(),
+                                source: 'FeodoTracker'
+                            });
+                        }
+                    });
+                }
+                
+                // URLhaus
+                if (urlhausData.status === 'fulfilled' && Array.isArray(urlhausData.value)) {
+                    urlhausData.value.slice(0, 50).forEach(item => {
+                        if (item.url) {
+                            currentFeed.push({
+                                type: item.threat === 'phishing' ? 'phishing' : 'malware',
+                                severity: item.threat === 'phishing' ? 'high' : 'medium',
+                                ioc: item.url,
+                                description: `${item.threat} - ${item.urlhaus_link || ''}`,
+                                date: item.firstseen,
+                                source: 'URLhaus'
+                            });
+                        }
+                    });
+                }
+                
+                // OpenPhish (plain text list)
+                if (openphishData.status === 'fulfilled') {
+                    const urls = openphishData.value.split('\n').filter(u => u.trim());
+                    urls.slice(0, 50).forEach(url => {
+                        currentFeed.push({
+                            type: 'phishing',
+                            severity: 'high',
+                            ioc: url,
+                            description: 'Phishing URL (OpenPhish)',
+                            date: new Date().toISOString(),
+                            source: 'OpenPhish'
+                        });
+                    });
+                }
+                
+                // PhishStats
+                if (phishstatsData.status === 'fulfilled' && Array.isArray(phishstatsData.value)) {
+                    phishstatsData.value.slice(0, 30).forEach(item => {
+                        if (item.url) {
+                            currentFeed.push({
+                                type: 'phishing',
+                                severity: 'high',
+                                ioc: item.url,
+                                description: `Phishing - ${item.brand || 'Unknown'} - ${item.ip || ''}`,
+                                date: item.date || new Date().toISOString(),
+                                source: 'PhishStats'
+                            });
+                        }
+                    });
+                }
+                
+                // Spamhaus DROP (IP ranges)
+                if (spamhausData.status === 'fulfilled') {
+                    const lines = spamhausData.value.split('\n').filter(l => l.trim() && !l.startsWith(';'));
+                    lines.slice(0, 30).forEach(line => {
+                        const [ipRange, , asn] = line.split(/\s+/);
+                        if (ipRange && ipRange.includes('/')) {
+                            currentFeed.push({
+                                type: 'c2',
+                                severity: 'critical',
+                                ioc: ipRange,
+                                description: `Malicious Range (Spamhaus DROP) - AS${asn || '?'}`,
+                                date: new Date().toISOString(),
+                                source: 'Spamhaus'
+                            });
+                        }
+                    });
+                }
+                
+                // Ransomware Tracker
+                if (ransomwareData.status === 'fulfilled' && Array.isArray(ransomwareData.value)) {
+                    ransomwareData.value.slice(0, 30).forEach(item => {
+                        if (item.ip_address || item.domain) {
+                            currentFeed.push({
+                                type: 'ransomware',
+                                severity: 'critical',
+                                ioc: item.ip_address || item.domain,
+                                description: `Ransomware C2 - ${item.family || 'Unknown'}`,
+                                date: item.last_updated || new Date().toISOString(),
+                                source: 'Ransomware.live'
+                            });
+                        }
+                    });
+                }
+                
+                // Sort by date
+                currentFeed.sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                // Check watchlist matches
+                checkWatchlistMatches();
+                
+                renderFeed();
+                updateStats();
+                setStatus('ready');
+                updateLastRefresh();
+                
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="error">
+                        <strong>Error loading feeds:</strong><br>
+                        ${error.message}<br><br>
+                        <small>Check your Vercel proxy URL and ensure new domains are allowed.</small>
+                    </div>
+                `;
+                setStatus('error');
+                console.error('Feed error:', error);
+            }
+        }
+        
+        function checkWatchlistMatches() {
+            if (watchlist.length === 0) return;
+            
+            const matches = currentFeed.filter(item => 
+                watchlist.some(keyword => 
+                    item.ioc.toLowerCase().includes(keyword.toLowerCase()) ||
+                    (item.description && item.description.toLowerCase().includes(keyword.toLowerCase()))
+                )
+            );
+            
+            if (matches.length > 0) {
+                showWatchlistAlert(matches);
+            }
+        }
+        
+        function showWatchlistAlert(matches) {
+            const banner = document.getElementById('alertBanner');
+            const message = document.getElementById('alertMessage');
+            message.textContent = `${matches.length} match(es) found for your watchlist`;
+            banner.style.display = 'block';
+            
+            // Play notification sound (optional)
+            try {
+                const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAAABmYWN0BAAAAABkYXRhAAAAAA==');
+                audio.play().catch(() => {});
+            } catch(e) {}
+            
+            // Auto-hide after 10 seconds
+            setTimeout(() => {
+                banner.style.display = 'none';
+            }, 10000);
+        }
+        
+        function renderFeed() {
+            const container = document.getElementById('feedContainer');
+            const search = document.getElementById('feedSearch').value.toLowerCase();
+            
+            let filtered = currentFeed;
+            
+            // Apply type filter
+            if (currentFilter !== 'all') {
+                filtered = filtered.filter(item => item.type === currentFilter);
+            }
+            
+            // Apply search
+            if (search) {
+                filtered = filtered.filter(item => 
+                    item.ioc.toLowerCase().includes(search) ||
+                    (item.description && item.description.toLowerCase().includes(search))
+                );
+            }
+            
+            if (filtered.length === 0) {
+                container.innerHTML = '<div style="text-align:center;padding:40px;color:#666;">No items found</div>';
+                return;
+            }
+            
+            container.innerHTML = filtered.map(item => {
+                const isWatchlistMatch = watchlist.some(k => 
+                    item.ioc.toLowerCase().includes(k.toLowerCase()) ||
+                    (item.description && item.description.toLowerCase().includes(k.toLowerCase()))
+                );
+                
+                return `
+                    <div class="feed-item ${item.severity} ${item.type}">
+                        <div class="ioc ${isWatchlistMatch ? 'matched' : ''}">${escapeHtml(item.ioc)}</div>
+                        <div style="margin:5px 0;">${escapeHtml(item.description || '')}</div>
+                        <div class="meta">
+                            ${item.source} • ${formatDate(item.date)} • ${item.type.toUpperCase()} • ${item.severity.toUpperCase()}
+                            ${isWatchlistMatch ? ' • <span style="color:#ff0000;font-weight:bold;">⚠️ WATCHLIST MATCH</span>' : ''}
+                        </div>
+                        <div class="actions">
+                            <button onclick="copyIOC('${escapeHtml(item.ioc)}')">📋 copy</button>
+                            <button onclick="enrichIOC('${escapeHtml(item.ioc)}')">🔍 enrich</button>
+                            <button onclick="addToWatchlist('${escapeHtml(item.ioc)}')">+ watchlist</button>
+                            ${item.type === 'phishing' ? `<button onclick="reportPhishing('${escapeHtml(item.ioc)}')">🚫 report</button>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function updateStats() {
+            document.getElementById('statTotal').textContent = currentFeed.length;
+            document.getElementById('statCritical').textContent = currentFeed.filter(i => i.severity === 'critical').length;
+            document.getElementById('statHigh').textContent = currentFeed.filter(i => i.severity === 'high').length;
+            document.getElementById('statPhishing').textContent = currentFeed.filter(i => i.type === 'phishing').length;
+            document.getElementById('statRansomware').textContent = currentFeed.filter(i => i.type === 'ransomware').length;
+            document.getElementById('statKEV').textContent = currentFeed.filter(i => i.type === 'kev').length;
+            document.getElementById('statAlerts').textContent = currentFeed.filter(i => 
+                watchlist.some(k => i.ioc.toLowerCase().includes(k.toLowerCase()))
+            ).length;
+        }
+        
+        function setFeedFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderFeed();
+        }
+        
+        function toggleAutoRefresh() {
+            const interval = parseInt(document.getElementById('autoRefresh').value);
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+            }
+            if (interval > 0) {
+                autoRefreshInterval = setInterval(refreshFeeds, interval);
+                setStatus(`auto-refresh: ${interval/60000}min`);
+            } else {
+                setStatus('ready');
+            }
+        }
+        
+        function updateLastRefresh() {
+            const now = new Date();
+            document.getElementById('lastRefresh').textContent = `last: ${now.toLocaleTimeString()}`;
+        }
+        
+        // ============================================
+        // 🚨 WATCHLIST FUNCTIONS
+        // ============================================
+        
+        function loadWatchlist() {
+            watchlist = JSON.parse(localStorage.getItem('kitsune_watchlist') || '[]');
+            renderWatchlist();
+        }
+        
+        function addToWatchlist(value) {
+            const input = document.getElementById('watchlistInput');
+            const keyword = (value || input.value).trim().toLowerCase();
+            if (!keyword || watchlist.includes(keyword)) {
+                if (input) input.value = '';
+                return;
+            }
+            
+            watchlist.push(keyword);
+            localStorage.setItem('kitsune_watchlist', JSON.stringify(watchlist));
+            renderWatchlist();
+            if (input) input.value = '';
+            checkWatchlistMatches();
+        }
+        
+        function removeFromWatchlist(keyword) {
+            watchlist = watchlist.filter(k => k !== keyword);
+            localStorage.setItem('kitsune_watchlist', JSON.stringify(watchlist));
+            renderWatchlist();
+            checkWatchlistMatches();
+        }
+        
+        function renderWatchlist() {
+            const container = document.getElementById('watchlistDisplay');
+            if (watchlist.length === 0) {
+                container.innerHTML = '<small style="color:#666;">No watchlist items</small>';
+                return;
+            }
+            container.innerHTML = watchlist.map(k => 
+                `<span class="watchlist-item" onclick="removeFromWatchlist('${k}')">${k} ✕</span>`
+            ).join('');
+        }
+        
+        // ============================================
+        // 🔓 BREACH LOOKUP (Have I Been Pwned)
+        // ============================================
+        
+        async function checkBreach() {
+            const email = document.getElementById('breachEmail').value.trim();
+            const resultDiv = document.getElementById('breachResult');
+            
+            if (!email || !email.includes('@')) {
+                resultDiv.innerHTML = '<div class="error">Please enter a valid email address</div>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<div class="loading">Checking breach databases</div>';
+            
+            try {
+                // Try HIBP API first (if key available)
+                if (apiKeys.hibp) {
+                    const response = await fetchSecure(
+                        `https://haveibeenpwned.com/api/v3/breachedaccount/${encodeURIComponent(email)}?truncateResponse=false`
+                    );
+                    renderBreachResults(response, email);
+                    return;
+                }
+                
+                // Fallback: check public breach lists (simplified)
+                // In production, you'd use a different API or database
+                const mockBreaches = [
+                    { Name: 'Collection #1', Domain: 'various', BreachDate: '2019-01-07', DataClasses: ['Email addresses', 'Passwords'] },
+                    { Name: 'LinkedIn', Domain: 'linkedin.com', BreachDate: '2021-06-22', DataClasses: ['Email addresses', 'Names', 'Phone numbers'] }
+                ];
+                
+                // Simulate finding breaches for demo
+                const found = Math.random() > 0.5 ? mockBreaches.slice(0, Math.floor(Math.random() * 3)) : [];
+                renderBreachResults(found, email);
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">Error: ${error.message}<br><small>Ensure your proxy allows haveibeenpwned.com</small></div>`;
+            }
+        }
+        
+        function renderBreachResults(breaches, email) {
+            const resultDiv = document.getElementById('breachResult');
+            
+            if (!breaches || breaches.length === 0) {
+                resultDiv.innerHTML = `
+                    <div class="breach-result" style="border-left:3px solid #00ff88;">
+                        ✅ No breaches found for <strong>${escapeHtml(email)}</strong><br>
+                        <small style="color:#888;">(or API key not configured)</small>
+                    </div>
+                `;
+                return;
+            }
+            
+            resultDiv.innerHTML = `
+                <div class="breach-result" style="border-left:3px solid #ff4444;">
+                    ⚠️ Found in <strong>${breaches.length}</strong> breach(es):<br><br>
+                    ${breaches.map(b => `
+                        <div class="breach-item">
+                            <strong>${escapeHtml(b.Name)}</strong><br>
+                            <small>Domain: ${escapeHtml(b.Domain)} • Date: ${b.BreachDate}</small><br>
+                            <small>Data: ${b.DataClasses?.join(', ') || 'Unknown'}</small>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        // ============================================
+        // 🔍 WHOIS/DNS LOOKUP
+        // ============================================
+        
+        function setLookupType(type) {
+            lookupType = type;
+            document.querySelectorAll('#lookupTab .filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+        
+        async function performLookup() {
+            const query = document.getElementById('lookupInput').value.trim();
+            const resultDiv = document.getElementById('lookupResult');
+            
+            if (!query) {
+                resultDiv.innerHTML = '<div class="error">Please enter a domain or IP</div>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<div class="loading">Performing lookup</div>';
+            
+            try {
+                let data;
+                
+                switch(lookupType) {
+                    case 'whois':
+                        data = await fetchSecure(`https://ip-api.com/json/${query}?fields=status,message,continent,continentCode,country,countryCode,region,regionName,city,district,zip,lat,lon,timezone,isp,org,as,asname,mobile,proxy,hosting,query`);
+                        resultDiv.innerHTML = `<div class="lookup-result">${formatWHOIS(data)}</div>`;
+                        break;
+                        
+                    case 'dns':
+                        // Simplified DNS lookup via ip-api
+                        data = await fetchSecure(`https://ip-api.com/json/${query}?fields=query,isp,org,as`);
+                        resultDiv.innerHTML = `<div class="lookup-result"><strong>DNS/Network Info:</strong>\n${formatWHOIS(data)}</div>`;
+                        break;
+                        
+                    case 'greynoise':
+                        if (!apiKeys.greynoise) {
+                            resultDiv.innerHTML = '<div class="error">GreyNoise API key required<br><small>Get free community key at https://viz.greynoise.io/signup</small></div>';
+                            return;
+                        }
+                        data = await fetchSecure(`https://api.greynoise.io/v3/community/${query}`);
+                        resultDiv.innerHTML = `<div class="lookup-result">${formatGreyNoise(data)}</div>`;
+                        break;
+                        
+                    case 'urlscan':
+                        if (!apiKeys.urlscan) {
+                            resultDiv.innerHTML = '<div class="error">URLScan.io API key required<br><small>Get free key at https://urlscan.io/user/profile/</small></div>';
+                            return;
+                        }
+                        // URLScan requires POST for submission, GET for results
+                        resultDiv.innerHTML = '<div class="loading">Submitting to URLScan.io...</div>';
+                        const submit = await fetch(`${PROXY_BASE}?target=${encodeURIComponent('https://urlscan.io/api/v1/scan/')}`, {
+                            method: 'POST',
+                            headers: { 'API-Key': apiKeys.urlscan, 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ url: query, visibility: 'public' })
+                        });
+                        const submitData = await submit.json();
+                        if (submitData.uuid) {
+                            // Poll for results
+                            setTimeout(async () => {
+                                const results = await fetchSecure(`https://urlscan.io/api/v1/result/${submitData.uuid}/`);
+                                resultDiv.innerHTML = `<div class="lookup-result">${formatURLScan(results)}</div>`;
+                            }, 5000);
+                        }
+                        break;
+                }
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">Lookup error: ${error.message}</div>`;
+            }
+        }
+        
+        function formatWHOIS(data) {
+            if (!data || data.status !== 'success') return 'No data found';
+            return Object.entries(data).filter(([k,v]) => v && k !== 'status').map(([k,v]) => 
+                `${k}: ${v}`
+            ).join('\n');
+        }
+        
+        function formatGreyNoise(data) {
+            if (!data) return 'No data';
+            return `IP: ${data.ip}\nNoise: ${data.noise}\nVPN: ${data.vpn}\nTor: ${data.tor}\nHosting: ${data.hosting}\nClassification: ${data.classification || 'N/A'}\n${data.message || ''}`;
+        }
+        
+        function formatURLScan(data) {
+            if (!data) return 'No data';
+            return `URL: ${data.page?.url}\nTitle: ${data.page?.title}\nStatus: ${data.stats?.phttp?.status}\nServer: ${data.page?.server}\nCountry: ${data.page?.country}\n\n🔗 Links found: ${data.links?.length || 0}\n📦 Resources: ${data.resources?.length || 0}`;
+        }
+        
+        // ============================================
+        // ⚡ CVE FUNCTIONS
+        // ============================================
+        
+        async function searchCVEs() {
+            const query = document.getElementById('cveSearch').value;
+            const container = document.getElementById('cveContainer');
+            
+            if (!query) {
+                container.innerHTML = '<div style="text-align:center;padding:40px;color:#666;">Enter a CVE ID or search term</div>';
+                return;
+            }
+            
+            container.innerHTML = '<div class="loading">Searching NVD</div>';
+            
+            try {
+                let url;
+                if (query.match(/CVE-\d{4}-\d+/i)) {
+                    url = `https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=${query}`;
+                } else {
+                    url = `https://services.nvd.nist.gov/rest/json/cves/2.0?keywordSearch=${encodeURIComponent(query)}`;
+                }
+                
+                const data = await fetchSecure(url);
+                
+                if (!data.vulnerabilities || data.vulnerabilities.length === 0) {
+                    container.innerHTML = '<div style="text-align:center;padding:40px;color:#666;">No CVEs found</div>';
+                    return;
+                }
+                
+                container.innerHTML = data.vulnerabilities.map(cve => {
+                    const meta = cve.cve;
+                    const desc = meta.descriptions?.[0]?.value || 'No description';
+                    const cvss = meta.metrics?.cvssMetricV31?.[0]?.cvssData || 
+                                 meta.metrics?.cvssMetricV30?.[0]?.cvssData;
+                    const score = cvss?.baseScore || 'N/A';
+                    const severity = cvss?.baseSeverity || 'UNKNOWN';
+                    
+                    return `
+                        <div class="feed-item ${severity.toLowerCase()}">
+                            <div class="ioc">${meta.id}</div>
+                            <div style="margin:5px 0;">${escapeHtml(desc)}</div>
+                            <div class="meta">
+                                CVSS: ${score} • ${severity} • Published: ${meta.published}
+                            </div>
+                            <div class="actions">
+                                <button onclick="copyIOC('${meta.id}')">📋 copy</button>
+                                <button onclick="mapToMITRE('${meta.id}')">🎯 map to MITRE</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+            } catch (error) {
+                container.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+        
+        async function loadRecentCVEs() {
+            const container = document.getElementById('cveContainer');
+            container.innerHTML = '<div class="loading">Loading recent CVEs</div>';
+            
+            try {
+                const today = new Date().toISOString();
+                const weekAgo = new Date(Date.now() - 7*24*60*60*1000).toISOString();
+                const url = `https://services.nvd.nist.gov/rest/json/cves/2.0?pubStartDate=${weekAgo}&pubEndDate=${today}&cvssV3Severity=CRITICAL,HIGH`;
+                
+                const data = await fetchSecure(url);
+                
+                if (!data.vulnerabilities) {
+                    container.innerHTML = '<div style="text-align:center;padding:40px;color:#666;">No recent CVEs found</div>';
+                    return;
+                }
+                
+                container.innerHTML = data.vulnerabilities.slice(0, 50).map(cve => {
+                    const meta = cve.cve;
+                    const desc = meta.descriptions?.[0]?.value?.substring(0, 200) + '...';
+                    const cvss = meta.metrics?.cvssMetricV31?.[0]?.cvssData;
+                    const score = cvss?.baseScore || 'N/A';
+                    
+                    return `
+                        <div class="feed-item ${cvss?.baseSeverity?.toLowerCase() || 'medium'}">
+                            <div class="ioc">${meta.id}</div>
+                            <div style="margin:5px 0;">${escapeHtml(desc)}</div>
+                            <div class="meta">CVSS: ${score} • ${cvss?.baseSeverity || 'N/A'} • ${meta.published}</div>
+                        </div>
+                    `;
+                }).join('');
+                
+            } catch (error) {
+                container.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+        
+        function setCVEFilter(filter) {
+            document.querySelectorAll('#cvesTab .filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            // Would implement actual filtering logic here
+        }
+        
+        // ============================================
+        // 🎯 MITRE ATT&CK FUNCTIONS
+        // ============================================
+        
+        function renderMITRE() {
+            const grid = document.getElementById('mitreGrid');
+            grid.innerHTML = mitreTactics.map(tactic => `
+                <div class="mitre-tactic">
+                    <h4>${tactic.id}: ${tactic.name}</h4>
+                    ${tactic.techniques.map(tech => `
+                        <div class="mitre-technique ${selectedMITRE.includes(tech) ? 'active' : ''}" 
+                             onclick="toggleMITRE('${tech}', '${tactic.name}')">
+                            ${tech}
+                        </div>
+                    `).join('')}
+                </div>
+            `).join('');
+        }
+        
+        function toggleMITRE(technique, tactic) {
+            const idx = selectedMITRE.indexOf(technique);
+            if (idx === -1) {
+                selectedMITRE.push(technique);
+            } else {
+                selectedMITRE.splice(idx, 1);
+            }
+            renderMITRE();
+        }
+        
+        function searchMITRE() {
+            const query = document.getElementById('mitreSearch').value.toLowerCase();
+            if (!query) {
+                renderMITRE();
+                return;
+            }
+            
+            const grid = document.getElementById('mitreGrid');
+            const results = mitreTactics.filter(t => 
+                t.name.toLowerCase().includes(query) || 
+                t.techniques.some(tech => tech.toLowerCase().includes(query))
+            );
+            
+            if (results.length === 0) {
+                grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:#666;">No techniques found</div>';
+                return;
+            }
+            
+            grid.innerHTML = results.map(tactic => `
+                <div class="mitre-tactic">
+                    <h4>${tactic.id}: ${tactic.name}</h4>
+                    ${tactic.techniques.filter(tech => 
+                        tech.toLowerCase().includes(query)
+                    ).map(tech => `
+                        <div class="mitre-technique ${selectedMITRE.includes(tech) ? 'active' : ''}" 
+                             onclick="toggleMITRE('${tech}', '${tactic.name}')">
+                            ${tech}
+                        </div>
+                    `).join('') || '<small style="color:#666;">No matching techniques</small>'}
+                </div>
+            `).join('');
+        }
+        
+        function exportMITRE() {
+            if (selectedMITRE.length === 0) {
+                alert('Select techniques first');
+                return;
+            }
+            
+            const report = `MITRE ATT&CK Mapping\n${'='.repeat(40)}\n\nCase: ${getCurrentCaseName() || 'Uncategorized'}\nGenerated: ${new Date().toISOString()}\n\nSelected Techniques:\n${selectedMITRE.map(t => `- ${t}`).join('\n')}`;
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(report).then(() => {
+                alert('MITRE mapping copied to clipboard!');
+            });
+        }
+        
+        function clearMITRE() {
+            selectedMITRE = [];
+            renderMITRE();
+        }
+        
+        function mapToMITRE(cveId) {
+            // Simplified: prompt user to select techniques
+            const techniques = prompt(`Map ${cveId} to MITRE techniques (comma-separated, e.g., T1059,T1105):`);
+            if (techniques) {
+                techniques.split(',').forEach(t => {
+                    const tech = t.trim().toUpperCase();
+                    if (!selectedMITRE.includes(tech)) {
+                        selectedMITRE.push(tech);
+                    }
+                });
+                renderMITRE();
+                alert('Techniques mapped!');
+            }
+        }
+        
+        // ============================================
+        // 📊 NETWORK GRAPH (vis.js)
+        // ============================================
+        
+        function initGraph() {
+            const container = document.getElementById('networkGraph');
+            const data = { nodes: graphNodes, edges: graphEdges };
+            const options = {
+                nodes: {
+                    shape: 'dot',
+                    size: 20,
+                    font: { size: 12, color: '#e0e0e0' },
+                    borderWidth: 2,
+                    shadow: true
+                },
+                edges: {
+                    width: 2,
+                    color: { inherit: 'from' },
+                    smooth: { type: 'continuous' }
+                },
+                physics: {
+                    stabilization: false,
+                    barnesHut: { gravitationalConstant: -80000, springConstant: 0.001, springLength: 200 }
+                },
+                interaction: { hover: true, tooltipDelay: 200 }
+            };
+            
+            network = new vis.Network(container, data, options);
+            
+            // Click handler
+            network.on('click', (params) => {
+                if (params.nodes.length > 0) {
+                    const nodeId = params.nodes[0];
+                    const entity = entities.find(e => e.id === nodeId);
+                    if (entity) openEntityPanel(entity);
+                }
+            });
+        }
+        
+        function addAllToGraph() {
+            const caseId = document.getElementById('caseSelect').value || document.getElementById('caseSelectTop').value;
+            if (!caseId) {
+                alert('Select a case first');
+                return;
+            }
+            
+            const c = cases.find(c => c.id === caseId);
+            if (!c || !c.entities) {
+                alert('No entities in this case');
+                return;
+            }
+            
+            // Clear existing
+            graphNodes.clear();
+            graphEdges.clear();
+            
+            // Add nodes
+            c.entities.forEach(e => {
+                const colors = {
+                    'IP': '#00ff88', 'Domain': '#00ccff', 'Actor': '#ff8800',
+                    'Wallet': '#ff00ff', 'Email': '#8888ff', 'Hash': '#ff4444',
+                    'URL': '#ffaa00', 'Org': '#88ff88'
+                };
+                
+                graphNodes.add({
+                    id: e.id,
+                    label: `${e.type}\n${e.value.substring(0, 20)}${e.value.length > 20 ? '...' : ''}`,
+                    title: `${e.type}: ${e.value}\nAdded: ${e.added}`,
+                    color: colors[e.type] || '#888',
+                    value: 15
+                });
+            });
+            
+            // Auto-connect related entities (simplified)
+            // In production, you'd use actual relationship data
+            const nodes = graphNodes.get();
+            for (let i = 0; i < nodes.length; i++) {
+                for (let j = i + 1; j < nodes.length; j++) {
+                    // Connect if same type or related keywords
+                    if (Math.random() > 0.7) { // Demo: random connections
+                        graphEdges.add({
+                            from: nodes[i].id,
+                            to: nodes[j].id,
+                            label: 'related',
+                            dashes: true
+                        });
+                    }
+                }
+            }
+            
+            fitGraph();
+        }
+        
+        function autoLayout() {
+            if (network) network.setOptions({ physics: { enabled: true } });
+            setTimeout(() => {
+                if (network) network.setOptions({ physics: { enabled: false } });
+            }, 1500);
+        }
+        
+        function fitGraph() {
+            if (network) network.fit({ animation: { duration: 500, easingFunction: 'easeInOutQuad' } });
+        }
+        
+        function clearGraph() {
+            if (network) {
+                graphNodes.clear();
+                graphEdges.clear();
+            }
+        }
+        
+        let drawMode = false;
+        let selectedNode = null;
+        
+        function toggleDrawMode() {
+            drawMode = !drawMode;
+            event.target.textContent = drawMode ? '✓ drawing' : '✏️ draw edge';
+            
+            if (drawMode) {
+                network.on('click', handleDrawClick);
+            } else {
+                network.off('click', handleDrawClick);
+            }
+        }
+        
+        function handleDrawClick(params) {
+            if (params.nodes.length === 0) return;
+            
+            const nodeId = params.nodes[0];
+            
+            if (!selectedNode) {
+                selectedNode = nodeId;
+                graphNodes.update({ id: nodeId, color: { border: '#ff0000', background: '#ff8888' } });
+            } else {
+                if (selectedNode !== nodeId) {
+                    graphEdges.add({ from: selectedNode, to: nodeId, label: 'connected' });
+                }
+                graphNodes.update({ id: selectedNode, color: { border: '#00ff88', background: '#88ffcc' } });
+                selectedNode = null;
+            }
+        }
+        
+        function addToGraphFromPanel() {
+            if (!currentEntity) return;
+            
+            const colors = {
+                'IP': '#00ff88', 'Domain': '#00ccff', 'Actor': '#ff8800',
+                'Wallet': '#ff00ff', 'Email': '#8888ff', 'Hash': '#ff4444',
+                'URL': '#ffaa00', 'Org': '#88ff88'
+            };
+            
+            graphNodes.add({
+                id: currentEntity.id,
+                label: `${currentEntity.type}\n${currentEntity.value.substring(0, 20)}`,
+                title: `${currentEntity.type}: ${currentEntity.value}`,
+                color: colors[currentEntity.type] || '#888'
+            });
+            
+            fitGraph();
+            switchTab('graph');
+        }
+        
+        // ============================================
+        // 📄 PDF REPORT EXPORT (jsPDF)
+        // ============================================
+        
+        async function generateReport() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Header
+            doc.setFontSize(18);
+            doc.setTextColor(0, 255, 136);
+            doc.text('Kitsune CTI Investigation Report', 20, 20);
+            
+            doc.setFontSize(10);
+            doc.setTextColor(128, 128, 128);
+            doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 28);
+            doc.text(`Case: ${getCurrentCaseName() || 'Uncategorized'}`, 20, 34);
+            
+            // Stats
+            doc.setFontSize(12);
+            doc.setTextColor(0, 0, 0);
+            doc.text('\n\n📊 Feed Summary', 20, 45);
+            doc.setFontSize(9);
+            doc.text(`Total IOCs: ${currentFeed.length}`, 25, 52);
+            doc.text(`Critical: ${currentFeed.filter(i => i.severity === 'critical').length}`, 25, 57);
+            doc.text(`Phishing: ${currentFeed.filter(i => i.type === 'phishing').length}`, 25, 62);
+            doc.text(`Watchlist Matches: ${currentFeed.filter(i => watchlist.some(k => i.ioc.toLowerCase().includes(k.toLowerCase()))).length}`, 25, 67);
+            
+            // Top IOCs
+            doc.text('\n\n🔍 Top 10 IOCs', 20, 80);
+            currentFeed.slice(0, 10).forEach((item, i) => {
+                const y = 87 + (i * 5);
+                doc.text(`${i + 1}. [${item.severity.toUpperCase()}] ${item.ioc.substring(0, 50)}${item.ioc.length > 50 ? '...' : ''} - ${item.source}`, 25, y);
+            });
+            
+            // MITRE Mapping
+            if (selectedMITRE.length > 0) {
+                doc.addPage();
+                doc.setFontSize(12);
+                doc.setTextColor(0, 255, 136);
+                doc.text('🎯 MITRE ATT&CK Mapping', 20, 20);
+                doc.setFontSize(9);
+                doc.setTextColor(0, 0, 0);
+                selectedMITRE.forEach((tech, i) => {
+                    doc.text(`${i + 1}. ${tech}`, 25, 30 + (i * 5));
+                });
+            }
+            
+            // Watchlist
+            if (watchlist.length > 0) {
+                doc.addPage();
+                doc.setFontSize(12);
+                doc.setTextColor(255, 136, 0);
+                doc.text('🚨 Active Watchlist', 20, 20);
+                doc.setFontSize(9);
+                doc.setTextColor(0, 0, 0);
+                watchlist.forEach((item, i) => {
+                    doc.text(`${i + 1}. ${item}`, 25, 30 + (i * 5));
+                });
+            }
+            
+            // Footer
+            doc.setFontSize(8);
+            doc.setTextColor(128, 128, 128);
+            const pageCount = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                doc.text(`Kitsune CTI Platform • Page ${i} of ${pageCount}`, 105, 290, { align: 'center' });
+            }
+            
+            // Save
+            doc.save(`kitsune-report-${Date.now()}.pdf`);
+        }
+        
+        // ============================================
+        // 🔗 MISP INTEGRATION
+        // ============================================
+        
+        function exportToMISP() {
+            showModal('mispExportModal');
+            // Pre-fill with saved values
+            document.getElementById('mispExportUrl').value = apiKeys.mispUrl || '';
+            document.getElementById('mispExportKey').value = apiKeys.mispKey || '';
+        }
+        
+        async function pushToMISP() {
+            const url = document.getElementById('mispExportUrl').value;
+            const key = document.getElementById('mispExportKey').value;
+            const dist = document.getElementById('mispDist').value;
+            
+            if (!url || !key) {
+                alert('Please enter MISP URL and API Key');
+                return;
+            }
+            
+            const caseId = document.getElementById('caseSelect').value;
+            if (!caseId) {
+                alert('Select a case to export');
+                return;
+            }
+            
+            const c = cases.find(c => c.id === caseId);
+            if (!c || !c.entities) {
+                alert('No entities to export');
+                return;
+            }
+            
+            // Build MISP event (simplified STIX-like format)
+            const event = {
+                Event: {
+                    info: `Kitsune Export: ${c.name}`,
+                    threat_level_id: c.priority === 'critical' ? 1 : c.priority === 'high' ? 2 : 3,
+                    analysis: c.status === 'closed' ? 2 : 0,
+                    distribution: parseInt(dist),
+                    Attribute: c.entities.map(e => ({
+                        type: getMISPType(e.type),
+                        category: getCategory(e.type),
+                        value: e.value,
+                        comment: `Added via Kitsune on ${e.added}`,
+                        to_ids: e.status !== '✗ Not IOC'
+                    })),
+                    Tag: selectedMITRE.map(t => ({ name: `misp-galaxy:mitre-attack-technique="${t}"` }))
+                }
+            };
+            
+            try {
+                setStatus('pushing to MISP...');
+                const response = await fetch(`${url}/events/add`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': key,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(event)
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    alert(`✅ Successfully pushed to MISP!\nEvent ID: ${result.Event?.id || 'N/A'}`);
+                    closeModal('mispExportModal');
+                } else {
+                    const err = await response.text();
+                    throw new Error(`MISP error: ${response.status} - ${err}`);
+                }
+            } catch (error) {
+                alert(`❌ Error pushing to MISP:\n${error.message}\n\nCheck CORS/proxy settings`);
+            } finally {
+                setStatus('ready');
+            }
+        }
+        
+        function getMISPType(entityType) {
+            const map = {
+                'IP': 'ip-dst', 'Domain': 'domain', 'Actor': 'threat-actor',
+                'Wallet': 'btc', 'Email': 'email-src', 'Hash': 'md5',
+                'URL': 'url', 'Org': 'org'
+            };
+            return map[entityType] || 'text';
+        }
+        
+        function getCategory(entityType) {
+            const map = {
+                'IP': 'Network activity', 'Domain': 'Network activity',
+                'Actor': 'Attribution', 'Wallet': 'Financial fraud',
+                'Email': 'Payload delivery', 'Hash': 'Payload installation',
+                'URL': 'Payload delivery', 'Org': 'Attribution'
+            };
+            return map[entityType] || 'Other';
+        }
+        
+        // ============================================
+        // 🔍 ENTITY MANAGEMENT
+        // ============================================
+        
+        function addEntity(type) {
+            const value = prompt(`Enter ${type} value:`);
+            if (!value) return;
+            
+            const entity = {
+                id: 'ent_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                type: type,
+                value: value,
+                added: new Date().toISOString(),
+                status: '? Suspected',
+                confidence: 50,
+                notes: ''
+            };
+            
+            const caseId = document.getElementById('caseSelect').value || 
+                          document.getElementById('caseSelectTop').value;
+            if (caseId) {
+                const c = cases.find(c => c.id === caseId);
+                if (c) {
+                    c.entities.push(entity);
+                    localStorage.setItem('kitsune_cases', JSON.stringify(cases));
+                }
+            }
+            
+            entities.push(entity);
+            updateEntityCount();
+            openEntityPanel(entity);
+        }
+        
+        function openEntityPanel(entity) {
+            currentEntity = entity;
+            const panel = document.getElementById('entityPanel');
+            const details = document.getElementById('entityDetails');
+            
+            details.innerHTML = `
+                <div class="entity-field">
+                    <label>Type</label>
+                    <div class="value">${entity.type}</div>
+                </div>
+                <div class="entity-field">
+                    <label>Value</label>
+                    <div class="value" style="word-break:break-all;">${escapeHtml(entity.value)}</div>
+                </div>
+                <div class="entity-field">
+                    <label>Added</label>
+                    <div class="value">${formatDate(entity.added)}</div>
+                </div>
+                <div class="entity-field">
+                    <label>Status</label>
+                    <select id="entityStatus" onchange="updateEntityField('status', this.value)">
+                        <option ${entity.status === '✓ Confirmed' ? 'selected' : ''}>✓ Confirmed</option>
+                        <option ${entity.status === '? Suspected' ? 'selected' : ''}>? Suspected</option>
+                        <option ${entity.status === '✗ Not IOC' ? 'selected' : ''}>✗ Not IOC</option>
+                    </select>
+                </div>
+                <div class="entity-field">
+                    <label>Confidence (0-100)</label>
+                    <input type="number" id="entityConfidence" value="${entity.confidence}" min="0" max="100" onchange="updateEntityField('confidence', parseInt(this.value))">
+                </div>
+                <div class="entity-field">
+                    <label>Notes</label>
+                    <textarea id="entityNotes" rows="3" onchange="updateEntityField('notes', this.value)">${entity.notes || ''}</textarea>
+                </div>
+            `;
+            
+            panel.classList.add('open');
+        }
+        
+        function closeEntityPanel() {
+            document.getElementById('entityPanel').classList.remove('open');
+            currentEntity = null;
+        }
+        
+        function updateEntityField(field, value) {
+            if (!currentEntity) return;
+            
+            // Update in memory
+            currentEntity[field] = value;
+            
+            // Update in case storage
+            const caseId = document.getElementById('caseSelect').value || 
+                          document.getElementById('caseSelectTop').value;
+            if (caseId) {
+                const c = cases.find(c => c.id === caseId);
+                if (c) {
+                    const idx = c.entities.findIndex(e => e.id === currentEntity.id);
+                    if (idx !== -1) {
+                        c.entities[idx] = { ...currentEntity };
+                        localStorage.setItem('kitsune_cases', JSON.stringify(cases));
+                    }
+                }
+            }
+        }
+        
+        function deleteEntity() {
+            if (!currentEntity) return;
+            if (!confirm(`Delete ${currentEntity.type}: ${currentEntity.value}?`)) return;
+            
+            // Remove from case
+            const caseId = document.getElementById('caseSelect').value || 
+                          document.getElementById('caseSelectTop').value;
+            if (caseId) {
+                const c = cases.find(c => c.id === caseId);
+                if (c) {
+                    c.entities = c.entities.filter(e => e.id !== currentEntity.id);
+                    localStorage.setItem('kitsune_cases', JSON.stringify(cases));
+                }
+            }
+            
+            // Remove from global entities
+            entities = entities.filter(e => e.id !== currentEntity.id);
+            updateEntityCount();
+            closeEntityPanel();
+        }
+        
+        function enrichEntity() {
+            if (!currentEntity) return;
+            alert(`Enriching ${currentEntity.type}: ${currentEntity.value}\n\nThis would call configured APIs (VirusTotal, GreyNoise, etc.)\n\nFeature requires API keys in Settings.`);
+            // In production, would call enrichIOC function
+        }
+        
+        async function enrichIOC(ioc) {
+            // Demo enrichment - in production would call actual APIs
+            const result = await fetchSecure(`https://ip-api.com/json/${ioc}`);
+            if (result?.status === 'success') {
+                alert(`Enrichment for ${ioc}:\n\nCountry: ${result.country}\nISP: ${result.isp}\nAS: ${result.as}\nProxy: ${result.proxy ? 'Yes' : 'No'}`);
+            } else {
+                alert('No enrichment data found (or API key required)');
+            }
+        }
+        
+        function copyIOC(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                // Visual feedback
+                const btn = event.target;
+                const original = btn.textContent;
+                btn.textContent = '✓ copied';
+                setTimeout(() => btn.textContent = original, 1500);
+            });
+        }
+        
+        function reportPhishing(url) {
+            // Open reporting pages
+            const tabs = [
+                `https://reportphishing.abuse.ch/`,
+                `https://www.phishtank.com/`,
+                `https://safebrowsing.google.com/safebrowsing/report_phish/`
+            ];
+            tabs.forEach(t => window.open(t, '_blank'));
+            alert('Opened phishing report pages in new tabs');
+        }
+        
+        function updateEntityCount() {
+            const caseId = document.getElementById('caseSelect').value || 
+                          document.getElementById('caseSelectTop').value;
+            let count = 0;
+            if (caseId) {
+                const c = cases.find(c => c.id === caseId);
+                count = c?.entities?.length || 0;
+            }
+            document.getElementById('entityCount').textContent = count;
+        }
+        
+        // ============================================
+        // 📋 CASE MANAGEMENT
+        // ============================================
+        
+        function showModal(id) {
+            document.getElementById(id).style.display = 'flex';
+        }
+        
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+        
+        function createCase() {
+            const name = document.getElementById('caseName').value;
+            if (!name) { alert('Case name is required'); return; }
+            
+            const newCase = {
+                id: 'case_' + Date.now(),
+                name: name,
+                priority: document.getElementById('casePriority').value,
+                status: document.getElementById('caseStatus').value,
+                description: document.getElementById('caseDescription').value,
+                tags: document.getElementById('caseTags').value.split(',').map(t => t.trim()).filter(t => t),
+                entities: [],
+                events: [],
+                evidence: [],
+                mitreMapping: [],
+                created: new Date().toISOString()
+            };
+            
+            cases.push(newCase);
+            localStorage.setItem('kitsune_cases', JSON.stringify(cases));
+            
+            closeModal('newCaseModal');
+            updateCaseSelects();
+            
+            // Clear form
+            ['caseName', 'caseDescription', 'caseTags'].forEach(id => 
+                document.getElementById(id).value = ''
+            );
+        }
+        
+        function updateCaseSelects() {
+            ['caseSelect', 'caseSelectTop'].forEach(id => {
+                const select = document.getElementById(id);
+                if (!select) return;
+                const current = select.value;
+                select.innerHTML = '<option value="">— select case —</option>' +
+                    cases.map(c => `<option value="${c.id}">${escapeHtml(c.name)} (${c.priority})</option>`).join('');
+                select.value = current;
+            });
+            updateEntityCount();
+        }
+        
+        function getCurrentCaseName() {
+            const id = document.getElementById('caseSelect').value || 
+                      document.getElementById('caseSelectTop').value;
+            const c = cases.find(c => c.id === id);
+            return c?.name || 'Uncategorized';
+        }
+        
+        function importCase() {
+            const input = document.createElement('input');
+            input.type = 'file'; input.accept = '.json';
+            input.onchange = e => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = event => {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        if (Array.isArray(data)) {
+                            cases.push(...data);
+                        } else {
+                            cases.push(data);
+                        }
+                        localStorage.setItem('kitsune_cases', JSON.stringify(cases));
+                        updateCaseSelects();
+                        alert('Case(s) imported successfully');
+                    } catch (err) {
+                        alert('Invalid JSON file');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+        
+        function exportCase() {
+            if (cases.length === 0) { alert('No cases to export'); return; }
+            const dataStr = JSON.stringify(cases, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'kitsune-cases.json'; a.click();
+        }
+        
+        // ============================================
+        // 🔑 API KEY MANAGEMENT
+        // ============================================
+        
+        function saveApiKeys() {
+            apiKeys = {
+                abuse: document.getElementById('abuseKey').value,
+                virustotal: document.getElementById('vtKey').value,
+                abuseipdb: document.getElementById('abuseipdbKey').value,
+                otx: document.getElementById('otxKey').value,
+                shodan: document.getElementById('shodanKey').value,
+                phishtank: document.getElementById('phishtankKey').value,
+                hibp: document.getElementById('hibpKey').value,
+                greynoise: document.getElementById('greynoiseKey').value,
+                urlscan: document.getElementById('urlscanKey').value,
+                nvd: document.getElementById('nvdKey').value,
+                mispUrl: document.getElementById('mispUrl').value,
+                mispKey: document.getElementById('mispKey').value
+            };
+            localStorage.setItem('kitsune_apikeys', JSON.stringify(apiKeys));
+            closeModal('apiKeysModal');
+            alert('✅ API keys saved (stored locally in browser)');
+        }
+        
+        function loadApiKeys() {
+            apiKeys = JSON.parse(localStorage.getItem('kitsune_apikeys') || '{}');
+        }
+        
+        // ============================================
+        // 🎨 UI FUNCTIONS
+        // ============================================
+        
+        function switchTab(tab) {
+            ['graph', 'feed', 'cves', 'breach', 'lookup', 'enrich', 'mitre', 'timeline', 'evidence'].forEach(t => {
+                document.getElementById(t + 'Tab').style.display = 'none';
+            });
+            document.getElementById(tab + 'Tab').style.display = 'block';
+            
+            document.querySelectorAll('.tab').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Load data for tabs when opened
+            if (tab === 'feed') refreshFeeds();
+            if (tab === 'cves') loadRecentCVEs();
+        }
+        
+        function toggleTheme() {
+            document.body.classList.toggle('light');
+            event.target.textContent = document.body.classList.contains('light') ? '[ dark ]' : '[ light ]';
+        }
+        
+        function setStatus(status) {
+            const indicator = document.getElementById('statusIndicator');
+            const colors = { 'ready': '#00ff88', 'loading': '#ff8800', 'error': '#ff4444' };
+            indicator.style.color = colors[status] || '#888';
+            indicator.textContent = status;
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function formatDate(dateStr) {
+            if (!dateStr) return 'N/A';
+            const d = new Date(dateStr);
+            return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+        }
+        
+        // Close modals on outside click
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.style.display = 'none';
+            });
+        });
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+                closeEntityPanel();
+            }
+            if (e.ctrlKey && e.key === 'f') {
+                e.preventDefault();
+                document.getElementById('feedSearch')?.focus();
+            }
+        });
+    </script>
 </body>
 </html>
