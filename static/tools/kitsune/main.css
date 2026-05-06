@@ -668,3 +668,229 @@ body:not(.light-mode) .onp-title,
 body:not(.light-mode) .node-panel-title {
   text-shadow: 0 0 6px rgba(0,255,65,0.3);
 }
+
+/* ═══════════════════════════════════════════════════════════
+LAYOUT FIXES — Prevent overlapping & clutter
+═══════════════════════════════════════════════════════════ */
+
+/* Fix workspace height calculation */
+.osint-workspace {
+    height: calc(100vh - var(--header-h) - 2rem) !important;
+    margin: 1rem 0 !important;
+}
+
+/* Fix toolbar spacing */
+.ow-toolbar {
+    padding: 0 !important;
+}
+
+.ow-toolbar-row1 {
+    min-height: 38px !important;
+    padding: 6px 12px !important;
+}
+
+.ow-toolbar-row2 {
+    min-height: 34px !important;
+    padding: 4px 10px !important;
+}
+
+/* Fix left panel width */
+.ow-left {
+    width: 260px !important;
+    min-width: 260px !important;
+    max-width: 260px !important;
+}
+
+/* Fix canvas area */
+.ow-canvas {
+    flex: 1 !important;
+    min-width: 0 !important;
+    width: calc(100% - 260px) !important;
+}
+
+/* Fix feed container overflow */
+.feed-container,
+#feedContainer {
+    height: calc(100% - 120px) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+
+/* Fix search input positioning */
+#feedSearch {
+    max-width: 150px !important;
+    margin-left: auto !important;
+}
+
+/* Fix button spacing in toolbar */
+.owt-actions .owtb {
+    margin: 0 1px !important;
+}
+
+/* Fix stats display */
+.owt-stats {
+    display: flex !important;
+    gap: 4px !important;
+    flex-wrap: nowrap !important;
+}
+
+.owt-stat {
+    font-size: 0.6rem !important;
+    padding: 2px 5px !important;
+}
+
+/* Light mode specific fixes */
+body.light-mode .osint-workspace {
+    background: #f0f0eb !important;
+}
+
+body.light-mode .ow-left {
+    background: #ffffff !important;
+    border-right-color: #d0d0c8 !important;
+}
+
+body.light-mode .ow-canvas {
+    background: #f0f0eb !important;
+}
+
+body.light-mode .ow-toolbar {
+    background: #ffffff !important;
+    border-bottom-color: #d0d0c8 !important;
+}
+
+body.light-mode .feed-container {
+    background: #f0f0eb !important;
+}
+
+/* Fix modal z-index issues */
+.modal {
+    z-index: 10000 !important;
+}
+
+.modal-content {
+    z-index: 10001 !important;
+}
+
+/* Fix entity panel z-index */
+.ow-node-panel,
+.node-panel,
+.entity-panel {
+    z-index: 9999 !important;
+}
+
+/* Responsive fixes for smaller screens */
+@media (max-width: 900px) {
+    .osint-workspace {
+        grid-template-columns: 1fr !important;
+        grid-template-rows: 280px 1fr !important;
+        height: calc(100vh - var(--header-h)) !important;
+    }
+    
+    .ow-left {
+        width: 100% !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+        border-right: none !important;
+        border-bottom: 1px solid var(--border) !important;
+    }
+    
+    .ow-canvas {
+        width: 100% !important;
+    }
+    
+    .ow-toolbar-row2 {
+        flex-wrap: wrap !important;
+    }
+    
+    .owt-center {
+        display: none !important;
+    }
+}
+
+/* Fix for very small screens */
+@media (max-width: 600px) {
+    .owt-stats {
+        display: none !important;
+    }
+    
+    .owt-actions .owtb:nth-child(n+4) {
+        display: none !important;
+    }
+    
+    .ow-toolbar-row1 {
+        flex-wrap: wrap !important;
+    }
+}
+
+/* Prevent text overflow in feed items */
+.feed-ioc,
+.owi-title,
+.onp-title {
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+    max-width: 100% !important;
+}
+
+/* Fix filter chips overflow */
+.ow-filter-row {
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+}
+
+.owf {
+    flex-shrink: 0 !important;
+}
+
+/* Fix watchlist tab overflow */
+#watchlistDisplay {
+    overflow-y: auto !important;
+    max-height: 200px !important;
+}
+
+/* Fix case list overflow */
+.ow-inv-list {
+    max-height: calc(100% - 100px) !important;
+    overflow-y: auto !important;
+}
+
+/* Fix entities tab overflow */
+.ow-entities {
+    max-height: calc(100% - 60px) !important;
+    overflow-y: auto !important;
+}
+
+/* Scrollbar styling for better visibility */
+.ow-inv-list::-webkit-scrollbar,
+.ow-entities::-webkit-scrollbar,
+.feed-container::-webkit-scrollbar,
+#watchlistDisplay::-webkit-scrollbar {
+    width: 6px !important;
+}
+
+.ow-inv-list::-webkit-scrollbar-track,
+.ow-entities::-webkit-scrollbar-track,
+.feed-container::-webkit-scrollbar-track,
+#watchlistDisplay::-webkit-scrollbar-track {
+    background: var(--bg3) !important;
+}
+
+.ow-inv-list::-webkit-scrollbar-thumb,
+.ow-entities::-webkit-scrollbar-thumb,
+.feed-container::-webkit-scrollbar-thumb,
+#watchlistDisplay::-webkit-scrollbar-thumb {
+    background: var(--border2) !important;
+    border-radius: 3px !important;
+}
+
+/* Light mode scrollbar */
+body.light-mode .ow-inv-list::-webkit-scrollbar-track,
+body.light-mode .ow-entities::-webkit-scrollbar-track,
+body.light-mode .feed-container::-webkit-scrollbar-track {
+    background: #e8e8e2 !important;
+}
+
+body.light-mode .ow-inv-list::-webkit-scrollbar-thumb,
+body.light-mode .ow-entities::-webkit-scrollbar-thumb,
+body.light-mode .feed-container::-webkit-scrollbar-thumb {
+    background: #c0c0b8 !important;
+}
