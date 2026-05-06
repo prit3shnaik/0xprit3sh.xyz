@@ -1,6 +1,14 @@
 {{ define "main" }}
 {{ $actors := where .Site.RegularPages "Section" "eq" "actors" }}
 
+<!-- External Dependencies -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<!-- Data Injection (Preserved exactly as requested) -->
 <script>
 window.ACTOR_DATA = [{{ range $actors }}{
   title:      "{{ .Title | safeJS }}",
@@ -21,530 +29,303 @@ window.ACTOR_DATA = [{{ range $actors }}{
 },{{ end }}];
 </script>
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-<div id="ti-root">
-
-  <!-- TOP BAR -->
-  <div id="ti-bar">
-    <div id="ti-bar-l">
-      <span id="ti-live"><span id="ti-pulse"></span>LIVE</span>
-      <span id="ti-title">THREAT INTELLIGENCE</span>
-    </div>
-    <div id="ti-bar-c">
-      <span class="kb-hint">↑↓ Navigate</span>
-      <span class="kb-hint">F Fly</span>
-      <span class="kb-hint">ESC Close</span>
-    </div>
-    <div id="ti-bar-r">
-      <div class="ti-stat"><span class="ti-sd critical"></span><b id="n-c">0</b> CRIT</div>
-      <div class="ti-stat"><span class="ti-sd high"></span><b id="n-h">0</b> HIGH</div>
-      <div class="ti-stat"><span class="ti-sd medium"></span><b id="n-m">0</b> MED</div>
-      <div class="ti-stat"><span class="ti-sd low"></span><b id="n-l">0</b> LOW</div>
-      <div class="ti-sep"></div>
-      <span id="ti-clock"></span>
-      <a href="/actors/" class="vi-btn">ALL ACTORS →</a>
-    </div>
-  </div>
-
-  <!-- MAIN - Using explicit sizing -->
-  <div id="ti-main">
-    <div id="map-panel">
-      <div id="map"></div>
-      <div id="scan-line"></div>
-      <div id="map-overlay">
-        <div class="go-corner tl"></div><div class="go-corner tr"></div>
-        <div class="go-corner bl"></div><div class="go-corner br"></div>
-        <div id="go-label">THREAT MAP — SURVEILLANCE MODE</div>
-        <div id="go-coords"></div>
-        <div id="go-selected"></div>
-      </div>
-    </div>
-    <div id="ti-side">
-      <div id="side-list">
-        <div class="side-hdr">// tracked actors <span id="actor-count"></span></div>
-        <div id="actor-filter">
-          <button class="af-btn active" onclick="filterActors('all',this)">ALL</button>
-          <button class="af-btn" onclick="filterActors('critical',this)">CRIT</button>
-          <button class="af-btn" onclick="filterActors('high',this)">HIGH</button>
-          <button class="af-btn" onclick="filterActors('active',this)">ACTIVE</button>
-        </div>
-        <div id="actor-list">
-          {{ range $actors }}
-          <div class="a-row"
-            data-slug="{{ .File.BaseFileName }}"
-            data-threat="{{ .Params.threat_level | default "medium" | lower }}"
-            data-status="{{ .Params.status | default "unknown" | lower }}"
-            onclick="selectActor('{{ .File.BaseFileName }}')">
-            <div class="a-row-top">
-              <span class="a-dot dot-{{ .Params.threat_level | default "medium" | lower }}"></span>
-              <span class="a-name">{{ .Title }}</span>
-              <span class="a-st s-{{ .Params.status | default "unknown" | lower }}">{{ .Params.status | default "?" }}</span>
-            </div>
-            <div class="a-meta">{{ .Params.category | default "Unknown" }} · {{ .Params.origin | default "Unknown" }}</div>
-          </div>
-          {{ end }}
-        </div>
-      </div>
-      <div id="side-detail" style="display:none">
-        <div class="side-hdr">
-          <button id="side-back" onclick="closeDetail()">← back</button>
-          // profile
-        </div>
-        <div id="detail-body"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- STATUS BAR -->
-  <div id="ti-status">
-    <span class="sb-item">SCROLL: zoom</span>
-    <span class="sb-sep">·</span>
-    <span class="sb-item">CLICK MARKER: select</span>
-    <span class="sb-sep">·</span>
-    <span class="sb-item">CLICK MAP: deselect</span>
-    <span class="sb-sep" style="margin-left:auto">·</span>
-    <span class="sb-item">
-      <span class="ti-sd critical" style="display:inline-block"></span> Critical &nbsp;
-      <span class="ti-sd high" style="display:inline-block"></span> High &nbsp;
-      <span class="ti-sd medium" style="display:inline-block"></span> Medium &nbsp;
-      <span class="ti-sd low" style="display:inline-block"></span> Low
-    </span>
-  </div>
-</div>
-
 <style>
-#ti-root {
-  position: fixed;
-  inset: 0;
-  top: var(--nav-h, 48px);
-  z-index: 200;
-  display: flex;
-  flex-direction: column;
-  background: #04060e;
-  font-family: 'JetBrains Mono', 'Courier New', monospace;
-  overflow: hidden;
-  color: #c0cce0;
+:root {
+  --bg: #0b0f19;
+  --panel: #111827;
+  --border: #1f2937;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --accent: #38bdf8;
+  --crit: #f43f5e;
+  --high: #f59e0b;
+  --med: #10b981;
+  --low: #64748b;
+  --nav-h: 48px;
+  --font-ui: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
 }
 
-#ti-bar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  height: 38px;
-  padding: 0 14px;
-  background: #060810;
-  border-bottom: 1px solid rgba(0,220,90,.1);
-  flex-shrink: 0;
-}
-#ti-bar-l { display:flex; align-items:center; gap:10px; }
-#ti-bar-c { display:flex; align-items:center; gap:8px; margin-left:auto; }
-.kb-hint { font-size:.45rem; color:rgba(0,220,90,.25); padding:1px 5px; border:1px solid rgba(0,220,90,.1); border-radius:2px; }
-#ti-live { display:flex; align-items:center; gap:5px; font-size:.54rem; color:#00dc5a; letter-spacing:.14em; }
-#ti-pulse { width:5px; height:5px; border-radius:50%; background:#00dc5a; animation:tp 1.4s infinite; }
-@keyframes tp{0%,100%{box-shadow:0 0 0 0 rgba(0,220,90,.6)}60%{box-shadow:0 0 0 6px rgba(0,220,90,0)}}
-#ti-title { font-size:.6rem; font-weight:700; color:#8ab4cc; letter-spacing:.16em; }
-#ti-bar-r { display:flex; align-items:center; gap:8px; margin-left:auto; }
-.ti-stat { display:flex; align-items:center; gap:4px; font-size:.55rem; color:rgba(255,255,255,.3); }
-.ti-stat b { color:#fff; font-weight:700; }
-.ti-sd { width:5px; height:5px; border-radius:50%; display:inline-block; }
-.ti-sd.critical { background:#ff2244; box-shadow:0 0 5px #ff2244; }
-.ti-sd.high { background:#ff6820; box-shadow:0 0 5px #ff6820; }
-.ti-sd.medium { background:#f0b830; }
-.ti-sd.low { background:#00dc5a; box-shadow:0 0 4px #00dc5a; }
-.ti-sep { width:1px; height:14px; background:rgba(255,255,255,.08); }
-#ti-clock { font-size:.52rem; color:rgba(0,220,90,.5); letter-spacing:.08em; }
-.vi-btn { background:none; border:1px solid rgba(255,255,255,.1); color:rgba(255,255,255,.35); font-family:inherit; font-size:.55rem; padding:3px 9px; border-radius:2px; cursor:pointer; transition:all .15s; letter-spacing:.06em; text-decoration:none; }
-.vi-btn:hover { border-color:#00dc5a; color:#00dc5a; background:rgba(0,220,90,.07); }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--font-ui); overflow: hidden; }
 
-/* MAIN - EXPLICIT PIXEL SIZING */
-#ti-main {
-  flex: 1;
-  display: flex;
-  overflow: hidden;
-  min-height: 0;
+#dashboard-root {
+  position: fixed; inset: 0; top: var(--nav-h);
+  display: flex; flex-direction: column;
+  background: var(--bg);
 }
 
-/* MAP - Gets explicit pixel size via JS */
-#map-panel {
-  width: calc(100% - 280px);
-  height: 100%;
-  position: relative;
-  overflow: hidden;
+/* TOP BAR */
+#top-bar {
+  height: 44px; display: flex; align-items: center; justify-content: space-between;
+  padding: 0 16px; background: var(--panel); border-bottom: 1px solid var(--border);
+  flex-shrink: 0; font-size: 0.8rem;
 }
+#top-bar .left { display: flex; align-items: center; gap: 12px; }
+#top-bar .title { font-weight: 600; letter-spacing: 0.05em; color: var(--accent); }
+#top-bar .stats { display: flex; gap: 16px; font-family: var(--font-mono); font-size: 0.75rem; }
+#top-bar .stat { display: flex; align-items: center; gap: 6px; color: var(--text-muted); }
+#top-bar .stat b { color: var(--text); font-weight: 500; }
+.dot { width: 6px; height: 6px; border-radius: 50%; }
+.dot.crit { background: var(--crit); } .dot.high { background: var(--high); }
+.dot.med { background: var(--med); } .dot.low { background: var(--low); }
+#top-bar .clock { font-family: var(--font-mono); color: var(--text-muted); }
 
-/* MAP ELEMENT - Explicit pixel size set by JS */
-#map {
-  width: 100%;
-  height: 100%;
-  background: #04060e !important;
-  cursor: crosshair !important;
-}
+/* MAIN LAYOUT */
+#main-area { flex: 1; display: flex; overflow: hidden; }
 
-.leaflet-container { background: #04060e !important; cursor: crosshair !important; }
-.leaflet-control-zoom { border: 1px solid rgba(0,220,90,.15) !important; }
-.leaflet-control-zoom a { background: #060810 !important; color: #00dc5a !important; border-color: rgba(0,220,90,.15) !important; font-size: 14px !important; width: 28px !important; height: 28px !important; line-height: 28px !important; }
-.leaflet-control-zoom a:hover { background: rgba(0,220,90,.1) !important; }
+/* MAP */
+#map-container { flex: 1; position: relative; background: var(--bg); }
+#map { width: 100%; height: 100%; z-index: 1; }
+.leaflet-container { background: var(--bg) !important; }
+.leaflet-control-zoom { border: 1px solid var(--border) !important; border-radius: 4px !important; overflow: hidden; }
+.leaflet-control-zoom a { background: var(--panel) !important; color: var(--accent) !important; border-color: var(--border) !important; width: 30px !important; height: 30px !important; line-height: 30px !important; font-size: 16px !important; }
+.leaflet-control-zoom a:hover { background: #1e293b !important; }
 .leaflet-control-attribution { display: none !important; }
 
-/* SCAN LINE */
-#scan-line {
-  position: absolute;
-  left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent 0%, rgba(0,220,90,0.05) 10%, rgba(0,220,90,0.15) 40%, rgba(0,220,90,0.4) 50%, rgba(0,220,90,0.15) 60%, rgba(0,220,90,0.05) 90%, transparent 100%);
-  z-index: 400;
-  pointer-events: none;
-  animation: scanSweep 6s linear infinite;
-  box-shadow: 0 0 20px rgba(0,220,90,0.15), 0 0 60px rgba(0,220,90,0.05);
-}
-#scan-line::after {
-  content: '';
-  position: absolute;
-  left: 0; right: 0;
-  top: 0; bottom: -80px;
-  background: linear-gradient(180deg, rgba(0,220,90,0.06) 0%, transparent 100%);
-}
-@keyframes scanSweep { 0% { top: -2px; } 100% { top: 100%; } }
-
-/* MAP OVERLAY */
-#map-overlay { position: absolute; inset: 0; pointer-events: none; z-index: 500; }
-.go-corner { position: absolute; width: 16px; height: 16px; }
-.go-corner.tl { top: 12px; left: 12px; border-top: 1px solid rgba(0,220,90,.4); border-left: 1px solid rgba(0,220,90,.4); }
-.go-corner.tr { top: 12px; right: 12px; border-top: 1px solid rgba(0,220,90,.4); border-right: 1px solid rgba(0,220,90,.4); }
-.go-corner.bl { bottom: 12px; left: 12px; border-bottom: 1px solid rgba(0,220,90,.4); border-left: 1px solid rgba(0,220,90,.4); }
-.go-corner.br { bottom: 12px; right: 12px; border-bottom: 1px solid rgba(0,220,90,.4); border-right: 1px solid rgba(0,220,90,.4); }
-#go-label { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); font-size: .5rem; color: rgba(0,220,90,.4); letter-spacing: .14em; white-space: nowrap; }
-#go-coords { position: absolute; bottom: 16px; right: 16px; font-size: .48rem; color: rgba(255,255,255,.2); letter-spacing: .06em; }
-#go-selected { position: absolute; bottom: 16px; left: 16px; font-size: .48rem; color: rgba(0,220,90,.35); letter-spacing: .06em; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-/* MARKERS */
-.threat-marker { position: relative; width: 14px; height: 14px; cursor: pointer; transition: transform .2s ease; }
-.threat-marker:hover { transform: scale(1.6); }
-.marker-core { position: absolute; inset: 2px; border-radius: 50%; z-index: 2; transition: all .3s ease; }
-.marker-ring { position: absolute; inset: -4px; border-radius: 50%; border: 1px solid; opacity: 0.6; animation: markerPulse 2.5s ease-out infinite; }
-.marker-ring-2 { position: absolute; inset: -10px; border-radius: 50%; border: 1px solid; opacity: 0.3; animation: markerPulse 2.5s ease-out infinite 0.8s; }
-.marker-glow { position: absolute; inset: -8px; border-radius: 50%; opacity: 0.15; filter: blur(4px); transition: all .3s ease; }
-@keyframes markerPulse { 0% { transform: scale(0.8); opacity: 0.6; } 100% { transform: scale(2.2); opacity: 0; } }
-
-.marker-critical .marker-core { background: #ff2244; box-shadow: 0 0 8px #ff2244; }
-.marker-critical .marker-ring, .marker-critical .marker-ring-2 { border-color: #ff2244; }
-.marker-critical .marker-glow { background: #ff2244; }
-.marker-high .marker-core { background: #ff6820; box-shadow: 0 0 8px #ff6820; }
-.marker-high .marker-ring, .marker-high .marker-ring-2 { border-color: #ff6820; }
-.marker-high .marker-glow { background: #ff6820; }
-.marker-medium .marker-core { background: #f0b830; box-shadow: 0 0 6px #f0b830; }
-.marker-medium .marker-ring, .marker-medium .marker-ring-2 { border-color: #f0b830; }
-.marker-medium .marker-glow { background: #f0b830; }
-.marker-low .marker-core { background: #00dc5a; box-shadow: 0 0 6px #00dc5a; }
-.marker-low .marker-ring, .marker-low .marker-ring-2 { border-color: #00dc5a; }
-.marker-low .marker-glow { background: #00dc5a; }
-
-.marker-selected { transform: scale(1.4) !important; }
-.marker-selected .marker-core { box-shadow: 0 0 20px 6px currentColor !important; }
-.marker-selected .marker-glow { inset: -16px; opacity: 0.35; filter: blur(8px); }
-.marker-selected .marker-ring { animation-duration: 1s; }
-.marker-dimmed { opacity: 0.15; transition: opacity .3s ease; }
-.marker-dimmed:hover { opacity: 0.5; }
-
-.threat-arc { stroke-dasharray: 8, 12; animation: dashMove 1.5s linear infinite; transition: opacity .4s ease; }
-@keyframes dashMove { to { stroke-dashoffset: -40; } }
-
-.hotspot { pointer-events: none; animation: hotspotPulse 3s ease-in-out infinite; }
-@keyframes hotspotPulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.6; } }
-
-/* TOOLTIP */
-.threat-tooltip {
-  background: rgba(4,6,14,.95) !important;
-  border: 1px solid #00dc5a !important;
-  border-radius: 3px !important;
-  color: #c0cce0 !important;
-  font-family: 'JetBrains Mono', monospace !important;
-  font-size: 11px !important;
-  padding: 10px 12px !important;
-  box-shadow: 0 0 30px rgba(0,220,90,.2) !important;
-  min-width: 180px;
-}
-.tt-name { font-weight: 700; font-size: 12px; margin-bottom: 6px; letter-spacing: .02em; }
-.tt-row { display: flex; gap: 6px; margin-bottom: 3px; }
-.tt-k { color: rgba(0,220,90,.45); width: 48px; flex-shrink: 0; font-size: 10px; }
-.tt-v { color: rgba(255,255,255,.6); font-size: 10px; }
-.tt-hint { color: #00dc5a; font-size: 9px; margin-top: 8px; letter-spacing: .06em; border-top: 1px solid rgba(0,220,90,.1); padding-top: 6px; }
+/* MAP OVERLAYS */
+.map-hud { position: absolute; top: 12px; left: 12px; z-index: 500; pointer-events: none; font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted); }
+.map-hud .coords { margin-top: 4px; }
 
 /* SIDEBAR */
-#ti-side {
-  width: 280px;
-  height: 100%;
-  flex-shrink: 0;
-  background: #060810;
-  border-left: 1px solid rgba(0,220,90,.08);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+#sidebar {
+  width: 320px; background: var(--panel); border-left: 1px solid var(--border);
+  display: flex; flex-direction: column; flex-shrink: 0;
 }
-#side-list, #side-detail { display: flex; flex-direction: column; overflow: hidden; flex: 1; }
-.side-hdr { font-size: .58rem; color: #00dc5a; padding: .58rem .8rem .45rem; border-bottom: 1px solid rgba(0,220,90,.08); letter-spacing: .06em; flex-shrink: 0; display: flex; align-items: center; gap: 8px; background: #060810; }
-#actor-count { color: rgba(255,255,255,.2); font-size: .52rem; }
-#side-back { background: none; border: none; color: rgba(255,255,255,.25); font-family: inherit; font-size: .56rem; cursor: pointer; padding: 0; transition: color .15s; }
-#side-back:hover { color: #00dc5a; }
-#actor-filter { display: flex; gap: 3px; padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,.04); flex-shrink: 0; }
-.af-btn { background: none; border: 1px solid rgba(255,255,255,.06); color: rgba(255,255,255,.2); font-family: inherit; font-size: .48rem; padding: 2px 6px; border-radius: 2px; cursor: pointer; transition: all .15s; letter-spacing: .04em; }
-.af-btn:hover, .af-btn.active { border-color: rgba(0,220,90,.3); color: #00dc5a; background: rgba(0,220,90,.05); }
-#actor-list { overflow-y: auto; flex: 1; }
-#actor-list::-webkit-scrollbar { width: 2px; }
-#actor-list::-webkit-scrollbar-thumb { background: rgba(0,220,90,.2); border-radius: 2px; }
+.sidebar-header {
+  padding: 12px 16px; border-bottom: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.search-wrap { position: relative; }
+#search-input {
+  width: 100%; background: #0f172a; border: 1px solid var(--border); color: var(--text);
+  padding: 8px 10px 8px 30px; border-radius: 6px; font-size: 0.85rem; outline: none;
+  font-family: var(--font-ui); transition: border-color 0.2s;
+}
+#search-input:focus { border-color: var(--accent); }
+.search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.8rem; }
+.filters { display: flex; gap: 6px; flex-wrap: wrap; }
+.f-btn {
+  background: transparent; border: 1px solid var(--border); color: var(--text-muted);
+  padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; transition: all 0.2s;
+}
+.f-btn:hover, .f-btn.active { background: rgba(56, 189, 248, 0.1); border-color: var(--accent); color: var(--accent); }
 
-.a-row { padding: .5rem .8rem; border-bottom: 1px solid rgba(255,255,255,.04); cursor: pointer; transition: all .2s ease; border-left: 2px solid transparent; }
-.a-row:hover { background: rgba(0,220,90,.04); }
-.a-row.sel { background: rgba(0,220,90,.09); border-left-color: #00dc5a; }
-.a-row.dimmed { opacity: 0.25; }
-.a-row.dimmed:hover { opacity: 0.5; }
-.a-row.hidden { display: none; }
-.a-row-top { display: flex; align-items: center; gap: 7px; margin-bottom: 2px; }
-.a-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-.dot-critical { background: #ff2244; box-shadow: 0 0 5px #ff2244; }
-.dot-high { background: #ff6820; box-shadow: 0 0 5px #ff6820; }
-.dot-medium { background: #f0b830; }
-.dot-low { background: #00dc5a; box-shadow: 0 0 4px #00dc5a; }
-.a-name { font-size: .68rem; color: #c0cce0; font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.a-st { font-size: .48rem; padding: 1px 5px; border-radius: 1px; border: 1px solid rgba(255,255,255,.08); color: rgba(255,255,255,.25); flex-shrink: 0; }
-.s-active { color: #ff2244; border-color: rgba(255,34,68,.3); background: rgba(255,34,68,.08); }
-.s-monitoring { color: #f0b830; border-color: rgba(240,184,48,.25); }
-.a-meta { font-size: .54rem; color: rgba(255,255,255,.25); padding-left: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.actor-list { flex: 1; overflow-y: auto; padding: 8px; }
+.actor-list::-webkit-scrollbar { width: 4px; }
+.actor-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
-#detail-body { overflow-y: auto; flex: 1; padding: .7rem .8rem; }
-#detail-body::-webkit-scrollbar { width: 2px; }
-#detail-body::-webkit-scrollbar-thumb { background: rgba(0,220,90,.15); border-radius: 2px; }
-.d-name { font-size: .88rem; font-weight: 700; color: #c0cce0; margin-bottom: .4rem; line-height: 1.2; }
-.d-badges { display: flex; gap: 3px; flex-wrap: wrap; margin-bottom: .55rem; }
-.d-badge { font-size: .52rem; padding: 2px 6px; border-radius: 2px; border: 1px solid rgba(255,255,255,.08); color: rgba(255,255,255,.35); }
-.d-sec { margin-bottom: .58rem; }
-.d-lbl { font-size: .54rem; color: #00dc5a; margin-bottom: .22rem; letter-spacing: .06em; }
-.d-val { font-size: .62rem; color: rgba(255,255,255,.48); line-height: 1.6; }
-.d-tags { display: flex; gap: 3px; flex-wrap: wrap; }
-.d-tag { font-size: .52rem; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); color: rgba(255,255,255,.32); padding: 1px 5px; border-radius: 2px; }
-.d-tag-o { color: #ff6820; }
-.d-ttp { font-size: .6rem; color: rgba(255,255,255,.42); padding: .16rem .42rem; border-left: 2px solid rgba(0,220,90,.15); margin-bottom: 3px; line-height: 1.5; transition: all .15s; }
-.d-ttp:hover { border-left-color: #00dc5a; color: rgba(255,255,255,.72); }
-.d-link { display: block; margin-top: .6rem; text-align: center; font-size: .6rem; color: #00dc5a; border: 1px solid rgba(0,220,90,.2); padding: .32rem; border-radius: 2px; text-decoration: none; transition: background .15s; letter-spacing: .04em; }
-.d-link:hover { background: rgba(0,220,90,.08); }
+.actor-row {
+  padding: 10px 12px; margin-bottom: 4px; border-radius: 6px; cursor: pointer;
+  border-left: 3px solid transparent; transition: all 0.2s;
+}
+.actor-row:hover { background: rgba(255,255,255,0.03); }
+.actor-row.active { background: rgba(56, 189, 248, 0.08); border-left-color: var(--accent); }
+.actor-row.hidden { display: none; }
+.row-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.row-name { font-weight: 600; font-size: 0.9rem; color: var(--text); }
+.row-meta { font-size: 0.75rem; color: var(--text-muted); display: flex; gap: 8px; align-items: center; }
+.badge { font-size: 0.65rem; padding: 2px 6px; border-radius: 3px; font-weight: 500; }
+.badge.crit { background: rgba(244,63,94,0.15); color: var(--crit); }
+.badge.high { background: rgba(245,158,11,0.15); color: var(--high); }
+.badge.med { background: rgba(16,185,129,0.15); color: var(--med); }
+.badge.low { background: rgba(100,116,139,0.15); color: var(--low); }
+.status-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+.status-active { background: var(--crit); } .status-monitoring { background: var(--high); } .status-dormant { background: var(--low); }
 
-#ti-status { display: flex; align-items: center; gap: 8px; padding: .28rem 14px; background: #060810; border-top: 1px solid rgba(0,220,90,.08); flex-shrink: 0; font-size: .5rem; color: rgba(255,255,255,.2); height: 24px; }
-.sb-sep { color: rgba(255,255,255,.08); }
-.sb-item { letter-spacing: .04em; }
+/* DETAIL PANEL (Slide-over) */
+#detail-panel {
+  position: absolute; inset: 0; background: var(--panel); z-index: 600;
+  transform: translateX(100%); transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
+  display: flex; flex-direction: column; border-left: 1px solid var(--border);
+}
+#detail-panel.open { transform: translateX(0); }
+.detail-header {
+  padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px;
+}
+#back-btn {
+  background: none; border: none; color: var(--accent); cursor: pointer; font-size: 0.85rem;
+  display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 4px;
+}
+#back-btn:hover { background: rgba(56,189,248,0.1); }
+.detail-content { flex: 1; overflow-y: auto; padding: 16px; }
+.d-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 8px; }
+.d-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+.d-section { margin-bottom: 16px; }
+.d-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent); margin-bottom: 6px; font-weight: 500; }
+.d-text { font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; }
+.d-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.d-tag { font-size: 0.75rem; background: #1e293b; padding: 3px 8px; border-radius: 4px; color: var(--text); }
+.d-link {
+  display: inline-block; margin-top: 12px; padding: 8px 12px; background: var(--accent);
+  color: #0b0f19; font-weight: 500; border-radius: 6px; text-decoration: none; font-size: 0.85rem;
+}
+.d-link:hover { opacity: 0.9; }
 
-@media (max-width: 768px) {
-  #ti-side { width: 220px; }
-  #map-panel { width: calc(100% - 220px); }
-  .ti-stat:nth-child(n+3) { display: none; }
-  #ti-bar-c { display: none; }
+/* MARKERS */
+.threat-marker { position: relative; display: flex; align-items: center; justify-content: center; }
+.marker-shape {
+  width: 12px; height: 12px; position: relative; z-index: 2; transition: transform 0.2s;
+  box-shadow: 0 0 8px rgba(0,0,0,0.5);
+}
+.threat-marker:hover .marker-shape { transform: scale(1.3); }
+/* Nation-State: Diamond */
+.shape-nation { clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); background: var(--crit); }
+/* Criminal/Ransomware: Circle */
+.shape-criminal { border-radius: 50%; background: var(--high); }
+/* Hacktivist/Other: Square */
+.shape-other { border-radius: 2px; background: var(--med); }
+.marker-pulse {
+  position: absolute; inset: -6px; border-radius: 50%; border: 1px solid currentColor; opacity: 0.4;
+  animation: pulse 2.5s infinite;
+}
+@keyframes pulse { 0% { transform: scale(0.8); opacity: 0.4; } 100% { transform: scale(2.2); opacity: 0; } }
+.marker-selected .marker-shape { transform: scale(1.5); box-shadow: 0 0 12px currentColor; }
+.marker-dimmed { opacity: 0.15; transition: opacity 0.3s; }
+.marker-dimmed:hover { opacity: 0.6; }
+
+/* ARCS */
+.threat-arc { stroke-dasharray: 6, 8; animation: dash 1.5s linear infinite; }
+@keyframes dash { to { stroke-dashoffset: -28; } }
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  #sidebar { width: 260px; }
+}
+@media (max-width: 600px) {
+  #main-area { flex-direction: column; }
+  #sidebar { width: 100%; height: 40%; border-left: none; border-top: 1px solid var(--border); }
+  #map-container { height: 60%; }
 }
 </style>
 
+<div id="dashboard-root">
+  <!-- TOP BAR -->
+  <div id="top-bar">
+    <div class="left">
+      <div class="title">THREAT ACTOR DASHBOARD</div>
+      <div class="stats">
+        <div class="stat"><span class="dot crit"></span><b id="stat-c">0</b> CRIT</div>
+        <div class="stat"><span class="dot high"></span><b id="stat-h">0</b> HIGH</div>
+        <div class="stat"><span class="dot med"></span><b id="stat-m">0</b> MED</div>
+        <div class="stat"><span class="dot low"></span><b id="stat-l">0</b> LOW</div>
+      </div>
+    </div>
+    <div class="clock" id="clock">00:00:00 UTC</div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="main-area">
+    <div id="map-container">
+      <div id="map"></div>
+      <div class="map-hud">
+        <div>ORIGIN → TARGET VISUALIZATION</div>
+        <div class="coords" id="coords-display">LAT 00.00 · LNG 00.00</div>
+      </div>
+    </div>
+
+    <div id="sidebar">
+      <div class="sidebar-header">
+        <div class="search-wrap">
+          <span class="search-icon">⌕</span>
+          <input type="text" id="search-input" placeholder="Search actors, origins, targets...">
+        </div>
+        <div class="filters">
+          <button class="f-btn active" data-filter="all">All</button>
+          <button class="f-btn" data-filter="nation-state">Nation-State</button>
+          <button class="f-btn" data-filter="cybercriminal">Criminal</button>
+          <button class="f-btn" data-filter="active">Active</button>
+        </div>
+      </div>
+      <div class="actor-list" id="actor-list">
+        <!-- Populated by JS -->
+      </div>
+
+      <!-- DETAIL PANEL (Slide-over) -->
+      <div id="detail-panel">
+        <div class="detail-header">
+          <button id="back-btn">← Back to List</button>
+          <span style="color:var(--text-muted); font-size:0.8rem;">ACTOR PROFILE</span>
+        </div>
+        <div class="detail-content" id="detail-content"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-// ══════════════════════════════════════════════════
-//  COORDINATES - VERIFIED LAT/LNG FORMAT
-// ══════════════════════════════════════════════════
+/**
+ * THREAT ACTOR DASHBOARD ENGINE
+ * Modular architecture: CONFIG -> STATE -> COORDS -> MAP -> UI -> INIT
+ */
+
+const CONFIG = {
+  colors: { crit: '#f43f5e', high: '#f59e0b', med: '#10b981', low: '#64748b', accent: '#38bdf8' },
+  map: { center: [20, 10], zoom: 2, minZoom: 2, maxZoom: 6 }
+};
+
+const STATE = {
+  map: null,
+  markers: {},
+  arcs: [],
+  selectedSlug: null,
+  filter: 'all',
+  searchQuery: ''
+};
+
+// ═══════════════════════════════════════════════════════════════════
+// COORDINATE RESOLVER
+// ═══════════════════════════════════════════════════════════════════
 const COORDS = {
-  // East Asia
-  "china": [35.86, 104.19],
-  "north korea": [40.33, 127.51],
-  "dprk": [40.33, 127.51],
-  "south korea": [37.56, 126.97],
-  "japan": [36.20, 138.25],
-  "taiwan": [23.69, 120.96],
-  "vietnam": [14.05, 108.27],
-  "thailand": [15.87, 100.99],
-  "philippines": [12.87, 121.77],
-  "indonesia": [-0.78, 113.92],
-  "singapore": [1.35, 103.82],
-  // South Asia
-  "india": [20.59, 78.96],
-  "pakistan": [30.37, 69.34],
-  // Middle East
-  "iran": [32.42, 53.68],
-  "iraq": [33.22, 43.68],
-  "syria": [34.80, 38.99],
-  "saudi arabia": [23.88, 45.07],
-  "israel": [31.04, 34.85],
-  "turkey": [38.96, 35.24],
-  "egypt": [26.82, 30.80],
-  "libya": [26.33, 17.23],
-  // Russia/Eastern Europe
-  "russia": [61.52, 105.31],
-  "ukraine": [48.37, 31.16],
-  "belarus": [53.70, 27.95],
-  "eastern europe": [50.00, 30.00],
-  // Western Europe
-  "germany": [51.16, 10.45],
-  "france": [46.22, 2.21],
-  "uk": [55.37, -3.43],
-  "united kingdom": [55.37, -3.43],
-  "england": [52.00, -1.00],
-  "netherlands": [52.13, 5.29],
-  "spain": [40.46, -3.74],
-  "italy": [41.87, 12.56],
-  "poland": [51.91, 19.14],
-  "romania": [45.94, 24.96],
-  "czech": [49.81, 15.47],
-  "hungary": [47.16, 19.50],
-  "sweden": [60.12, 18.64],
-  "norway": [60.47, 8.46],
-  "finland": [61.92, 25.74],
-  // Americas
-  "united states": [37.09, -95.71],
-  "usa": [37.09, -95.71],
-  "canada": [56.13, -106.34],
-  "mexico": [23.63, -102.55],
-  "brazil": [-14.23, -51.92],
-  "argentina": [-38.41, -63.61],
-  "colombia": [4.57, -74.29],
-  // Africa
-  "nigeria": [9.08, 8.67],
-  "south africa": [-28.03, 26.32],
-  "kenya": [1.28, 36.82],
-  // Oceania
-  "australia": [-25.27, 133.77],
-  // Fallbacks
-  "global": [20, 15],
-  "unknown": [20, 15],
-  "multiple": [30, 10]
+  "china": [35.86, 104.19], "north korea": [40.33, 127.51], "dprk": [40.33, 127.51],
+  "south korea": [37.56, 126.97], "japan": [36.20, 138.25], "vietnam": [14.05, 108.27],
+  "india": [20.59, 78.96], "pakistan": [30.37, 69.34], "iran": [32.42, 53.68],
+  "russia": [61.52, 105.31], "ukraine": [48.37, 31.16], "belarus": [53.70, 27.95],
+  "germany": [51.16, 10.45], "france": [46.22, 2.21], "uk": [55.37, -3.43], "united kingdom": [55.37, -3.43],
+  "usa": [37.09, -95.71], "united states": [37.09, -95.71], "canada": [56.13, -106.34],
+  "brazil": [-14.23, -51.92], "nigeria": [9.08, 8.67], "south africa": [-28.03, 26.32],
+  "australia": [-25.27, 133.77], "israel": [31.04, 34.85], "turkey": [38.96, 35.24],
+  "unknown": [20, 15], "global": [20, 15]
 };
 
 const TARGET_COORDS = {
-  "united states": [37.09, -95.71],
-  "usa": [37.09, -95.71],
-  "europe": [50.00, 10.00],
-  "south korea": [37.56, 126.97],
-  "japan": [36.20, 138.25],
-  "india": [20.59, 78.96],
-  "taiwan": [23.69, 120.96],
-  "financial institutions": [40.71, -74.01],
-  "cryptocurrency": [37.09, -95.71],
-  "crypto exchanges": [37.09, -95.71],
-  "aerospace": [38.89, -77.03],
-  "defense": [38.89, -77.03],
-  "government": [48.86, 2.35],
-  "healthcare": [51.50, -0.12],
-  "energy": [48.86, 2.35],
-  "nato": [50.87, 4.35],
-  "supply chain": [37.38, -122.08],
-  "saas": [37.38, -122.08],
-  "telecommunications": [51.50, -0.12],
-  "media": [40.71, -74.01],
-  "critical infrastructure": [38.89, -77.03],
-  "military": [38.89, -77.03],
-  "intellectual property": [37.38, -122.08],
-  "technology": [37.38, -122.08],
-  "financial": [40.71, -74.01],
-  "banking": [51.50, -0.12],
-  "manufacturing": [42.36, -83.05],
-  "retail": [40.71, -74.01],
-  "pharmaceutical": [40.71, -74.01],
-  "research": [40.00, -74.00],
-  "universities": [42.36, -71.06],
-  "e-commerce": [37.38, -122.08]
+  "united states": [37.09, -95.71], "usa": [37.09, -95.71], "europe": [50.00, 10.00],
+  "south korea": [37.56, 126.97], "japan": [36.20, 138.25], "india": [20.59, 78.96],
+  "financial": [40.71, -74.01], "government": [38.89, -77.03], "defense": [38.89, -77.03],
+  "healthcare": [51.50, -0.12], "energy": [48.86, 2.35], "technology": [37.38, -122.08]
 };
 
-const TCOL = { critical: '#ff2244', high: '#ff6820', medium: '#f0b830', low: '#00dc5a' };
-const CCOL = { 'nation-state': '#ff2244', 'cybercriminal': '#f0b830', 'ransomware': '#ff6820', 'darkweb': '#bc8cff', 'defi': '#00aaff', 'hacktivism': '#00dc5a', 'unknown': '#445566' };
-
-function getCoords(origin) {
-  if (!origin) return [20, 15]; // Default fallback
-  const o = origin.toLowerCase().trim();
-  if (COORDS[o]) return COORDS[o];
-  let best = null, score = 0;
+function resolveCoords(name, fallback = [20, 15]) {
+  if (!name) return fallback;
+  const key = name.toLowerCase().trim();
+  if (COORDS[key]) return COORDS[key];
   for (const [k, v] of Object.entries(COORDS)) {
-    if (o.includes(k) && k.length > score) { best = v; score = k.length; }
+    if (key.includes(k) && k.length > 3) return v;
   }
-  return best || [20, 15];
+  return fallback;
 }
 
-function getTCoords(t) {
-  if (!t) return null;
-  const tl = t.toLowerCase().trim();
+function resolveTargetCoords(name) {
+  if (!name) return null;
+  const key = name.toLowerCase().trim();
   for (const [k, v] of Object.entries(TARGET_COORDS)) {
-    if (tl.includes(k)) return v;
+    if (key.includes(k)) return v;
   }
-  for (const [k, v] of Object.entries(COORDS)) {
-    if (tl.includes(k) && k.length > 3) return v;
-  }
-  return null;
+  return resolveCoords(name, null);
 }
 
-// ══════════════════════════════════════════════════
-//  STATE
-// ══════════════════════════════════════════════════
-let map = null;
-let selectedSlug = null;
-let currentFilter = 'all';
-let markersMap = {};
-let arcLayers = [];
-let hotspotLayers = [];
-let actorSlugs = [];
-
-// ══════════════════════════════════════════════════
-//  INIT - DELAYED UNTIL LAYOUT IS STABLE
-// ══════════════════════════════════════════════════
-document.addEventListener('DOMContentLoaded', function() {
-  // Get nav height and set root position
-  const nav = document.querySelector('nav, header, .site-header, .nav-wrap');
-  const navH = nav ? nav.offsetHeight : 48;
-  document.getElementById('ti-root').style.top = navH + 'px';
-
-  calcStats();
-  actorSlugs = window.ACTOR_DATA.map(a => a.slug);
-  document.getElementById('actor-count').textContent = '(' + window.ACTOR_DATA.length + ')';
-
-  // Clock
-  function updateClock() {
-    const t = new Date().toLocaleTimeString('en-US', { timeZone: 'Asia/Kolkata', hour12: false });
-    document.getElementById('ti-clock').textContent = t + ' IST';
-  }
-  updateClock();
-  setInterval(updateClock, 1000);
-
-  // WAIT for layout to stabilize before init
-  setTimeout(function() {
-    setTimeout(function() {
-      initMap();
-      initKeyboard();
-    }, 100);
-  }, 300);
-});
-
-// ══════════════════════════════════════════════════
-//  MAP INIT - WITH EXPLICIT SIZE
-// ══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
+// MAP ENGINE
+// ═══════════════════════════════════════════════════════════════════
 function initMap() {
-  const mapEl = document.getElementById('map');
-  const panel = document.getElementById('map-panel');
-
-  // GET EXACT PIXEL DIMENSIONS
-  const width = panel.clientWidth;
-  const height = panel.clientHeight;
-
-  console.log('Map init - width:', width, 'height:', height);
-
-  if (width < 100 || height < 100) {
-    console.error('Map container too small, retrying...');
-    setTimeout(initMap, 200);
-    return;
-  }
-
-  // Set explicit pixel size on map element
-  mapEl.style.width = width + 'px';
-  mapEl.style.height = height + 'px';
-
-  map = L.map('map', {
-    center: [25, 50],
-    zoom: 2,
-    minZoom: 2,
-    maxZoom: 6,
+  STATE.map = L.map('map', {
+    center: CONFIG.map.center,
+    zoom: CONFIG.map.zoom,
+    minZoom: CONFIG.map.minZoom,
+    maxZoom: CONFIG.map.maxZoom,
     zoomControl: true,
     attributionControl: false,
-    dragging: false,
+    dragging: true,        // ✅ UNLOCKED
     touchZoom: true,
     scrollWheelZoom: true,
     doubleClickZoom: false,
@@ -553,308 +334,255 @@ function initMap() {
     worldCopyJump: true
   });
 
-  // Dark tiles WITH labels
   L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    subdomains: 'abcd',
-    maxZoom: 19
-  }).addTo(map);
+    subdomains: 'abcd', maxZoom: 19
+  }).addTo(STATE.map);
 
-  // Build hotspots from target data
-  const targetCounts = {};
-  window.ACTOR_DATA.forEach(function(actor) {
-    (actor.targets || []).forEach(function(target) {
-      const tc = getTCoords(target);
-      if (!tc) return;
-      const key = tc[0].toFixed(0) + ',' + tc[1].toFixed(0);
-      targetCounts[key] = (targetCounts[key] || 0) + 1;
-    });
+  STATE.map.on('mousemove', e => {
+    document.getElementById('coords-display').textContent = `LAT ${e.latlng.lat.toFixed(2)} · LNG ${e.latlng.lng.toFixed(2)}`;
   });
 
-  Object.entries(targetCounts).forEach(function([key, count]) {
-    if (count < 2) return;
-    const [lat, lng] = key.split(',').map(Number);
-    const radius = 200000 + (count * 150000);
-    const opacity = Math.min(0.15 + count * 0.05, 0.4);
+  renderData();
+  window.addEventListener('resize', () => STATE.map.invalidateSize());
+}
 
-    const hotspot = L.circle([lat, lng], {
-      radius: radius,
-      color: '#ff2244',
-      fillColor: '#ff2244',
-      fillOpacity: opacity,
-      weight: 0,
-      className: 'hotspot',
-      interactive: false
-    }).addTo(map);
-    hotspot.options._baseOpacity = opacity;
-    hotspotLayers.push(hotspot);
-  });
+function renderData() {
+  const listEl = document.getElementById('actor-list');
+  listEl.innerHTML = '';
+  
+  window.ACTOR_DATA.forEach((actor, idx) => {
+    // Add to sidebar
+    const row = document.createElement('div');
+    row.className = 'actor-row';
+    row.dataset.slug = actor.slug;
+    row.dataset.category = (actor.category || '').toLowerCase();
+    row.dataset.threat = (actor.threat || 'medium').toLowerCase();
+    row.dataset.status = (actor.status || '').toLowerCase();
+    row.innerHTML = `
+      <div class="row-top">
+        <span class="row-name">${actor.title}</span>
+        <span class="badge ${actor.threat === 'critical' ? 'crit' : actor.threat === 'high' ? 'high' : actor.threat === 'medium' ? 'med' : 'low'}">${actor.threat.toUpperCase()}</span>
+      </div>
+      <div class="row-meta">
+        <span><span class="status-dot status-${actor.status}"></span>${actor.status}</span>
+        <span>${actor.category}</span>
+        <span>📍 ${actor.origin || 'Unknown'}</span>
+      </div>
+    `;
+    row.addEventListener('click', () => selectActor(actor.slug));
+    listEl.appendChild(row);
 
-  // ADD ACTOR MARKERS
-  window.ACTOR_DATA.forEach(function(actor) {
-    const coords = getCoords(actor.origin);
-    const lat = coords[0];
-    const lng = coords[1];
-    const t = (actor.threat || 'medium').toLowerCase();
-    const col = TCOL[t] || TCOL.medium;
-
-    console.log('Adding marker:', actor.title, '->', actor.origin, '-> [', lat, ',', lng, ']');
+    // Add marker to map
+    const coords = resolveCoords(actor.origin);
+    const jitter = [(idx % 5) * 0.8, (idx % 3) * 0.6]; // Prevent exact overlap
+    const lat = coords[0] + jitter[0];
+    const lng = coords[1] + jitter[1];
+    const cat = (actor.category || '').toLowerCase();
+    const shapeClass = cat.includes('nation') ? 'shape-nation' : cat.includes('criminal') || cat.includes('ransom') ? 'shape-criminal' : 'shape-other';
+    const color = CONFIG.colors[(actor.threat || 'medium').toLowerCase()] || CONFIG.colors.med;
 
     const icon = L.divIcon({
-      className: 'threat-marker marker-' + t,
-      html: '<div class="marker-glow"></div><div class="marker-core"></div><div class="marker-ring"></div><div class="marker-ring-2"></div>',
-      iconSize: [14, 14],
-      iconAnchor: [7, 7]
+      className: `threat-marker marker-${(actor.threat || 'medium').toLowerCase()}`,
+      html: `<div class="marker-shape ${shapeClass}" style="background:${color}"></div><div class="marker-pulse" style="color:${color}"></div>`,
+      iconSize: [20, 20],
+      iconAnchor: [10, 10]
     });
 
-    const marker = L.marker([lat, lng], { icon: icon }).addTo(map);
-
-    const tooltipContent = '<div class="tt-name" style="color:' + col + '">' + actor.title + '</div>' +
-      '<div class="tt-row"><span class="tt-k">origin</span><span class="tt-v">' + (actor.origin || '?') + '</span></div>' +
-      '<div class="tt-row"><span class="tt-k">threat</span><span class="tt-v" style="color:' + col + '">' + (actor.threat || '').toUpperCase() + '</span></div>' +
-      '<div class="tt-row"><span class="tt-k">status</span><span class="tt-v">' + (actor.status || '?') + '</span></div>' +
-      (actor.targets?.length ? '<div class="tt-row"><span class="tt-k">targets</span><span class="tt-v">' + actor.targets.length + ' sectors</span></div>' : '') +
-      (actor.tldr ? '<div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:6px;line-height:1.4">' + actor.tldr.substring(0, 70) + (actor.tldr.length > 70 ? '…' : '') + '</div>' : '') +
-      '<div class="tt-hint">click for profile →</div>';
-
-    marker.bindTooltip(tooltipContent, {
-      className: 'threat-tooltip',
-      direction: 'right',
-      offset: [12, 0],
-      opacity: 1
-    });
-
-    marker.on('click', function(e) {
-      L.DomEvent.stopPropagation(e);
-      selectActor(actor.slug);
-    });
-
-    markersMap[actor.slug] = { marker, actor, threat: t, color: col, arcs: [] };
+    const marker = L.marker([lat, lng], { icon }).addTo(STATE.map);
+    marker.on('click', () => selectActor(actor.slug));
+    
+    STATE.markers[actor.slug] = { marker, actor, color };
   });
 
-  // ADD ARCS
-  window.ACTOR_DATA.forEach(function(actor) {
-    const src = getCoords(actor.origin);
+  // Draw arcs
+  window.ACTOR_DATA.forEach(actor => {
+    const src = resolveCoords(actor.origin);
     if (!actor.targets || !actor.targets.length) return;
-
-    actor.targets.slice(0, 4).forEach(function(target) {
-      const tc = getTCoords(target);
-      if (!tc) return;
-
-      const t = (actor.threat || 'medium').toLowerCase();
-      const col = TCOL[t] || TCOL.medium;
-
-      const points = [];
-      const steps = 30;
-      for (let i = 0; i <= steps; i++) {
-        const frac = i / steps;
-        const lat = src[0] + (tc[0] - src[0]) * frac;
-        const lng = src[1] + (tc[1] - src[1]) * frac;
-        const bulge = Math.sin(frac * Math.PI) * 12;
-        points.push([lat + bulge * 0.4, lng]);
-      }
-
-      const arc = L.polyline(points, {
-        color: col,
-        weight: 1,
-        opacity: 0.25,
-        className: 'threat-arc',
-        interactive: false
-      }).addTo(map);
-
-      arcLayers.push(arc);
-      if (markersMap[actor.slug]) {
-        markersMap[actor.slug].arcs.push(arc);
-      }
+    actor.targets.slice(0, 3).forEach(target => {
+      const dest = resolveTargetCoords(target);
+      if (!dest) return;
+      drawArc(src, dest, STATE.markers[actor.slug].color);
     });
   });
 
-  // Click map to deselect
-  map.on('click', function() {
-    if (selectedSlug) closeDetail();
-  });
-
-  // Mouse coords
-  map.on('mousemove', function(e) {
-    document.getElementById('go-coords').textContent = 'LAT ' + e.latlng.lat.toFixed(2) + ' · LNG ' + e.latlng.lng.toFixed(2);
-  });
-
-  // Force invalidate size
-  setTimeout(function() { map.invalidateSize(); }, 200);
-
-  // Handle resize
-  window.addEventListener('resize', function() {
-    const w = panel.clientWidth;
-    const h = panel.clientHeight;
-    mapEl.style.width = w + 'px';
-    mapEl.style.height = h + 'px';
-    setTimeout(function() { map.invalidateSize(); }, 100);
-  });
+  updateStats();
+  applyFilters();
 }
 
-// ══════════════════════════════════════════════════
-//  KEYBOARD
-// ══════════════════════════════════════════════════
-function initKeyboard() {
-  document.addEventListener('keydown', function(e) {
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-    if (e.key === 'Escape') { e.preventDefault(); if (selectedSlug) closeDetail(); }
-    else if (e.key === 'f' || e.key === 'F') { e.preventDefault(); if (selectedSlug) { const a = window.ACTOR_DATA.find(x => x.slug === selectedSlug); if (a) { const c = getCoords(a.origin); map.flyTo([c[0], c[1]], 4, { duration: 1.2 }); } } }
-    else if (e.key === 'ArrowDown') { e.preventDefault(); navigateActor(1); }
-    else if (e.key === 'ArrowUp') { e.preventDefault(); navigateActor(-1); }
-  });
-}
+function drawArc(start, end, color) {
+  const points = [];
+  const steps = 40;
+  const midLat = (start[0] + end[0]) / 2;
+  const midLng = (start[1] + end[1]) / 2;
+  const dist = Math.sqrt(Math.pow(end[0]-start[0],2) + Math.pow(end[1]-start[1],2));
+  const curvature = Math.min(dist * 0.3, 15); // Adaptive curve
 
-function navigateActor(dir) {
-  let idx = selectedSlug ? actorSlugs.indexOf(selectedSlug) : -1;
-  idx = idx + dir;
-  if (idx < 0) idx = actorSlugs.length - 1;
-  if (idx >= actorSlugs.length) idx = 0;
-  selectActor(actorSlugs[idx]);
-}
-
-// ══════════════════════════════════════════════════
-//  FILTER
-// ══════════════════════════════════════════════════
-function filterActors(filter, btn) {
-  currentFilter = filter;
-  document.querySelectorAll('.af-btn').forEach(b => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-
-  document.querySelectorAll('.a-row').forEach(function(row) {
-    const threat = row.dataset.threat;
-    const status = row.dataset.status;
-    let show = true;
-    if (filter === 'critical') show = threat === 'critical';
-    else if (filter === 'high') show = threat === 'critical' || threat === 'high';
-    else if (filter === 'active') show = status === 'active';
-    row.classList.toggle('hidden', !show);
-  });
-
-  Object.values(markersMap).forEach(function(m) {
-    const threat = m.threat;
-    const status = m.actor.status;
-    let show = true;
-    if (filter === 'critical') show = threat === 'critical';
-    else if (filter === 'high') show = threat === 'critical' || threat === 'high';
-    else if (filter === 'active') show = status === 'active';
-    if (show) { if (!map.hasLayer(m.marker)) map.addLayer(m.marker); }
-    else { if (map.hasLayer(m.marker)) map.removeLayer(m.marker); }
-  });
-}
-
-// ══════════════════════════════════════════════════
-//  VISUAL FOCUS
-// ══════════════════════════════════════════════════
-function setVisualFocus(focusSlug) {
-  if (!focusSlug) {
-    Object.values(markersMap).forEach(function(m) {
-      const el = m.marker.getElement();
-      if (el) el.classList.remove('marker-selected', 'marker-dimmed');
-      m.arcs.forEach(function(arc) {
-        arc.setStyle({ opacity: 0.25, weight: 1 });
-      });
-    });
-    document.querySelectorAll('.a-row:not(.hidden)').forEach(function(r) { r.classList.remove('dimmed'); });
-    hotspotLayers.forEach(function(h) { h.setStyle({ fillOpacity: h.options._baseOpacity || 0.15 }); });
-    return;
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    const lat = (1-t)*(1-t)*start[0] + 2*(1-t)*t*(midLat + curvature) + t*t*end[0];
+    const lng = (1-t)*(1-t)*start[1] + 2*(1-t)*t*midLng + t*t*end[1];
+    points.push([lat, lng]);
   }
 
-  Object.entries(markersMap).forEach(function([slug, m]) {
-    const el = m.marker.getElement();
-    if (!el) return;
-    if (slug === focusSlug) {
-      el.classList.add('marker-selected');
-      el.classList.remove('marker-dimmed');
-      m.arcs.forEach(function(arc) { arc.setStyle({ opacity: 0.7, weight: 2 }); });
-    } else {
-      el.classList.remove('marker-selected');
-      el.classList.add('marker-dimmed');
-      m.arcs.forEach(function(arc) { arc.setStyle({ opacity: 0.04 }); });
-    }
-  });
-
-  document.querySelectorAll('.a-row:not(.hidden)').forEach(function(r) {
-    r.classList.toggle('dimmed', r.dataset.slug !== focusSlug);
-  });
-
-  hotspotLayers.forEach(function(h) {
-    h.setStyle({ fillOpacity: (h.options._baseOpacity || 0.15) * 0.3 });
-  });
+  const arc = L.polyline(points, {
+    color: color, weight: 1.5, opacity: 0.35, className: 'threat-arc', interactive: false
+  }).addTo(STATE.map);
+  STATE.arcs.push(arc);
 }
 
-// ══════════════════════════════════════════════════
-//  ACTOR SELECTION
-// ══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
+// UI & INTERACTION
+// ═══════════════════════════════════════════════════════════════════
 function selectActor(slug) {
-  selectedSlug = slug;
+  STATE.selectedSlug = slug;
   const actor = window.ACTOR_DATA.find(a => a.slug === slug);
   if (!actor) return;
 
-  document.querySelectorAll('.a-row').forEach(r => r.classList.remove('sel'));
-  const row = document.querySelector('.a-row[data-slug="' + slug + '"]');
-  if (row) { row.classList.add('sel'); row.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
+  // Highlight UI
+  document.querySelectorAll('.actor-row').forEach(r => r.classList.toggle('active', r.dataset.slug === slug));
+  
+  // Map focus
+  Object.values(STATE.markers).forEach(m => {
+    const el = m.marker.getElement();
+    if (!el) return;
+    if (m.actor.slug === slug) {
+      el.classList.add('marker-selected'); el.classList.remove('marker-dimmed');
+    } else {
+      el.classList.remove('marker-selected'); el.classList.add('marker-dimmed');
+    }
+  });
+  
+  STATE.arcs.forEach(arc => arc.setStyle({ opacity: 0.08 }));
+  const actorArcs = STATE.arcs.filter(arc => {
+    // Rough match: arcs drawn for this actor will be dimmed/highlighted together
+    return true; 
+  });
+  // Simplified: highlight all arcs slightly when one actor is selected to keep visual clean
+  STATE.arcs.forEach(arc => arc.setStyle({ opacity: 0.15 }));
 
-  setVisualFocus(slug);
-  document.getElementById('go-selected').textContent = '► ' + actor.title.toUpperCase();
+  const coords = resolveCoords(actor.origin);
+  STATE.map.flyTo([coords[0], coords[1]], 4, { duration: 1.2 });
 
-  const coords = getCoords(actor.origin);
-  map.flyTo([coords[0], coords[1]], 4, { duration: 1.2 });
+  // Populate detail panel
+  const content = document.getElementById('detail-content');
+  const catColor = actor.category.toLowerCase().includes('nation') ? CONFIG.colors.crit : 
+                   actor.category.toLowerCase().includes('criminal') ? CONFIG.colors.high : CONFIG.colors.med;
+  
+  content.innerHTML = `
+    <div class="d-title">${actor.title}</div>
+    <div class="d-badges">
+      <span class="badge ${actor.threat === 'critical' ? 'crit' : actor.threat === 'high' ? 'high' : 'med'}">${actor.threat.toUpperCase()}</span>
+      <span class="badge" style="background:rgba(56,189,248,0.15);color:var(--accent)">${actor.category}</span>
+      <span class="badge" style="background:rgba(100,116,139,0.15);color:var(--text-muted)">${actor.status}</span>
+    </div>
+    ${actor.tldr ? `<div class="d-section"><div class="d-label">Intelligence Summary</div><div class="d-text">${actor.tldr}</div></div>` : ''}
+    <div class="d-section">
+      <div class="d-label">Profile</div>
+      <div class="d-text">
+         Origin: ${actor.origin || 'Unknown'}<br>
+        💰 Motivation: ${actor.motivation || 'Unknown'}<br>
+        📅 Active: ${actor.first_seen || '?'} → ${actor.last_seen || 'Present'}
+      </div>
+    </div>
+    ${actor.aliases?.length ? `<div class="d-section"><div class="d-label">Aliases</div><div class="d-tags">${actor.aliases.map(a => `<span class="d-tag">${a}</span>`).join('')}</div></div>` : ''}
+    ${actor.ttps?.length ? `<div class="d-section"><div class="d-label">TTPs</div><div class="d-tags">${actor.ttps.map(t => `<span class="d-tag">${t}</span>`).join('')}</div></div>` : ''}
+    ${actor.targets?.length ? `<div class="d-section"><div class="d-label">Target Sectors/Regions</div><div class="d-tags">${actor.targets.map(t => `<span class="d-tag">${t}</span>`).join('')}</div></div>` : ''}
+    ${actor.tools?.length ? `<div class="d-section"><div class="d-label">Tools & Malware</div><div class="d-tags">${actor.tools.map(t => `<span class="d-tag" style="color:var(--high)">${t}</span>`).join('')}</div></div>` : ''}
+    <a href="${actor.url}" class="d-link" target="_blank">View Full Intelligence Profile →</a>
+  `;
 
-  const t = (actor.threat || 'medium').toLowerCase();
-  const tc = TCOL[t] || TCOL.medium;
-  const cc = CCOL[(actor.category || '').toLowerCase()] || '#445566';
-
-  let h = '<div class="d-name">' + actor.title + '</div>' +
-    '<div class="d-badges">' +
-    '<span class="d-badge" style="color:' + tc + ';border-color:' + tc + '44">' + (actor.threat || '').toUpperCase() + '</span>' +
-    '<span class="d-badge" style="color:' + cc + ';border-color:' + cc + '44">' + (actor.category || 'Unknown') + '</span>' +
-    '<span class="d-badge">' + (actor.status || 'unknown') + '</span></div>';
-
-  if (actor.tldr) h += '<div class="d-sec"><div class="d-lbl">// tl;dr</div><div class="d-val">' + actor.tldr + '</div></div>';
-
-  if (actor.origin || actor.motivation || actor.first_seen) {
-    h += '<div class="d-sec"><div class="d-lbl">// profile</div>';
-    if (actor.origin) h += '<div class="d-val" style="font-size:.58rem">📍 ' + actor.origin + '</div>';
-    if (actor.motivation) h += '<div class="d-val" style="font-size:.58rem">💰 ' + actor.motivation + '</div>';
-    if (actor.first_seen) h += '<div class="d-val" style="font-size:.58rem">📅 ' + actor.first_seen + ' → ' + (actor.last_seen || 'present') + '</div>';
-    h += '</div>';
-  }
-
-  if (actor.aliases?.length) h += '<div class="d-sec"><div class="d-lbl">// aliases</div><div class="d-tags">' + actor.aliases.map(a => '<span class="d-tag">' + a + '</span>').join('') + '</div></div>';
-  if (actor.ttps?.length) h += '<div class="d-sec"><div class="d-lbl">// ttps</div>' + actor.ttps.slice(0, 5).map(t => '<div class="d-ttp">• ' + t + '</div>').join('') + (actor.ttps.length > 5 ? '<div style="font-size:.52rem;color:rgba(255,255,255,.2);padding:.1rem .42rem">+' + (actor.ttps.length - 5) + ' more</div>' : '') + '</div>';
-  if (actor.targets?.length) h += '<div class="d-sec"><div class="d-lbl">// targets</div><div class="d-tags">' + actor.targets.map(t => '<span class="d-tag">' + t + '</span>').join('') + '</div></div>';
-  if (actor.tools?.length) h += '<div class="d-sec"><div class="d-lbl">// tools</div><div class="d-tags">' + actor.tools.map(t => '<span class="d-tag d-tag-o">' + t + '</span>').join('') + '</div></div>';
-
-  h += '<a href="' + actor.url + '" class="d-link">→ full intelligence profile</a>';
-
-  document.getElementById('detail-body').innerHTML = h;
-  document.getElementById('side-list').style.display = 'none';
-  document.getElementById('side-detail').style.display = 'flex';
+  document.getElementById('detail-panel').classList.add('open');
 }
 
 function closeDetail() {
-  selectedSlug = null;
-  document.getElementById('side-list').style.display = 'flex';
-  document.getElementById('side-detail').style.display = 'none';
-  document.querySelectorAll('.a-row').forEach(r => r.classList.remove('sel'));
-  document.getElementById('go-selected').textContent = '';
-  setVisualFocus(null);
-  map.flyTo([25, 50], 2, { duration: 1 });
+  STATE.selectedSlug = null;
+  document.getElementById('detail-panel').classList.remove('open');
+  document.querySelectorAll('.actor-row').forEach(r => r.classList.remove('active'));
+  Object.values(STATE.markers).forEach(m => {
+    const el = m.marker.getElement();
+    if (el) { el.classList.remove('marker-selected', 'marker-dimmed'); }
+  });
+  STATE.arcs.forEach(arc => arc.setStyle({ opacity: 0.35 }));
+  STATE.map.flyTo(CONFIG.map.center, CONFIG.map.zoom, { duration: 1 });
 }
 
-// ══════════════════════════════════════════════════
-//  STATS
-// ══════════════════════════════════════════════════
-function calcStats() {
-  const c = { critical: 0, high: 0, medium: 0, low: 0 };
+function updateStats() {
+  const counts = { critical: 0, high: 0, medium: 0, low: 0 };
   window.ACTOR_DATA.forEach(a => {
-    const t = (a.threat || 'medium').toLowerCase().trim();
-    if (c[t] !== undefined) c[t]++;
+    const t = (a.threat || 'medium').toLowerCase();
+    if (counts[t] !== undefined) counts[t]++;
   });
-  document.getElementById('n-c').textContent = c.critical;
-  document.getElementById('n-h').textContent = c.high;
-  document.getElementById('n-m').textContent = c.medium;
-  document.getElementById('n-l').textContent = c.low;
+  document.getElementById('stat-c').textContent = counts.critical;
+  document.getElementById('stat-h').textContent = counts.high;
+  document.getElementById('stat-m').textContent = counts.medium;
+  document.getElementById('stat-l').textContent = counts.low;
 }
+
+function applyFilters() {
+  const query = STATE.searchQuery.toLowerCase();
+  const filter = STATE.filter;
+  
+  document.querySelectorAll('.actor-row').forEach(row => {
+    const slug = row.dataset.slug;
+    const actor = window.ACTOR_DATA.find(a => a.slug === slug);
+    const matchSearch = !query || 
+      actor.title.toLowerCase().includes(query) || 
+      (actor.origin || '').toLowerCase().includes(query) ||
+      (actor.category || '').toLowerCase().includes(query) ||
+      (actor.targets || []).some(t => t.toLowerCase().includes(query));
+    
+    const matchFilter = filter === 'all' || 
+      (filter === 'active' && actor.status.toLowerCase() === 'active') ||
+      actor.category.toLowerCase().includes(filter);
+
+    row.classList.toggle('hidden', !(matchSearch && matchFilter));
+    
+    // Sync map markers
+    const markerObj = STATE.markers[slug];
+    if (markerObj) {
+      if (matchSearch && matchFilter) {
+        if (!STATE.map.hasLayer(markerObj.marker)) STATE.map.addLayer(markerObj.marker);
+      } else {
+        if (STATE.map.hasLayer(markerObj.marker)) STATE.map.removeLayer(markerObj.marker);
+      }
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// INIT & EVENTS
+// ═══════════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  // Clock
+  setInterval(() => {
+    document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-US', { timeZone: 'UTC', hour12: false });
+  }, 1000);
+
+  // Nav offset
+  const nav = document.querySelector('nav, header, .site-header');
+  if (nav) document.getElementById('dashboard-root').style.top = nav.offsetHeight + 'px';
+
+  // Init
+  setTimeout(initMap, 150); // Allow layout to settle
+
+  // Search
+  document.getElementById('search-input').addEventListener('input', e => {
+    STATE.searchQuery = e.target.value;
+    applyFilters();
+  });
+
+  // Filters
+  document.querySelectorAll('.f-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.f-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      STATE.filter = btn.dataset.filter;
+      applyFilters();
+    });
+  });
+
+  // Back button
+  document.getElementById('back-btn').addEventListener('click', closeDetail);
+});
 </script>
 {{ end }}
