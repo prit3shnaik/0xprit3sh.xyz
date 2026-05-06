@@ -21,18 +21,16 @@ window.ACTOR_DATA = [{{ range $actors }}{
 },{{ end }}];
 </script>
 
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <div id="ti-root">
 
-  {{/* ── TOP BAR ── */}}
+  <!-- TOP BAR -->
   <div id="ti-bar">
     <div id="ti-bar-l">
       <span id="ti-live"><span id="ti-pulse"></span>LIVE</span>
       <span id="ti-title">THREAT INTELLIGENCE</span>
-    </div>
-    <div id="ti-bar-c">
-      <button class="vi-btn active" data-view="globe" onclick="setView('globe',this)">◉ GLOBE</button>
-      <button class="vi-btn" data-view="graph" onclick="setView('graph',this)">⬡ GRAPH</button>
-      <button class="vi-btn" data-view="split" onclick="setView('split',this)">⊟ SPLIT</button>
     </div>
     <div id="ti-bar-r">
       <div class="ti-stat"><span class="ti-sd critical"></span><b id="n-c">0</b> CRIT</div>
@@ -45,54 +43,35 @@ window.ACTOR_DATA = [{{ range $actors }}{
     </div>
   </div>
 
-  {{/* ── MAIN AREA ── */}}
+  <!-- MAIN -->
   <div id="ti-main">
 
-    {{/* ── GLOBE PANEL ── */}}
-    <div id="globe-panel" class="ti-panel">
-      <canvas id="globe-canvas"></canvas>
-      <div id="globe-overlay">
+    <!-- MAP -->
+    <div id="map-panel">
+      <div id="map"></div>
+      <div id="map-overlay">
         <div class="go-corner tl"></div><div class="go-corner tr"></div>
         <div class="go-corner bl"></div><div class="go-corner br"></div>
-        <div id="go-label">ROTATING THREAT MAP</div>
+        <div id="go-label">THREAT MAP — INTERACTIVE</div>
         <div id="go-coords"></div>
-        <div id="go-actor-count"></div>
-      </div>
-      <div id="globe-tip" class="gi-tip"></div>
-      <div id="globe-loading" class="globe-loading">INITIALIZING GLOBE...</div>
-    </div>
-
-    {{/* ── GRAPH PANEL ── */}}
-    <div id="graph-panel" class="ti-panel" style="display:none">
-      <canvas id="graph-canvas"></canvas>
-      <div id="graph-overlay">
-        <div class="go-corner tl"></div><div class="go-corner tr"></div>
-        <div class="go-corner bl"></div><div class="go-corner br"></div>
-        <div id="graph-legend">
-          <span class="gl-item"><span class="gl-node actor"></span>Actor</span>
-          <span class="gl-item"><span class="gl-node ttp"></span>TTP</span>
-          <span class="gl-item"><span class="gl-node target"></span>Target</span>
-          <span class="gl-item"><span class="gl-node tool"></span>Tool</span>
-        </div>
       </div>
     </div>
 
-    {{/* ── SIDE PANEL ── */}}
+    <!-- SIDEBAR -->
     <div id="ti-side">
       <div id="side-list">
         <div class="side-hdr">// tracked actors <span id="actor-count"></span></div>
         <div id="actor-filter">
-          <button class="af-btn active" data-filter="all" onclick="filterActors('all',this)">ALL</button>
-          <button class="af-btn" data-filter="critical" onclick="filterActors('critical',this)">CRIT</button>
-          <button class="af-btn" data-filter="high" onclick="filterActors('high',this)">HIGH</button>
-          <button class="af-btn" data-filter="active" onclick="filterActors('active',this)">ACTIVE</button>
+          <button class="af-btn active" onclick="filterActors('all',this)">ALL</button>
+          <button class="af-btn" onclick="filterActors('critical',this)">CRIT</button>
+          <button class="af-btn" onclick="filterActors('high',this)">HIGH</button>
+          <button class="af-btn" onclick="filterActors('active',this)">ACTIVE</button>
         </div>
         <div id="actor-list">
           {{ range $actors }}
           <div class="a-row"
             data-slug="{{ .File.BaseFileName }}"
             data-threat="{{ .Params.threat_level | default "medium" | lower }}"
-            data-cat="{{ .Params.category | default "unknown" | lower }}"
             data-status="{{ .Params.status | default "unknown" | lower }}"
             onclick="selectActor('{{ .File.BaseFileName }}')">
             <div class="a-row-top">
@@ -116,15 +95,13 @@ window.ACTOR_DATA = [{{ range $actors }}{
     </div>
   </div>
 
-  {{/* ── STATUS BAR ── */}}
+  <!-- STATUS BAR -->
   <div id="ti-status">
-    <span class="sb-item">DRAG: rotate globe</span>
-    <span class="sb-sep">·</span>
     <span class="sb-item">SCROLL: zoom</span>
     <span class="sb-sep">·</span>
-    <span class="sb-item">CLICK: select actor</span>
+    <span class="sb-item">DRAG: pan</span>
     <span class="sb-sep">·</span>
-    <span class="sb-item" id="sb-mode">MODE: GLOBE</span>
+    <span class="sb-item">CLICK MARKER: select actor</span>
     <span class="sb-sep" style="margin-left:auto">·</span>
     <span class="sb-item">
       <span class="ti-sd critical" style="display:inline-block"></span> Critical &nbsp;
@@ -137,7 +114,7 @@ window.ACTOR_DATA = [{{ range $actors }}{
 
 <style>
 /* ══════════════════════════════════════════════════
-   ROOT
+   ROOT & LAYOUT
 ══════════════════════════════════════════════════ */
 #ti-root {
   position: fixed;
@@ -156,7 +133,6 @@ window.ACTOR_DATA = [{{ range $actors }}{
 #ti-bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
   height: 38px;
   padding: 0 14px;
@@ -164,185 +140,244 @@ window.ACTOR_DATA = [{{ range $actors }}{
   border-bottom: 1px solid rgba(0,220,90,.1);
   flex-shrink: 0;
 }
-#ti-bar-l { display:flex;align-items:center;gap:10px }
-#ti-live  { display:flex;align-items:center;gap:5px;font-size:.54rem;color:#00dc5a;letter-spacing:.14em }
-#ti-pulse { width:5px;height:5px;border-radius:50%;background:#00dc5a;animation:tp 1.4s infinite }
+#ti-bar-l { display:flex; align-items:center; gap:10px; }
+#ti-live { display:flex; align-items:center; gap:5px; font-size:.54rem; color:#00dc5a; letter-spacing:.14em; }
+#ti-pulse { width:5px; height:5px; border-radius:50%; background:#00dc5a; animation:tp 1.4s infinite; }
 @keyframes tp{0%,100%{box-shadow:0 0 0 0 rgba(0,220,90,.6)}60%{box-shadow:0 0 0 6px rgba(0,220,90,0)}}
-#ti-title { font-size:.6rem;font-weight:700;color:#8ab4cc;letter-spacing:.16em }
-#ti-bar-c { display:flex;gap:4px }
-#ti-bar-r { display:flex;align-items:center;gap:8px }
-.ti-stat  { display:flex;align-items:center;gap:4px;font-size:.55rem;color:rgba(255,255,255,.3);letter-spacing:.04em }
-.ti-stat b{ color:#fff;font-weight:700 }
-.ti-sd    { width:5px;height:5px;border-radius:50%;display:inline-block;flex-shrink:0 }
-.ti-sd.critical { background:#ff2244;box-shadow:0 0 5px #ff2244 }
-.ti-sd.high     { background:#ff6820;box-shadow:0 0 5px #ff6820 }
-.ti-sd.medium   { background:#f0b830 }
-.ti-sd.low      { background:#00dc5a;box-shadow:0 0 4px #00dc5a }
-.ti-sep   { width:1px;height:14px;background:rgba(255,255,255,.08) }
-#ti-clock { font-size:.52rem;color:rgba(0,220,90,.5);letter-spacing:.08em }
-
+#ti-title { font-size:.6rem; font-weight:700; color:#8ab4cc; letter-spacing:.16em; }
+#ti-bar-r { display:flex; align-items:center; gap:8px; margin-left:auto; }
+.ti-stat { display:flex; align-items:center; gap:4px; font-size:.55rem; color:rgba(255,255,255,.3); }
+.ti-stat b { color:#fff; font-weight:700; }
+.ti-sd { width:5px; height:5px; border-radius:50%; display:inline-block; }
+.ti-sd.critical { background:#ff2244; box-shadow:0 0 5px #ff2244; }
+.ti-sd.high { background:#ff6820; box-shadow:0 0 5px #ff6820; }
+.ti-sd.medium { background:#f0b830; }
+.ti-sd.low { background:#00dc5a; box-shadow:0 0 4px #00dc5a; }
+.ti-sep { width:1px; height:14px; background:rgba(255,255,255,.08); }
+#ti-clock { font-size:.52rem; color:rgba(0,220,90,.5); letter-spacing:.08em; }
 .vi-btn {
-  background:none;border:1px solid rgba(255,255,255,.1);
-  color:rgba(255,255,255,.35);font-family:inherit;
-  font-size:.55rem;padding:3px 9px;border-radius:2px;
-  cursor:pointer;transition:all .15s;letter-spacing:.06em;text-decoration:none;
+  background:none; border:1px solid rgba(255,255,255,.1);
+  color:rgba(255,255,255,.35); font-family:inherit;
+  font-size:.55rem; padding:3px 9px; border-radius:2px;
+  cursor:pointer; transition:all .15s; letter-spacing:.06em; text-decoration:none;
 }
-.vi-btn:hover,.vi-btn.active {
-  border-color:#00dc5a;color:#00dc5a;background:rgba(0,220,90,.07);
-}
+.vi-btn:hover { border-color:#00dc5a; color:#00dc5a; background:rgba(0,220,90,.07); }
 
 /* ── MAIN ── */
-#ti-main { display:flex;flex:1;overflow:hidden;min-height:0;gap:0 }
+#ti-main { display:flex; flex:1; overflow:hidden; min-height:0; }
 
-/* ── PANELS ── */
-.ti-panel { position:relative;flex:1;overflow:hidden;min-width:0 }
-#globe-panel { background:radial-gradient(ellipse at center,#070d1a 0%,#04060e 100%) }
-#graph-panel { background:#04060e }
+/* ── MAP ── */
+#map-panel { flex:1; position:relative; overflow:hidden; }
+#map { position:absolute; inset:0; z-index:1; background:#04060e !important; }
 
-#globe-canvas,#graph-canvas {
-  position:absolute;inset:0;width:100%;height:100%;cursor:grab;
+/* Force Leaflet dark theme overrides */
+.leaflet-container { background:#04060e !important; }
+.leaflet-control-zoom { border:1px solid rgba(0,220,90,.2) !important; }
+.leaflet-control-zoom a {
+  background:#060810 !important; color:#00dc5a !important;
+  border-color:rgba(0,220,90,.2) !important; font-size:14px !important;
 }
-#globe-canvas:active { cursor:grabbing }
+.leaflet-control-zoom a:hover { background:rgba(0,220,90,.1) !important; }
+.leaflet-control-attribution { display:none !important; }
 
-/* ── OVERLAYS ── */
-#globe-overlay,#graph-overlay {
-  position:absolute;inset:0;pointer-events:none;z-index:10;
+/* ── MAP OVERLAY ── */
+#map-overlay {
+  position:absolute; inset:0; pointer-events:none; z-index:500;
 }
-.go-corner { position:absolute;width:16px;height:16px }
+.go-corner { position:absolute; width:16px; height:16px; }
 .go-corner.tl{top:12px;left:12px;border-top:1px solid rgba(0,220,90,.4);border-left:1px solid rgba(0,220,90,.4)}
 .go-corner.tr{top:12px;right:12px;border-top:1px solid rgba(0,220,90,.4);border-right:1px solid rgba(0,220,90,.4)}
 .go-corner.bl{bottom:12px;left:12px;border-bottom:1px solid rgba(0,220,90,.4);border-left:1px solid rgba(0,220,90,.4)}
 .go-corner.br{bottom:12px;right:12px;border-bottom:1px solid rgba(0,220,90,.4);border-right:1px solid rgba(0,220,90,.4)}
-#go-label  { position:absolute;top:16px;left:50%;transform:translateX(-50%);font-size:.5rem;color:rgba(0,220,90,.4);letter-spacing:.14em }
-#go-coords { position:absolute;bottom:16px;right:16px;font-size:.48rem;color:rgba(255,255,255,.2);letter-spacing:.06em }
-#go-actor-count { position:absolute;bottom:16px;left:16px;font-size:.48rem;color:rgba(0,220,90,.3);letter-spacing:.06em }
+#go-label { position:absolute; top:16px; left:50%; transform:translateX(-50%); font-size:.5rem; color:rgba(0,220,90,.4); letter-spacing:.14em; }
+#go-coords { position:absolute; bottom:16px; right:16px; font-size:.48rem; color:rgba(255,255,255,.2); letter-spacing:.06em; }
 
-#graph-legend { position:absolute;top:16px;left:20px;display:flex;gap:12px }
-.gl-item { display:flex;align-items:center;gap:5px;font-size:.52rem;color:rgba(255,255,255,.3) }
-.gl-node { width:8px;height:8px;border-radius:50%;display:inline-block }
-.gl-node.actor  { background:#ff6820;box-shadow:0 0 5px #ff6820 }
-.gl-node.ttp    { background:#00dc5a;box-shadow:0 0 4px #00dc5a }
-.gl-node.target { background:#00aaff;box-shadow:0 0 4px #00aaff }
-.gl-node.tool   { background:#bc8cff;box-shadow:0 0 4px #bc8cff }
-
-/* Globe loading */
-.globe-loading {
-  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-  font-size:.6rem;color:rgba(0,220,90,.5);letter-spacing:.1em;
-  animation:loadBlink 1s infinite;
+/* ── MARKERS ── */
+.threat-marker {
+  position: relative;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform .15s;
 }
-@keyframes loadBlink{0%,100%{opacity:1}50%{opacity:.3}}
-
-/* Globe tooltip */
-#globe-tip {
-  position:absolute;z-index:20;
-  background:rgba(4,6,14,.95);
-  border:1px solid #00dc5a;
-  border-radius:3px;padding:.55rem .8rem;
-  min-width:180px;max-width:280px;pointer-events:none;
-  display:none;font-size:.62rem;
-  box-shadow:0 0 24px rgba(0,220,90,.15);
+.threat-marker:hover { transform: scale(1.5); }
+.marker-core {
+  position: absolute;
+  inset: 2px;
+  border-radius: 50%;
+  z-index: 2;
 }
-.gi-tip-name { font-weight:700;color:#c0cce0;margin-bottom:.3rem;font-size:.72rem }
-.gi-tip-row  { display:flex;gap:8px;margin-bottom:2px }
-.gi-tip-k    { color:rgba(0,220,90,.45);width:48px;flex-shrink:0 }
-.gi-tip-v    { color:rgba(255,255,255,.55) }
-.gi-tip-hint { color:#00dc5a;font-size:.5rem;margin-top:.4rem;letter-spacing:.06em }
+.marker-ring {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1px solid;
+  opacity: 0.6;
+  animation: markerPulse 2s ease-out infinite;
+}
+.marker-ring-2 {
+  position: absolute;
+  inset: -10px;
+  border-radius: 50%;
+  border: 1px solid;
+  opacity: 0.3;
+  animation: markerPulse 2s ease-out infinite 0.5s;
+}
+@keyframes markerPulse {
+  0% { transform: scale(0.8); opacity: 0.6; }
+  100% { transform: scale(2); opacity: 0; }
+}
 
-/* ── SIDE PANEL ── */</think>#ti-side {
-  width:280px;flex-shrink:0;
+/* Marker colors */
+.marker-critical .marker-core { background:#ff2244; box-shadow: 0 0 8px #ff2244; }
+.marker-critical .marker-ring,
+.marker-critical .marker-ring-2 { border-color:#ff2244; }
+
+.marker-high .marker-core { background:#ff6820; box-shadow: 0 0 8px #ff6820; }
+.marker-high .marker-ring,
+.marker-high .marker-ring-2 { border-color:#ff6820; }
+
+.marker-medium .marker-core { background:#f0b830; box-shadow: 0 0 6px #f0b830; }
+.marker-medium .marker-ring,
+.marker-medium .marker-ring-2 { border-color:#f0b830; }
+
+.marker-low .marker-core { background:#00dc5a; box-shadow: 0 0 6px #00dc5a; }
+.marker-low .marker-ring,
+.marker-low .marker-ring-2 { border-color:#00dc5a; }
+
+/* Selected state */
+.marker-selected .marker-core { box-shadow: 0 0 16px 4px currentColor !important; }
+.marker-selected .marker-ring { animation-duration: 1s; }
+
+/* ── ARCS ── */
+.leaflet-overlay-pane svg path.threat-arc {
+  stroke-dasharray: 8, 12;
+  animation: dashMove 1.5s linear infinite;
+}
+@keyframes dashMove {
+  to { stroke-dashoffset: -40; }
+}
+
+/* ── TOOLTIP ── */
+.threat-tooltip {
+  background: rgba(4,6,14,.95) !important;
+  border: 1px solid #00dc5a !important;
+  border-radius: 3px !important;
+  color: #c0cce0 !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 11px !important;
+  padding: 8px 10px !important;
+  box-shadow: 0 0 24px rgba(0,220,90,.15) !important;
+  min-width: 160px;
+}
+.threat-tooltip .leaflet-tooltip-tip {
+  border-right-color: #00dc5a !important;
+}
+.tt-name { font-weight:700; font-size:12px; margin-bottom:4px; }
+.tt-row { display:flex; gap:6px; margin-bottom:2px; }
+.tt-k { color:rgba(0,220,90,.45); width:42px; flex-shrink:0; }
+.tt-v { color:rgba(255,255,255,.55); }
+.tt-hint { color:#00dc5a; font-size:9px; margin-top:6px; letter-spacing:.06em; }
+
+/* ── SIDEBAR ── */
+#ti-side {
+  width:280px; flex-shrink:0;
   background:#060810;
   border-left:1px solid rgba(0,220,90,.08);
-  display:flex;flex-direction:column;overflow:hidden;
+  display:flex; flex-direction:column; overflow:hidden;
 }
-#side-list,#side-detail { display:flex;flex-direction:column;overflow:hidden;flex:1 }
+#side-list, #side-detail { display:flex; flex-direction:column; overflow:hidden; flex:1; }
 .side-hdr {
-  font-size:.58rem;color:#00dc5a;
+  font-size:.58rem; color:#00dc5a;
   padding:.58rem .8rem .45rem;
   border-bottom:1px solid rgba(0,220,90,.08);
-  letter-spacing:.06em;flex-shrink:0;
-  display:flex;align-items:center;gap:8px;
+  letter-spacing:.06em; flex-shrink:0;
+  display:flex; align-items:center; gap:8px;
   background:#060810;
 }
-#actor-count { color:rgba(255,255,255,.2);font-size:.52rem }
-#side-back { background:none;border:none;color:rgba(255,255,255,.25);font-family:inherit;font-size:.56rem;cursor:pointer;padding:0;transition:color .15s }
-#side-back:hover { color:#00dc5a }
+#actor-count { color:rgba(255,255,255,.2); font-size:.52rem; }
+#side-back { background:none; border:none; color:rgba(255,255,255,.25); font-family:inherit; font-size:.56rem; cursor:pointer; padding:0; transition:color .15s; }
+#side-back:hover { color:#00dc5a; }
 
-/* Actor filter */
 #actor-filter {
-  display:flex;gap:3px;padding:6px 8px;
+  display:flex; gap:3px; padding:6px 8px;
   border-bottom:1px solid rgba(255,255,255,.04);
   flex-shrink:0;
 }
 .af-btn {
-  background:none;border:1px solid rgba(255,255,255,.06);
-  color:rgba(255,255,255,.2);font-family:inherit;
-  font-size:.48rem;padding:2px 6px;border-radius:2px;
-  cursor:pointer;transition:all .15s;letter-spacing:.04em;
+  background:none; border:1px solid rgba(255,255,255,.06);
+  color:rgba(255,255,255,.2); font-family:inherit;
+  font-size:.48rem; padding:2px 6px; border-radius:2px;
+  cursor:pointer; transition:all .15s; letter-spacing:.04em;
 }
-.af-btn:hover,.af-btn.active {
-  border-color:rgba(0,220,90,.3);color:#00dc5a;background:rgba(0,220,90,.05);
+.af-btn:hover, .af-btn.active {
+  border-color:rgba(0,220,90,.3); color:#00dc5a; background:rgba(0,220,90,.05);
 }
 
-#actor-list { overflow-y:auto;flex:1 }
-#actor-list::-webkit-scrollbar { width:2px }
-#actor-list::-webkit-scrollbar-thumb { background:rgba(0,220,90,.2);border-radius:2px }
+#actor-list { overflow-y:auto; flex:1; }
+#actor-list::-webkit-scrollbar { width:2px; }
+#actor-list::-webkit-scrollbar-thumb { background:rgba(0,220,90,.2); border-radius:2px; }
 
-.a-row { padding:.5rem .8rem;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;transition:all .15s;border-left:2px solid transparent; }
-.a-row:hover { background:rgba(0,220,90,.04) }
-.a-row.sel { background:rgba(0,220,90,.09);border-left-color:#00dc5a }
+.a-row {
+  padding:.5rem .8rem;
+  border-bottom:1px solid rgba(255,255,255,.04);
+  cursor:pointer; transition:all .15s;
+  border-left:2px solid transparent;
+}
+.a-row:hover { background:rgba(0,220,90,.04); }
+.a-row.sel { background:rgba(0,220,90,.09); border-left-color:#00dc5a; }
 .a-row.hidden { display:none; }
-.a-row-top { display:flex;align-items:center;gap:7px;margin-bottom:2px }
-.a-dot { width:7px;height:7px;border-radius:50%;flex-shrink:0 }
-.dot-critical { background:#ff2244;box-shadow:0 0 5px #ff2244 }
-.dot-high     { background:#ff6820;box-shadow:0 0 5px #ff6820 }
-.dot-medium   { background:#f0b830 }
-.dot-low      { background:#00dc5a;box-shadow:0 0 4px #00dc5a }
-.a-name { font-size:.68rem;color:#c0cce0;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap }
-.a-st   { font-size:.48rem;padding:1px 5px;border-radius:1px;border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.25);flex-shrink:0 }
-.s-active     { color:#ff2244;border-color:rgba(255,34,68,.3);background:rgba(255,34,68,.08) }
-.s-monitoring { color:#f0b830;border-color:rgba(240,184,48,.25) }
-.a-meta { font-size:.54rem;color:rgba(255,255,255,.25);padding-left:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap }
+.a-row-top { display:flex; align-items:center; gap:7px; margin-bottom:2px; }
+.a-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+.dot-critical { background:#ff2244; box-shadow:0 0 5px #ff2244; }
+.dot-high { background:#ff6820; box-shadow:0 0 5px #ff6820; }
+.dot-medium { background:#f0b830; }
+.dot-low { background:#00dc5a; box-shadow:0 0 4px #00dc5a; }
+.a-name { font-size:.68rem; color:#c0cce0; font-weight:600; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.a-st { font-size:.48rem; padding:1px 5px; border-radius:1px; border:1px solid rgba(255,255,255,.08); color:rgba(255,255,255,.25); flex-shrink:0; }
+.s-active { color:#ff2244; border-color:rgba(255,34,68,.3); background:rgba(255,34,68,.08); }
+.s-monitoring { color:#f0b830; border-color:rgba(240,184,48,.25); }
+.a-meta { font-size:.54rem; color:rgba(255,255,255,.25); padding-left:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
-#detail-body { overflow-y:auto;flex:1;padding:.7rem .8rem }
-#detail-body::-webkit-scrollbar { width:2px }
-#detail-body::-webkit-scrollbar-thumb { background:rgba(0,220,90,.15);border-radius:2px }
-.d-name  { font-size:.88rem;font-weight:700;color:#c0cce0;margin-bottom:.4rem;line-height:1.2 }
-.d-badges{ display:flex;gap:3px;flex-wrap:wrap;margin-bottom:.55rem }
-.d-badge { font-size:.52rem;padding:2px 6px;border-radius:2px;border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.35) }
-.d-sec   { margin-bottom:.58rem }
-.d-lbl   { font-size:.54rem;color:#00dc5a;margin-bottom:.22rem;letter-spacing:.06em }
-.d-val   { font-size:.62rem;color:rgba(255,255,255,.48);line-height:1.6 }
-.d-tags  { display:flex;gap:3px;flex-wrap:wrap }
-.d-tag   { font-size:.52rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.32);padding:1px 5px;border-radius:2px }
-.d-tag-o { color:#ff6820 }
-.d-ttp   { font-size:.6rem;color:rgba(255,255,255,.42);padding:.16rem .42rem;border-left:2px solid rgba(0,220,90,.15);margin-bottom:3px;line-height:1.5;transition:all .15s }
-.d-ttp:hover { border-left-color:#00dc5a;color:rgba(255,255,255,.72) }
-.d-link  { display:block;margin-top:.6rem;text-align:center;font-size:.6rem;color:#00dc5a;border:1px solid rgba(0,220,90,.2);padding:.32rem;border-radius:2px;text-decoration:none;transition:background .15s;letter-spacing:.04em }
-.d-link:hover { background:rgba(0,220,90,.08) }
+/* ── DETAIL PANEL ── */
+#detail-body { overflow-y:auto; flex:1; padding:.7rem .8rem; }
+#detail-body::-webkit-scrollbar { width:2px; }
+#detail-body::-webkit-scrollbar-thumb { background:rgba(0,220,90,.15); border-radius:2px; }
+.d-name { font-size:.88rem; font-weight:700; color:#c0cce0; margin-bottom:.4rem; line-height:1.2; }
+.d-badges { display:flex; gap:3px; flex-wrap:wrap; margin-bottom:.55rem; }
+.d-badge { font-size:.52rem; padding:2px 6px; border-radius:2px; border:1px solid rgba(255,255,255,.08); color:rgba(255,255,255,.35); }
+.d-sec { margin-bottom:.58rem; }
+.d-lbl { font-size:.54rem; color:#00dc5a; margin-bottom:.22rem; letter-spacing:.06em; }
+.d-val { font-size:.62rem; color:rgba(255,255,255,.48); line-height:1.6; }
+.d-tags { display:flex; gap:3px; flex-wrap:wrap; }
+.d-tag { font-size:.52rem; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); color:rgba(255,255,255,.32); padding:1px 5px; border-radius:2px; }
+.d-tag-o { color:#ff6820; }
+.d-ttp { font-size:.6rem; color:rgba(255,255,255,.42); padding:.16rem .42rem; border-left:2px solid rgba(0,220,90,.15); margin-bottom:3px; line-height:1.5; transition:all .15s; }
+.d-ttp:hover { border-left-color:#00dc5a; color:rgba(255,255,255,.72); }
+.d-link { display:block; margin-top:.6rem; text-align:center; font-size:.6rem; color:#00dc5a; border:1px solid rgba(0,220,90,.2); padding:.32rem; border-radius:2px; text-decoration:none; transition:background .15s; letter-spacing:.04em; }
+.d-link:hover { background:rgba(0,220,90,.08); }
 
 /* ── STATUS BAR ── */
 #ti-status {
-  display:flex;align-items:center;gap:8px;
+  display:flex; align-items:center; gap:8px;
   padding:.28rem 14px;
-  background:#060810;border-top:1px solid rgba(0,220,90,.08);
-  flex-shrink:0;font-size:.5rem;color:rgba(255,255,255,.2);
+  background:#060810; border-top:1px solid rgba(0,220,90,.08);
+  flex-shrink:0; font-size:.5rem; color:rgba(255,255,255,.2);
 }
-.sb-sep { color:rgba(255,255,255,.08) }
-.sb-item { letter-spacing:.04em }
+.sb-sep { color:rgba(255,255,255,.08); }
+.sb-item { letter-spacing:.04em; }
 
 /* ── RESPONSIVE ── */
 @media (max-width: 768px) {
-  #ti-bar-c { display:none; }
-  #ti-bar-r .ti-stat:nth-child(n+3) { display:none; }
   #ti-side { width:220px; }
+  .ti-stat:nth-child(n+3) { display:none; }
 }
 </style>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 // ══════════════════════════════════════════════════
-//  CONSTANTS
+//  COORDINATE LOOKUP
 // ══════════════════════════════════════════════════
 const COORDS = {
   "china":[35.86,104.19],"north korea":[40.33,127.51],"dprk":[40.33,127.51],
@@ -364,7 +399,6 @@ const COORDS = {
   "romania":[45.94,24.96],"czech":[49.81,15.47],"hungary":[47.16,19.50],
   "sweden":[60.12,18.64],"norway":[60.47,8.46],"finland":[61.92,25.74],
   "canada":[56.13,-106.34],"mexico":[23.63,-102.55],"argentina":[-38.41,-63.61],
-  "colombia":[4.57,-74.29],"chile":[-35.67,-71.54],
 };
 const TARGET_COORDS = {
   "financial institutions":[40.71,-74.01],"cryptocurrency":[37.09,-95.71],
@@ -377,28 +411,19 @@ const TARGET_COORDS = {
   "supply chain":[37.38,-122.08],"saas":[37.38,-122.08],
   "telecommunications":[51.5,-0.12],"media":[40.71,-74.01],
   "critical infrastructure":[38.89,-77.03],"military":[38.89,-77.03],
-  "intellectual property":[37.38,-122.08],"research":[40.0,-74.0],
-  "universities":[42.36,-71.06],"technology":[37.38,-122.08],
+  "intellectual property":[37.38,-122.08],"technology":[37.38,-122.08],
   "financial":[40.71,-74.01],"banking":[51.5,-0.12],
-  "insurance":[40.71,-74.01],"healthcare":[33.75,-84.38],
-  "pharmaceutical":[40.71,-74.01],"manufacturing":[42.36,-83.05],
-  "retail":[40.71,-74.01],"e-commerce":[37.38,-122.08],
 };
-const TCOL = {
-  critical:'#ff2244', high:'#ff6820', medium:'#f0b830', low:'#00dc5a'
-};
+const TCOL = { critical:'#ff2244', high:'#ff6820', medium:'#f0b830', low:'#00dc5a' };
 const CCOL = {
   'nation-state':'#ff2244','cybercriminal':'#f0b830','ransomware':'#ff6820',
   'darkweb':'#bc8cff','defi':'#00aaff','hacktivism':'#00dc5a','unknown':'#445566',
-  'apt':'#ff2244','financial':'#f0b830'
 };
 
 function getCoords(origin) {
   if (!origin) return COORDS.unknown;
   const o = origin.toLowerCase().trim();
-  // Exact match first
   if (COORDS[o]) return COORDS[o];
-  // Partial match with longest key
   let best=null, score=0;
   for (const [k,v] of Object.entries(COORDS)) {
     if (o.includes(k) && k.length>score) { best=v; score=k.length; }
@@ -408,820 +433,169 @@ function getCoords(origin) {
 function getTCoords(t) {
   if (!t) return null;
   const tl = t.toLowerCase().trim();
-  for (const [k,v] of Object.entries(TARGET_COORDS)) {
-    if (tl.includes(k)) return v;
-  }
-  for (const [k,v] of Object.entries(COORDS)) {
-    if (tl.includes(k) && k.length>3) return v;
-  }
+  for (const [k,v] of Object.entries(TARGET_COORDS)) if (tl.includes(k)) return v;
+  for (const [k,v] of Object.entries(COORDS)) if (tl.includes(k) && k.length>3) return v;
   return null;
-}
-function latLngToVec3(lat, lng, r) {
-  const phi   = (90-lat)  * Math.PI/180;
-  const theta = (lng+180) * Math.PI/180;
-  return new THREE.Vector3(
-    -r * Math.sin(phi) * Math.cos(theta),
-     r * Math.cos(phi),
-     r * Math.sin(phi) * Math.sin(theta)
-  );
 }
 
 // ══════════════════════════════════════════════════
 //  STATE
 // ══════════════════════════════════════════════════
-let currentView = 'globe';
-let selectedSlug = null;
-let currentFilter = 'all';
-
-// Globe state
-let renderer, scene, camera, globe, globeGroup;
-let isDragging=false, prevMouse={x:0,y:0};
-let rotX=0, rotY=0, rotVX=0, rotVY=0;
-let globeMarkers=[], globeArcs=[];
-let raycaster, mouse3d;
-let globeReady = false;
-
-// Graph state
-let graphCanvas, graphCtx, graphNodes=[], graphEdges=[];
-let graphDragging=null, graphOffset={x:0,y:0};
-let graphAnimFrame=null, graphTick=0;
-let graphRunning = false;
+let map, selectedSlug = null;
+let markers = {}, arcs = [];
 
 // ══════════════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', function() {
-  // Nav height
   const nav = document.querySelector('nav,header,.site-header,.nav-wrap');
-  if (nav) {
-    document.getElementById('ti-root').style.top = nav.offsetHeight+'px';
-  }
+  if (nav) document.getElementById('ti-root').style.top = nav.offsetHeight+'px';
 
   calcStats();
   document.getElementById('actor-count').textContent = '('+window.ACTOR_DATA.length+')';
-  document.getElementById('go-actor-count').textContent = window.ACTOR_DATA.length+' markers plotted';
 
-  // Clock
-  function updateClock() {
+  setInterval(function(){
     const t=new Date().toLocaleTimeString('en-US',{timeZone:'Asia/Kolkata',hour12:false});
     document.getElementById('ti-clock').textContent=t+' IST';
-  }
-  updateClock();
-  setInterval(updateClock, 1000);
+  },1000);
 
-  // Init with delay to ensure DOM is ready
-  requestAnimationFrame(function() {
-    requestAnimationFrame(function() {
-      initGlobe();
-      buildGraph();
-    });
-  });
+  initMap();
 });
 
 // ══════════════════════════════════════════════════
-//  VIEW SWITCHING
+//  MAP INIT
 // ══════════════════════════════════════════════════
-function setView(v, btn) {
-  currentView = v;
-  document.querySelectorAll('.vi-btn[data-view]').forEach(b=>b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-  document.getElementById('sb-mode').textContent = 'MODE: '+v.toUpperCase();
-
-  const gp = document.getElementById('globe-panel');
-  const np = document.getElementById('graph-panel');
-
-  // Stop graph animation if switching away
-  stopGraphAnimation();
-
-  if (v==='globe') {
-    gp.style.display='block'; np.style.display='none';
-    gp.style.flex='1';
-    if (renderer) {
-      setTimeout(function() {
-        resizeGlobe();
-        renderer.render(scene,camera);
-      }, 50);
-    }
-  } else if (v==='graph') {
-    gp.style.display='none'; np.style.display='block';
-    np.style.flex='1';
-    setTimeout(function(){
-      resizeGraph();
-      startGraphAnimation();
-    }, 100);
-  } else { // split
-    gp.style.display='block'; np.style.display='block';
-    gp.style.flex='1'; np.style.flex='1';
-    setTimeout(function(){
-      resizeGlobe();
-      resizeGraph();
-      startGraphAnimation();
-    }, 100);
-  }
-}
-
-function startGraphAnimation() {
-  if (graphRunning) return;
-  graphRunning = true;
-  drawGraphFrame();
-}
-function stopGraphAnimation() {
-  graphRunning = false;
-  if (graphAnimFrame) {
-    cancelAnimationFrame(graphAnimFrame);
-    graphAnimFrame = null;
-  }
-}
-
-// ══════════════════════════════════════════════════
-//  GLOBE
-// ══════════════════════════════════════════════════
-function initGlobe() {
-  const canvas = document.getElementById('globe-canvas');
-  const wrap   = document.getElementById('globe-panel');
-  const W = wrap.offsetWidth, H = wrap.offsetHeight;
-
-  if (W === 0 || H === 0) {
-    console.warn('Globe container has zero size, retrying...');
-    setTimeout(initGlobe, 100);
-    return;
-  }
-
-  try {
-    renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(W, H);
-    renderer.setClearColor(0x000000, 0);
-  } catch(e) {
-    console.error('WebGL initialization failed:', e);
-    document.getElementById('globe-loading').textContent = 'WEBGL NOT AVAILABLE';
-    return;
-  }
-
-  scene = new THREE.Scene();
-  camera = new THREE.PerspectiveCamera(45, W/H, 0.1, 1000);
-  camera.position.set(0, 0, 2.8);
-
-  raycaster = new THREE.Raycaster();
-  mouse3d   = new THREE.Vector2(-999, -999);
-
-  globeGroup = new THREE.Group();
-  scene.add(globeGroup);
-
-  // Lights
-  scene.add(new THREE.AmbientLight(0x223344, 1.0));
-  const sun = new THREE.PointLight(0x4488cc, 1.5, 100);
-  sun.position.set(5, 3, 5);
-  scene.add(sun);
-  const rim = new THREE.PointLight(0x00dc5a, 0.4, 100);
-  rim.position.set(-4, -2, -4);
-  scene.add(rim);
-
-  // Globe sphere
-  const geo = new THREE.SphereGeometry(1, 64, 64);
-  const mat = new THREE.MeshPhongMaterial({
-    color:0x0a1628, specular:0x1a3a5c, shininess:25,
-    transparent:true, opacity:0.98,
+function initMap() {
+  map = L.map('map', {
+    center: [25, 40],
+    zoom: 2,
+    minZoom: 2,
+    maxZoom: 8,
+    zoomControl: true,
+    attributionControl: false,
+    worldCopyJump: true
   });
-  globe = new THREE.Mesh(geo, mat);
-  globeGroup.add(globe);
 
-  // Wireframe grid
-  const wfGeo = new THREE.SphereGeometry(1.002, 36, 18);
-  const wfMat = new THREE.MeshBasicMaterial({
-    color:0x1a3a5c, wireframe:true, transparent:true, opacity:0.12,
-  });
-  globeGroup.add(new THREE.Mesh(wfGeo, wfMat));
+  // Dark map tiles
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
+    subdomains: 'abcd',
+    maxZoom: 19
+  }).addTo(map);
 
-  // Latitude lines (more visible)
-  for (let lat = -60; lat <= 60; lat += 30) {
-    const points = [];
-    for (let lng = 0; lng <= 360; lng += 2) {
-      points.push(latLngToVec3(lat, lng, 1.003));
-    }
-    const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
-    const lineMat = new THREE.LineBasicMaterial({ color:0x1a3a5c, transparent:true, opacity:0.2 });
-    globeGroup.add(new THREE.Line(lineGeo, lineMat));
-  }
-
-  // Longitude lines
-  for (let lng = 0; lng < 360; lng += 30) {
-    const points = [];
-    for (let lat = -90; lat <= 90; lat += 2) {
-      points.push(latLngToVec3(lat, lng, 1.003));
-    }
-    const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
-    const lineMat = new THREE.LineBasicMaterial({ color:0x1a3a5c, transparent:true, opacity:0.2 });
-    globeGroup.add(new THREE.Line(lineGeo, lineMat));
-  }
-
-  // Atmosphere glow
-  const atmGeo = new THREE.SphereGeometry(1.06, 32, 32);
-  const atmMat = new THREE.MeshPhongMaterial({
-    color:0x0033aa, transparent:true, opacity:0.1,
-    side:THREE.BackSide,
-  });
-  globeGroup.add(new THREE.Mesh(atmGeo, atmMat));
-
-  // Outer glow
-  const ringGeo = new THREE.SphereGeometry(1.12, 32, 32);
-  const ringMat = new THREE.MeshBasicMaterial({
-    color:0x00dc5a, transparent:true, opacity:0.04,
-    side:THREE.BackSide,
-  });
-  globeGroup.add(new THREE.Mesh(ringGeo, ringMat));
-
-  // Stars
-  const starGeo = new THREE.BufferGeometry();
-  const starVerts = [];
-  for (let i=0;i<1500;i++) {
-    starVerts.push((Math.random()-0.5)*300,(Math.random()-0.5)*300,(Math.random()-0.5)*300);
-  }
-  starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starVerts,3));
-  scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({color:0x334455,size:0.3})));
-
-  // Plot actors
+  // Add actors
   window.ACTOR_DATA.forEach(function(actor) {
-    addGlobeMarker(actor);
+    const c = getCoords(actor.origin);
+    const t = (actor.threat||'medium').toLowerCase();
+    const col = TCOL[t] || TCOL.medium;
+
+    // Create custom marker
+    const icon = L.divIcon({
+      className: 'threat-marker marker-' + t,
+      html: '<div class="marker-core"></div><div class="marker-ring"></div><div class="marker-ring-2"></div>',
+      iconSize: [12, 12],
+      iconAnchor: [6, 6]
+    });
+
+    const marker = L.marker([c[0], c[1]], { icon: icon }).addTo(map);
+
+    // Tooltip
+    const tooltipContent = `
+      <div class="tt-name" style="color:${col}">${actor.title}</div>
+      <div class="tt-row"><span class="tt-k">origin</span><span class="tt-v">${actor.origin||'?'}</span></div>
+      <div class="tt-row"><span class="tt-k">threat</span><span class="tt-v" style="color:${col}">${(actor.threat||'').toUpperCase()}</span></div>
+      <div class="tt-row"><span class="tt-k">status</span><span class="tt-v">${actor.status||'?'}</span></div>
+      ${actor.tldr ? `<div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:6px;line-height:1.4">${actor.tldr.substring(0,80)}${actor.tldr.length>80?'…':''}</div>` : ''}
+      <div class="tt-hint">click for profile →</div>
+    `;
+
+    marker.bindTooltip(tooltipContent, {
+      className: 'threat-tooltip',
+      direction: 'right',
+      offset: [10, 0],
+      opacity: 1
+    });
+
+    marker.on('click', function() {
+      selectActor(actor.slug);
+    });
+
+    markers[actor.slug] = { marker, actor, threat: t, color: col };
   });
 
   // Add arcs
   window.ACTOR_DATA.forEach(function(actor) {
-    addGlobeArcs(actor);
-  });
+    const src = getCoords(actor.origin);
+    if (!actor.targets || !actor.targets.length) return;
 
-  // Events - Mouse
-  canvas.addEventListener('mousedown', onGlobeDown);
-  canvas.addEventListener('mousemove', onGlobeMove);
-  canvas.addEventListener('mouseup',   onGlobeUp);
-  canvas.addEventListener('mouseleave', onGlobeLeave);
-  canvas.addEventListener('wheel',     onGlobeWheel, {passive:true});
-  canvas.addEventListener('click',     onGlobeClick);
+    actor.targets.slice(0, 4).forEach(function(target) {
+      const tc = getTCoords(target);
+      if (!tc) return;
 
-  // Events - Touch
-  canvas.addEventListener('touchstart', onGlobeTouchStart, {passive:false});
-  canvas.addEventListener('touchmove', onGlobeTouchMove, {passive:false});
-  canvas.addEventListener('touchend', onGlobeTouchEnd);
+      const t = (actor.threat||'medium').toLowerCase();
+      const col = TCOL[t] || TCOL.medium;
 
-  window.addEventListener('resize', debounce(resizeGlobe, 100));
-
-  // Hide loading
-  document.getElementById('globe-loading').style.display = 'none';
-  globeReady = true;
-
-  animGlobe();
-}
-
-function debounce(fn, ms) {
-  let timer;
-  return function() {
-    clearTimeout(timer);
-    timer = setTimeout(fn, ms);
-  };
-}
-
-function resizeGlobe() {
-  const wrap = document.getElementById('globe-panel');
-  if (!wrap||!renderer) return;
-  const W=wrap.offsetWidth, H=wrap.offsetHeight;
-  if (W === 0 || H === 0) return;
-  renderer.setSize(W, H);
-  camera.aspect=W/H;
-  camera.updateProjectionMatrix();
-}
-
-function addGlobeMarker(actor) {
-  const c  = getCoords(actor.origin);
-  const t  = (actor.threat||'medium').toLowerCase();
-  const col= new THREE.Color(TCOL[t]||TCOL.medium);
-  const baseR = {critical:0.025,high:0.02,medium:0.018,low:0.015}[t]||0.018;
-
-  const pos = latLngToVec3(c[0], c[1], 1.02);
-
-  // Main dot - larger for visibility
-  const geo = new THREE.SphereGeometry(baseR * 2, 12, 12);
-  const mat = new THREE.MeshBasicMaterial({color:col});
-  const dot = new THREE.Mesh(geo, mat);
-  dot.position.copy(pos);
-  dot.userData = { actor, baseScale:1 };
-  globeGroup.add(dot);
-
-  // Inner glow
-  const glowGeo = new THREE.SphereGeometry(baseR * 4, 12, 12);
-  const glowMat = new THREE.MeshBasicMaterial({color:col, transparent:true, opacity:0.2});
-  const glow = new THREE.Mesh(glowGeo, glowMat);
-  glow.position.copy(pos);
-  globeGroup.add(glow);
-
-  // Pulse ring
-  const rGeo = new THREE.RingGeometry(baseR * 3, baseR * 5, 16);
-  const rMat = new THREE.MeshBasicMaterial({color:col, transparent:true, opacity:0.5, side:THREE.DoubleSide});
-  const ring = new THREE.Mesh(rGeo, rMat);
-  ring.position.copy(pos);
-  ring.lookAt(new THREE.Vector3(0,0,0));
-  ring.userData = { pulse:true, phase:Math.random()*Math.PI*2 };
-  globeGroup.add(ring);
-
-  // Second pulse ring (offset)
-  const r2Geo = new THREE.RingGeometry(baseR * 4, baseR * 6, 16);
-  const r2Mat = new THREE.MeshBasicMaterial({color:col, transparent:true, opacity:0.3, side:THREE.DoubleSide});
-  const ring2 = new THREE.Mesh(r2Geo, r2Mat);
-  ring2.position.copy(pos);
-  ring2.lookAt(new THREE.Vector3(0,0,0));
-  ring2.userData = { pulse:true, phase:Math.random()*Math.PI*2 + 1.5 };
-  globeGroup.add(ring2);
-
-  globeMarkers.push({dot, glow, ring, ring2, actor, pos});
-}
-
-function addGlobeArcs(actor) {
-  const src = getCoords(actor.origin);
-  if (!actor.targets || !actor.targets.length) return;
-  
-  actor.targets.slice(0, 4).forEach(function(target, i) {
-    const tc = getTCoords(target);
-    if (!tc) return;
-    
-    const col = new THREE.Color(TCOL[(actor.threat||'medium').toLowerCase()]||TCOL.medium);
-    const points = buildArcPoints(src, tc, 50);
-    
-    const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
-    const lineMat = new THREE.LineBasicMaterial({
-      color:col, transparent:true, opacity:0.4
-    });
-    const line = new THREE.Line(lineGeo, lineMat);
-    line.userData = { phase:Math.random()*Math.PI*2, actor };
-    globeGroup.add(line);
-    globeArcs.push(line);
-  });
-}
-
-function buildArcPoints(src, dst, segments) {
-  const v1 = latLngToVec3(src[0], src[1], 1.02);
-  const v2 = latLngToVec3(dst[0], dst[1], 1.02);
-  const pts=[];
-  for (let i=0;i<=segments;i++) {
-    const t=i/segments;
-    const v = new THREE.Vector3().lerpVectors(v1,v2,t);
-    const bulge = 1.0 + 0.3 * Math.sin(t*Math.PI);
-    v.normalize().multiplyScalar(bulge);
-    pts.push(v);
-  }
-  return pts;
-}
-
-// Globe mouse handlers
-function onGlobeDown(e) { 
-  isDragging=true; 
-  prevMouse={x:e.clientX,y:e.clientY}; 
-  document.getElementById('globe-tip').style.display='none';
-}
-function onGlobeUp()    { isDragging=false; }
-function onGlobeLeave() { 
-  isDragging=false; 
-  document.getElementById('globe-tip').style.display='none';
-  document.getElementById('globe-canvas').style.cursor='grab';
-}
-
-function onGlobeMove(e) {
-  if (isDragging) {
-    const dx=(e.clientX-prevMouse.x)*0.005;
-    const dy=(e.clientY-prevMouse.y)*0.005;
-    rotVY+=dx; rotVX+=dy;
-    prevMouse={x:e.clientX,y:e.clientY};
-    return;
-  }
-  
-  // Tooltip raycast
-  const rect = document.getElementById('globe-canvas').getBoundingClientRect();
-  mouse3d.x = ((e.clientX-rect.left)/rect.width)*2-1;
-  mouse3d.y =-((e.clientY-rect.top)/rect.height)*2+1;
-  
-  if (!globeReady) return;
-  
-  raycaster.setFromCamera(mouse3d, camera);
-  const dots = globeMarkers.map(m=>m.dot);
-  const hits = raycaster.intersectObjects(dots);
-  
-  if (hits.length) {
-    const actor = hits[0].object.userData.actor;
-    const tip   = document.getElementById('globe-tip');
-    const tc    = TCOL[(actor.threat||'medium').toLowerCase()]||TCOL.medium;
-    
-    tip.innerHTML = `
-      <div class="gi-tip-name" style="color:${tc}">${actor.title}</div>
-      <div class="gi-tip-row"><span class="gi-tip-k">origin</span><span class="gi-tip-v">${actor.origin||'?'}</span></div>
-      <div class="gi-tip-row"><span class="gi-tip-k">threat</span><span class="gi-tip-v" style="color:${tc}">${(actor.threat||'').toUpperCase()}</span></div>
-      <div class="gi-tip-row"><span class="gi-tip-k">status</span><span class="gi-tip-v">${actor.status||'?'}</span></div>
-      ${actor.tldr?`<div style="font-size:.58rem;color:rgba(255,255,255,.35);margin-top:.35rem;line-height:1.4">${actor.tldr.substring(0,100)}${actor.tldr.length>100?'…':''}</div>`:''}
-      <div class="gi-tip-hint">click for profile →</div>`;
-    
-    tip.style.display='block';
-    
-    // Position with bounds checking
-    let tipX = e.clientX-rect.left+16;
-    let tipY = e.clientY-rect.top-8;
-    
-    // Prevent overflow on right
-    if (tipX + 200 > rect.width) {
-      tipX = e.clientX-rect.left - 200;
-    }
-    // Prevent overflow on bottom
-    if (tipY + 150 > rect.height) {
-      tipY = rect.height - 160;
-    }
-    
-    tip.style.left = tipX + 'px';
-    tip.style.top = tipY + 'px';
-    document.getElementById('globe-canvas').style.cursor='pointer';
-  } else {
-    document.getElementById('globe-tip').style.display='none';
-    document.getElementById('globe-canvas').style.cursor='grab';
-    
-    // Show coords on globe
-    const hitGlobe = raycaster.intersectObject(globe);
-    if (hitGlobe.length) {
-      const p=hitGlobe[0].point.clone();
-      // Transform to world space first, then to local
-      p.applyMatrix4(globeGroup.matrixWorld.clone().invert());
-      const lat=(Math.asin(p.y)*180/Math.PI).toFixed(1);
-      const lng=(Math.atan2(p.z,-p.x)*180/Math.PI).toFixed(1);
-      document.getElementById('go-coords').textContent=`LAT ${lat} · LNG ${lng}`;
-    }
-  }
-}
-
-function onGlobeWheel(e) {
-  camera.position.z = Math.max(1.6, Math.min(5, camera.position.z + e.deltaY*0.003));
-}
-
-function onGlobeClick(e) {
-  if (!globeReady) return;
-  raycaster.setFromCamera(mouse3d, camera);
-  const hits=raycaster.intersectObjects(globeMarkers.map(m=>m.dot));
-  if (hits.length) selectActor(hits[0].object.userData.actor.slug);
-}
-
-// Touch handlers
-let touchStartDist = 0;
-function onGlobeTouchStart(e) {
-  e.preventDefault();
-  if (e.touches.length === 1) {
-    isDragging=true;
-    prevMouse={x:e.touches[0].clientX,y:e.touches[0].clientY};
-  } else if (e.touches.length === 2) {
-    touchStartDist = Math.hypot(
-      e.touches[0].clientX - e.touches[1].clientX,
-      e.touches[0].clientY - e.touches[1].clientY
-    );
-  }
-}
-function onGlobeTouchMove(e) {
-  e.preventDefault();
-  if (e.touches.length === 1 && isDragging) {
-    const dx=(e.touches[0].clientX-prevMouse.x)*0.005;
-    const dy=(e.touches[0].clientY-prevMouse.y)*0.005;
-    rotVY+=dx; rotVX+=dy;
-    prevMouse={x:e.touches[0].clientX,y:e.touches[0].clientY};
-  } else if (e.touches.length === 2) {
-    const dist = Math.hypot(
-      e.touches[0].clientX - e.touches[1].clientX,
-      e.touches[0].clientY - e.touches[1].clientY
-    );
-    const delta = touchStartDist - dist;
-    camera.position.z = Math.max(1.6, Math.min(5, camera.position.z + delta*0.01));
-    touchStartDist = dist;
-  }
-}
-function onGlobeTouchEnd() { isDragging=false; }
-
-let globeTick=0;
-function animGlobe() {
-  requestAnimationFrame(animGlobe);
-  if (!globeReady) return;
-  globeTick++;
-
-  // Auto-rotate when not dragging
-  if (!isDragging) {
-    rotVY *= 0.96;
-    rotVX *= 0.96;
-    rotVY += 0.001;
-  }
-  rotX += rotVX; rotY += rotVY;
-  globeGroup.rotation.x = rotX;
-  globeGroup.rotation.y = rotY;
-
-  // Pulse effects
-  globeMarkers.forEach(function({ring, ring2, glow}) {
-    if (ring.userData.pulse) {
-      const ph = ring.userData.phase;
-      const scale = 1 + 0.5*Math.sin(globeTick*0.03+ph);
-      ring.scale.setScalar(scale);
-      ring.material.opacity = 0.15 + 0.35*Math.abs(Math.sin(globeTick*0.03+ph));
-    }
-    if (ring2.userData.pulse) {
-      const ph = ring2.userData.phase;
-      const scale = 1 + 0.6*Math.sin(globeTick*0.025+ph);
-      ring2.scale.setScalar(scale);
-      ring2.material.opacity = 0.1 + 0.25*Math.abs(Math.sin(globeTick*0.025+ph));
-    }
-    // Glow pulse
-    glow.material.opacity = 0.15 + 0.1*Math.sin(globeTick*0.04);
-  });
-
-  // Arc pulse
-  globeArcs.forEach(function(arc) {
-    arc.material.opacity = 0.2 + 0.25*Math.abs(Math.sin(globeTick*0.02+arc.userData.phase));
-  });
-
-  // Pulse selected marker
-  if (selectedSlug) {
-    globeMarkers.forEach(function(m) {
-      if (m.actor.slug===selectedSlug) {
-        const s=1+0.4*Math.sin(globeTick*0.08);
-        m.dot.scale.setScalar(s);
-        m.glow.scale.setScalar(1.5+0.5*Math.sin(globeTick*0.06));
-        m.glow.material.opacity = 0.4;
-      } else {
-        m.dot.scale.setScalar(1);
-        m.glow.scale.setScalar(1);
+      // Create curved path
+      const points = [];
+      const steps = 30;
+      for (let i = 0; i <= steps; i++) {
+        const frac = i / steps;
+        const lat = src[0] + (tc[0] - src[0]) * frac;
+        const lng = src[1] + (tc[1] - src[1]) * frac;
+        // Add arc bulge
+        const bulge = Math.sin(frac * Math.PI) * 15;
+        points.push([lat + bulge * 0.5, lng]);
       }
-    });
-  }
 
-  renderer.render(scene, camera);
+      const arc = L.polyline(points, {
+        color: col,
+        weight: 1.2,
+        opacity: 0.35,
+        className: 'threat-arc',
+        dashArray: '8, 12'
+      }).addTo(map);
+
+      arcs.push(arc);
+    });
+  });
+
+  // Mouse coordinate display
+  map.on('mousemove', function(e) {
+    document.getElementById('go-coords').textContent =
+      'LAT ' + e.latlng.lat.toFixed(2) + ' · LNG ' + e.latlng.lng.toFixed(2);
+  });
+
+  // Fix map size after render
+  setTimeout(function() { map.invalidateSize(); }, 200);
+  window.addEventListener('resize', function() { map.invalidateSize(); });
 }
 
 // ══════════════════════════════════════════════════
-//  FORCE-DIRECTED GRAPH
-// ══════════════════════════════════════════════════
-function buildGraph() {
-  graphCanvas = document.getElementById('graph-canvas');
-  graphCtx    = graphCanvas.getContext('2d');
-  
-  const W = graphCanvas.parentElement.offsetWidth || 800;
-  const H = graphCanvas.parentElement.offsetHeight || 600;
-  graphCanvas.width = W;
-  graphCanvas.height = H;
-
-  graphNodes=[];
-  graphEdges=[];
-  const nodeMap={};
-
-  function addNode(id, label, type, color, size) {
-    if (nodeMap[id]) return nodeMap[id];
-    const node={
-      id, label, type, color, size,
-      x: W/2+(Math.random()-0.5)*W*0.5,
-      y: H/2+(Math.random()-0.5)*H*0.5,
-      vx:0, vy:0, fixed:false,
-      actor: type==='actor'?window.ACTOR_DATA.find(a=>a.slug===id):null
-    };
-    graphNodes.push(node);
-    nodeMap[id]=node;
-    return node;
-  }
-
-  window.ACTOR_DATA.forEach(function(actor) {
-    const tc  = TCOL[(actor.threat||'medium').toLowerCase()]||TCOL.medium;
-    const aN  = addNode(actor.slug, actor.title, 'actor', tc, 16);
-
-    // TTP nodes
-    (actor.ttps||[]).slice(0,4).forEach(function(ttp) {
-      const id='ttp:'+ttp.substring(0,30).toLowerCase();
-      const tN=addNode(id, ttp.substring(0,22)+(ttp.length>22?'…':''), 'ttp','#00dc5a',8);
-      graphEdges.push({src:aN, dst:tN, col:'rgba(0,220,90,0.2)'});
-    });
-
-    // Target nodes
-    (actor.targets||[]).slice(0,3).forEach(function(tgt) {
-      const id='tgt:'+tgt.substring(0,30).toLowerCase();
-      const tN=addNode(id, tgt.substring(0,20)+(tgt.length>20?'…':''), 'target','#00aaff',9);
-      graphEdges.push({src:aN, dst:tN, col:'rgba(0,170,255,0.2)'});
-    });
-
-    // Tool nodes
-    (actor.tools||[]).slice(0,3).forEach(function(tool) {
-      const id='tool:'+tool.substring(0,30).toLowerCase();
-      const tN=addNode(id, tool.substring(0,18)+(tool.length>18?'…':''), 'tool','#bc8cff',8);
-      graphEdges.push({src:aN, dst:tN, col:'rgba(188,140,255,0.2)'});
-    });
-  });
-
-  // Mouse events
-  graphCanvas.addEventListener('mousedown', graphMouseDown);
-  graphCanvas.addEventListener('mousemove', graphMouseMove);
-  graphCanvas.addEventListener('mouseup',   graphMouseUp);
-  graphCanvas.addEventListener('mouseleave', graphMouseUp);
-  graphCanvas.addEventListener('click',     graphClick);
-  
-  // Touch events for graph
-  graphCanvas.addEventListener('touchstart', function(e) {
-    e.preventDefault();
-    const touch = e.touches[0];
-    const r = graphCanvas.getBoundingClientRect();
-    const n = getGraphNodeAt(touch.clientX-r.left, touch.clientY-r.top);
-    if(n) { graphDragging=n; n.fixed=true; graphOffset={x:n.x-(touch.clientX-r.left),y:n.y-(touch.clientY-r.top)}; }
-  }, {passive:false});
-  graphCanvas.addEventListener('touchmove', function(e) {
-    e.preventDefault();
-    if(graphDragging) {
-      const touch = e.touches[0];
-      const r = graphCanvas.getBoundingClientRect();
-      graphDragging.x = touch.clientX-r.left+graphOffset.x;
-      graphDragging.y = touch.clientY-r.top+graphOffset.y;
-    }
-  }, {passive:false});
-  graphCanvas.addEventListener('touchend', function() {
-    if(graphDragging) { graphDragging.fixed=false; graphDragging=null; }
-  });
-
-  window.addEventListener('resize', debounce(resizeGraph, 100));
-  
-  // Don't start animation here - let setView control it
-}
-
-function resizeGraph() {
-  if (!graphCanvas) return;
-  const wrap=document.getElementById('graph-panel');
-  if (!wrap || wrap.style.display === 'none') return;
-  const W = wrap.offsetWidth;
-  const H = wrap.offsetHeight;
-  if (W === 0 || H === 0) return;
-  graphCanvas.width = W;
-  graphCanvas.height = H;
-}
-
-let graphHovered=null;
-function drawGraphFrame() {
-  if (!graphRunning || !graphCtx) return;
-  graphAnimFrame = requestAnimationFrame(drawGraphFrame);
-  graphTick++;
-  
-  const W=graphCanvas.width, H=graphCanvas.height;
-  if (W === 0 || H === 0) return;
-  
-  graphCtx.clearRect(0,0,W,H);
-
-  // Background grid
-  graphCtx.save();
-  graphCtx.strokeStyle='rgba(0,220,90,0.03)';
-  graphCtx.lineWidth=0.5;
-  for(let x=0;x<W;x+=40){graphCtx.beginPath();graphCtx.moveTo(x,0);graphCtx.lineTo(x,H);graphCtx.stroke();}
-  for(let y=0;y<H;y+=40){graphCtx.beginPath();graphCtx.moveTo(0,y);graphCtx.lineTo(W,y);graphCtx.stroke();}
-  graphCtx.restore();
-
-  // Physics
-  applyForces();
-
-  // Draw edges
-  graphEdges.forEach(function(e) {
-    const t=(graphTick*0.3)%60/60;
-    graphCtx.save();
-    graphCtx.beginPath();
-    graphCtx.moveTo(e.src.x,e.src.y);
-    graphCtx.lineTo(e.dst.x,e.dst.y);
-    graphCtx.strokeStyle=e.col;
-    graphCtx.lineWidth=0.8;
-    graphCtx.setLineDash([4,12]);
-    graphCtx.lineDashOffset=-t*16;
-    graphCtx.stroke();
-    graphCtx.setLineDash([]);
-    graphCtx.restore();
-  });
-
-  // Draw nodes
-  graphNodes.forEach(function(n) {
-    const isHov = n===graphHovered;
-    const isSel = n.actor&&n.actor.slug===selectedSlug;
-    const pulse = 1 + (isHov||isSel?0.35:0.12)*Math.sin(graphTick*0.05+graphNodes.indexOf(n)*0.5);
-    const r = n.size * pulse;
-
-    // Glow
-    graphCtx.save();
-    graphCtx.shadowColor=n.color;
-    graphCtx.shadowBlur=isHov?25:12;
-    graphCtx.beginPath();
-    graphCtx.arc(n.x,n.y,r,0,Math.PI*2);
-    graphCtx.fillStyle=n.color;
-    graphCtx.globalAlpha = isHov ? 1 : 0.7;
-    graphCtx.fill();
-    graphCtx.globalAlpha = 1;
-
-    // Ring for actor nodes
-    if (n.type==='actor') {
-      graphCtx.shadowBlur=0;
-      graphCtx.beginPath();
-      graphCtx.arc(n.x,n.y,r+5,0,Math.PI*2);
-      graphCtx.strokeStyle=n.color;
-      graphCtx.globalAlpha=0.3;
-      graphCtx.lineWidth=1;
-      graphCtx.stroke();
-      graphCtx.globalAlpha=1;
-    }
-    graphCtx.restore();
-
-    // Label
-    graphCtx.save();
-    graphCtx.font = (n.type==='actor'?'bold ':'')+'11px JetBrains Mono, monospace';
-    graphCtx.fillStyle = isHov ? '#fff' : (n.type==='actor'?'rgba(255,255,255,0.6)':'rgba(255,255,255,0.3)');
-    graphCtx.textAlign='center';
-    graphCtx.textBaseline='top';
-    graphCtx.fillText(n.label, n.x, n.y+r+6);
-    graphCtx.restore();
-  });
-}
-
-function applyForces() {
-  const W=graphCanvas.width, H=graphCanvas.height;
-  if (W === 0 || H === 0) return;
-  
-  // Repulsion
-  for(let i=0;i<graphNodes.length;i++) {
-    for(let j=i+1;j<graphNodes.length;j++) {
-      const a=graphNodes[i],b=graphNodes[j];
-      const dx=b.x-a.x, dy=b.y-a.y;
-      const d=Math.max(Math.sqrt(dx*dx+dy*dy),1);
-      const f=1500/(d*d);
-      const fx=dx/d*f, fy=dy/d*f;
-      if(!a.fixed){a.vx-=fx;a.vy-=fy;}
-      if(!b.fixed){b.vx+=fx;b.vy+=fy;}
-    }
-  }
-  // Attraction along edges
-  graphEdges.forEach(function(e) {
-    const dx=e.dst.x-e.src.x, dy=e.dst.y-e.src.y;
-    const d=Math.max(Math.sqrt(dx*dx+dy*dy),1);
-    const f=(d-100)*0.004;
-    const fx=dx/d*f, fy=dy/d*f;
-    if(!e.src.fixed){e.src.vx+=fx;e.src.vy+=fy;}
-    if(!e.dst.fixed){e.dst.vx-=fx;e.dst.vy-=fy;}
-  });
-  // Center gravity
-  graphNodes.forEach(function(n) {
-    if(n.fixed) return;
-    n.vx+=(W/2-n.x)*0.0008;
-    n.vy+=(H/2-n.y)*0.0008;
-    n.vx*=0.85; n.vy*=0.85;
-    n.x+=n.vx; n.y+=n.vy;
-    n.x=Math.max(40,Math.min(W-40,n.x));
-    n.y=Math.max(40,Math.min(H-40,n.y));
-  });
-}
-
-function getGraphNodeAt(x,y) {
-  return graphNodes.find(n=>Math.hypot(n.x-x,n.y-y)<n.size+8)||null;
-}
-
-function graphMouseDown(e) {
-  const r=graphCanvas.getBoundingClientRect();
-  const n=getGraphNodeAt(e.clientX-r.left,e.clientY-r.top);
-  if(n){graphDragging=n;n.fixed=true;graphOffset={x:n.x-(e.clientX-r.left),y:n.y-(e.clientY-r.top)};}
-}
-function graphMouseUp() {
-  if(graphDragging){graphDragging.fixed=false;graphDragging=null;}
-}
-function graphMouseMove(e) {
-  const r=graphCanvas.getBoundingClientRect();
-  const x=e.clientX-r.left, y=e.clientY-r.top;
-  if(graphDragging){graphDragging.x=x+graphOffset.x;graphDragging.y=y+graphOffset.y;}
-  graphHovered=getGraphNodeAt(x,y);
-  graphCanvas.style.cursor=graphHovered?'pointer':'default';
-}
-function graphClick(e) {
-  const r=graphCanvas.getBoundingClientRect();
-  const n=getGraphNodeAt(e.clientX-r.left,e.clientY-r.top);
-  if(n&&n.actor) selectActor(n.actor.slug);
-}
-
-// ══════════════════════════════════════════════════
-//  ACTOR FILTER
+//  FILTER
 // ══════════════════════════════════════════════════
 function filterActors(filter, btn) {
-  currentFilter = filter;
   document.querySelectorAll('.af-btn').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
-  
+
   document.querySelectorAll('.a-row').forEach(function(row) {
     const threat = row.dataset.threat;
     const status = row.dataset.status;
     let show = true;
-    
-    switch(filter) {
-      case 'critical':
-        show = threat === 'critical';
-        break;
-      case 'high':
-        show = threat === 'critical' || threat === 'high';
-        break;
-      case 'active':
-        show = status === 'active';
-        break;
-      default:
-        show = true;
-    }
-    
+    if (filter==='critical') show = threat==='critical';
+    else if (filter==='high') show = threat==='critical'||threat==='high';
+    else if (filter==='active') show = status==='active';
     row.classList.toggle('hidden', !show);
+  });
+
+  // Show/hide map markers
+  Object.values(markers).forEach(function(m) {
+    const threat = m.threat;
+    const status = m.actor.status;
+    let show = true;
+    if (filter==='critical') show = threat==='critical';
+    else if (filter==='high') show = threat==='critical'||threat==='high';
+    else if (filter==='active') show = status==='active';
+    if (show) { if (!map.hasLayer(m.marker)) map.addLayer(m.marker); }
+    else { if (map.hasLayer(m.marker)) map.removeLayer(m.marker); }
   });
 }
 
@@ -1229,19 +603,31 @@ function filterActors(filter, btn) {
 //  ACTOR SELECTION
 // ══════════════════════════════════════════════════
 function selectActor(slug) {
-  selectedSlug=slug;
-  const actor=window.ACTOR_DATA.find(a=>a.slug===slug);
-  if(!actor) return;
+  selectedSlug = slug;
+  const actor = window.ACTOR_DATA.find(a=>a.slug===slug);
+  if (!actor) return;
 
+  // Highlight sidebar row
   document.querySelectorAll('.a-row').forEach(r=>r.classList.remove('sel'));
-  const row=document.querySelector(`.a-row[data-slug="${slug}"]`);
-  if(row){row.classList.add('sel');row.scrollIntoView({block:'nearest',behavior:'smooth'});}
+  const row = document.querySelector(`.a-row[data-slug="${slug}"]`);
+  if (row) { row.classList.add('sel'); row.scrollIntoView({block:'nearest',behavior:'smooth'}); }
 
-  const t=(actor.threat||'medium').toLowerCase();
-  const tc=TCOL[t]||TCOL.medium;
-  const cc=CCOL[(actor.category||'').toLowerCase()]||'#445566';
+  // Highlight marker
+  Object.values(markers).forEach(function(m) {
+    const el = m.marker.getElement();
+    if (el) el.classList.toggle('marker-selected', m.actor.slug===slug);
+  });
 
-  let h=`
+  // Fly to location
+  const c = getCoords(actor.origin);
+  map.flyTo([c[0], c[1]], 4, { duration: 1.2 });
+
+  // Build detail panel
+  const t = (actor.threat||'medium').toLowerCase();
+  const tc = TCOL[t] || TCOL.medium;
+  const cc = CCOL[(actor.category||'').toLowerCase()] || '#445566';
+
+  let h = `
     <div class="d-name">${actor.title}</div>
     <div class="d-badges">
       <span class="d-badge" style="color:${tc};border-color:${tc}44">${(actor.threat||'').toUpperCase()}</span>
@@ -1249,78 +635,71 @@ function selectActor(slug) {
       <span class="d-badge">${actor.status||'unknown'}</span>
     </div>`;
 
-  if(actor.tldr) h+=`<div class="d-sec"><div class="d-lbl">// tl;dr</div><div class="d-val">${actor.tldr}</div></div>`;
-  
-  if(actor.origin||actor.motivation||actor.first_seen) {
-    h+=`<div class="d-sec"><div class="d-lbl">// profile</div>`;
-    if(actor.origin) h+=`<div class="d-val" style="font-size:.58rem">📍 ${actor.origin}</div>`;
-    if(actor.motivation) h+=`<div class="d-val" style="font-size:.58rem">💰 ${actor.motivation}</div>`;
-    if(actor.first_seen) h+=`<div class="d-val" style="font-size:.58rem">📅 ${actor.first_seen} → ${actor.last_seen||'present'}</div>`;
-    h+=`</div>`;
+  if (actor.tldr) h += `<div class="d-sec"><div class="d-lbl">// tl;dr</div><div class="d-val">${actor.tldr}</div></div>`;
+
+  if (actor.origin || actor.motivation || actor.first_seen) {
+    h += `<div class="d-sec"><div class="d-lbl">// profile</div>`;
+    if (actor.origin) h += `<div class="d-val" style="font-size:.58rem">📍 ${actor.origin}</div>`;
+    if (actor.motivation) h += `<div class="d-val" style="font-size:.58rem">💰 ${actor.motivation}</div>`;
+    if (actor.first_seen) h += `<div class="d-val" style="font-size:.58rem">📅 ${actor.first_seen} → ${actor.last_seen||'present'}</div>`;
+    h += `</div>`;
   }
-  
-  if(actor.aliases&&actor.aliases.length) {
-    h+=`<div class="d-sec"><div class="d-lbl">// aliases</div>
-    <div class="d-tags">${actor.aliases.map(a=>`<span class="d-tag">${a}</span>`).join('')}</div></div>`;
+
+  if (actor.aliases?.length) {
+    h += `<div class="d-sec"><div class="d-lbl">// aliases</div><div class="d-tags">${actor.aliases.map(a=>`<span class="d-tag">${a}</span>`).join('')}</div></div>`;
   }
-  
-  if(actor.ttps&&actor.ttps.length) {
-    h+=`<div class="d-sec"><div class="d-lbl">// ttps</div>
+
+  if (actor.ttps?.length) {
+    h += `<div class="d-sec"><div class="d-lbl">// ttps</div>
     ${actor.ttps.slice(0,5).map(t=>`<div class="d-ttp">• ${t}</div>`).join('')}
     ${actor.ttps.length>5?`<div style="font-size:.52rem;color:rgba(255,255,255,.2);padding:.1rem .42rem">+${actor.ttps.length-5} more</div>`:''}
   </div>`;
   }
-  
-  if(actor.targets&&actor.targets.length) {
-    h+=`<div class="d-sec"><div class="d-lbl">// targets</div>
-    <div class="d-tags">${actor.targets.map(t=>`<span class="d-tag">${t}</span>`).join('')}</div></div>`;
-  }
-  
-  if(actor.tools&&actor.tools.length) {
-    h+=`<div class="d-sec"><div class="d-lbl">// tools</div>
-    <div class="d-tags">${actor.tools.map(t=>`<span class="d-tag d-tag-o">${t}</span>`).join('')}</div></div>`;
+
+  if (actor.targets?.length) {
+    h += `<div class="d-sec"><div class="d-lbl">// targets</div><div class="d-tags">${actor.targets.map(t=>`<span class="d-tag">${t}</span>`).join('')}</div></div>`;
   }
 
-  h+=`<a href="${actor.url}" class="d-link">→ full intelligence profile</a>`;
-
-  document.getElementById('detail-body').innerHTML=h;
-  document.getElementById('side-list').style.display='none';
-  document.getElementById('side-detail').style.display='flex';
-
-  // Fly globe to actor
-  if(currentView!=='graph' && globeReady) {
-    const c=getCoords(actor.origin);
-    const targetRotY=-(c[1]+180)*Math.PI/180;
-    const targetRotX=-c[0]*Math.PI/180;
-    // Calculate shortest rotation path
-    let dy = targetRotY - rotY;
-    while(dy > Math.PI) dy -= Math.PI*2;
-    while(dy < -Math.PI) dy += Math.PI*2;
-    rotVY = dy * 0.04;
-    rotVX = (targetRotX-rotX) * 0.04;
+  if (actor.tools?.length) {
+    h += `<div class="d-sec"><div class="d-lbl">// tools</div><div class="d-tags">${actor.tools.map(t=>`<span class="d-tag d-tag-o">${t}</span>`).join('')}</div></div>`;
   }
+
+  h += `<a href="${actor.url}" class="d-link">→ full intelligence profile</a>`;
+
+  document.getElementById('detail-body').innerHTML = h;
+  document.getElementById('side-list').style.display = 'none';
+  document.getElementById('side-detail').style.display = 'flex';
 }
 
 function closeDetail() {
-  selectedSlug=null;
-  document.getElementById('side-list').style.display='flex';
-  document.getElementById('side-detail').style.display='none';
+  selectedSlug = null;
+  document.getElementById('side-list').style.display = 'flex';
+  document.getElementById('side-detail').style.display = 'none';
   document.querySelectorAll('.a-row').forEach(r=>r.classList.remove('sel'));
+
+  // Remove marker highlight
+  Object.values(markers).forEach(function(m) {
+    const el = m.marker.getElement();
+    if (el) el.classList.remove('marker-selected');
+  });
+
+  // Zoom back out
+  map.flyTo([25, 40], 2, { duration: 1 });
 }
 
 // ══════════════════════════════════════════════════
 //  STATS
 // ══════════════════════════════════════════════════
 function calcStats() {
-  const c={critical:0,high:0,medium:0,low:0};
+  const c = {critical:0, high:0, medium:0, low:0};
   window.ACTOR_DATA.forEach(a=>{
-    const t=(a.threat||'medium').toLowerCase().trim();
-    if(c[t]!==undefined) c[t]++;
+    const t = (a.threat||'medium').toLowerCase().trim();
+    if (c[t]!==undefined) c[t]++;
   });
-  document.getElementById('n-c').textContent=c.critical;
-  document.getElementById('n-h').textContent=c.high;
-  document.getElementById('n-m').textContent=c.medium;
-  document.getElementById('n-l').textContent=c.low;
+  document.getElementById('n-c').textContent = c.critical;
+  document.getElementById('n-h').textContent = c.high;
+  document.getElementById('n-m').textContent = c.medium;
+  document.getElementById('n-l').textContent = c.low;
 }
 </script>
 {{ end }}
