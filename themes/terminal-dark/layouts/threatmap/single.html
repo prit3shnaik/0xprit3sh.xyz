@@ -22,7 +22,6 @@ aliases:    {{ if .Params.aliases }}{{ .Params.aliases | jsonify }}{{ else }}[]{
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <div id="ti-root">
-<!-- TOP BAR -->
 <div id="ti-bar">
 <div id="ti-bar-l">
 <span id="ti-live"><span id="ti-pulse"></span>LIVE</span>
@@ -43,7 +42,6 @@ aliases:    {{ if .Params.aliases }}{{ .Params.aliases | jsonify }}{{ else }}[]{
 <a href="/actors/" class="vi-btn">ALL ACTORS →</a>
 </div>
 </div>
-<!-- MAIN -->
 <div id="ti-main">
 <div id="map-panel">
 <div id="map"></div>
@@ -91,7 +89,6 @@ onclick="selectActor('{{ .File.BaseFileName }}')">
 </div>
 </div>
 </div>
-<!-- STATUS BAR -->
 <div id="ti-status">
 <span class="sb-item">SCROLL: zoom</span>
 <span class="sb-sep">·</span>
@@ -169,7 +166,7 @@ cursor: crosshair !important;
 z-index: 1;
 }
 .leaflet-container { background: #04060e !important; cursor: crosshair !important; }
-.leaflet-control-zoom { border: 1px solid rgba(0,220,90,.15) !important; border-radius: 2px !important; }
+.leaflet-control-zoom { border: 1px solid rgba(0,220,90,.15) !important; }
 .leaflet-control-zoom a { background: #060810 !important; color: #00dc5a !important; border-color: rgba(0,220,90,.15) !important; font-size: 14px !important; width: 28px !important; height: 28px !important; line-height: 28px !important; }
 .leaflet-control-zoom a:hover { background: rgba(0,220,90,.1) !important; }
 .leaflet-control-attribution { display: none !important; }
@@ -200,7 +197,6 @@ background: linear-gradient(180deg, rgba(0,220,90,0.06) 0%, transparent 100%);
 #go-label { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); font-size: .5rem; color: rgba(0,220,90,.4); letter-spacing: .14em; white-space: nowrap; }
 #go-coords { position: absolute; bottom: 16px; right: 16px; font-size: .48rem; color: rgba(255,255,255,.2); letter-spacing: .06em; }
 #go-selected { position: absolute; bottom: 16px; left: 16px; font-size: .48rem; color: rgba(0,220,90,.35); letter-spacing: .06em; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-/* MARKERS */
 .threat-marker { position: relative; width: 14px; height: 14px; cursor: pointer; transition: transform .2s ease; }
 .threat-marker:hover { transform: scale(1.6); }
 .marker-core { position: absolute; inset: 2px; border-radius: 50%; z-index: 2; transition: all .3s ease; }
@@ -311,15 +307,10 @@ overflow: hidden;
 }
 </style>
 <script>
-// ══════════════════════════════════════════════════
-//  COORDINATES - VERIFIED LAT/LNG FORMAT
-// ═════════════════════════════════════════════════
 const COORDS = {
-// East Asia
 "china": [35.86, 104.19],
 "north korea": [40.33, 127.51],
 "dprk": [40.33, 127.51],
-"democratic people's republic": [40.33, 127.51],
 "south korea": [37.56, 126.97],
 "japan": [36.20, 138.25],
 "taiwan": [23.69, 120.96],
@@ -328,10 +319,8 @@ const COORDS = {
 "philippines": [12.87, 121.77],
 "indonesia": [-0.78, 113.92],
 "singapore": [1.35, 103.82],
-// South Asia
 "india": [20.59, 78.96],
 "pakistan": [30.37, 69.34],
-// Middle East
 "iran": [32.42, 53.68],
 "iraq": [33.22, 43.68],
 "syria": [34.80, 38.99],
@@ -340,12 +329,10 @@ const COORDS = {
 "turkey": [38.96, 35.24],
 "egypt": [26.82, 30.80],
 "libya": [26.33, 17.23],
-// Russia/Eastern Europe
 "russia": [61.52, 105.31],
 "ukraine": [48.37, 31.16],
 "belarus": [53.70, 27.95],
 "eastern europe": [50.00, 30.00],
-// Western Europe
 "germany": [51.16, 10.45],
 "france": [46.22, 2.21],
 "uk": [55.37, -3.43],
@@ -361,7 +348,6 @@ const COORDS = {
 "sweden": [60.12, 18.64],
 "norway": [60.47, 8.46],
 "finland": [61.92, 25.74],
-// Americas
 "united states": [37.09, -95.71],
 "usa": [37.09, -95.71],
 "canada": [56.13, -106.34],
@@ -369,13 +355,10 @@ const COORDS = {
 "brazil": [-14.23, -51.92],
 "argentina": [-38.41, -63.61],
 "colombia": [4.57, -74.29],
-// Africa
 "nigeria": [9.08, 8.67],
 "south africa": [-28.03, 26.32],
 "kenya": [1.28, 36.82],
-// Oceania
 "australia": [-25.27, 133.77],
-// Fallbacks
 "global": [20, 15],
 "unknown": [20, 15],
 "multiple": [30, 10]
@@ -421,9 +404,6 @@ function getCoords(origin) {
 if (!origin) return [20, 15];
 const o = origin.toLowerCase().trim();
 if (COORDS[o]) return COORDS[o];
-// Fuzzy match for "Democratic People's Republic" -> "north korea"
-if (o.includes("north korea") || o.includes("dprk") || o.includes("democratic people's republic")) return COORDS["north korea"];
-
 let best = null, score = 0;
 for (const [k, v] of Object.entries(COORDS)) {
 if (o.includes(k) && k.length > score) { best = v; score = k.length; }
@@ -443,9 +423,6 @@ if (tl.includes(k) && k.length > 3) return v;
 return null;
 }
 
-// ══════════════════════════════════════════════════
-//  STATE
-// ══════════════════════════════════════════════════
 let map = null;
 let selectedSlug = null;
 let currentFilter = 'all';
@@ -454,9 +431,6 @@ let arcLayers = [];
 let hotspotLayers = [];
 let actorSlugs = [];
 
-// ══════════════════════════════════════════════════
-//  INIT
-// ══════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', function() {
 const nav = document.querySelector('nav, header, .site-header, .nav-wrap');
 const navH = nav ? nav.offsetHeight : 48;
@@ -472,35 +446,15 @@ document.getElementById('ti-clock').textContent = t + ' IST';
 updateClock();
 setInterval(updateClock, 1000);
 
-// Robust Map Init
-setTimeout(function() {
+// Wait for layout to be fully rendered
 setTimeout(function() {
 initMap();
 initKeyboard();
-}, 100);
-}, 300);
+}, 500);
 });
 
-// ══════════════════════════════════════════════════
-//  MAP INIT
-// ══════════════════════════════════════════════════
 function initMap() {
-const mapEl = document.getElementById('map');
-const panel = document.getElementById('map-panel');
-
-// Force dimensions
-const width = panel.clientWidth;
-const height = panel.clientHeight;
-
-console.log(`Map Init: ${width}x${height}`);
-
-if (width < 100 || height < 100) {
-setTimeout(initMap, 200);
-return;
-}
-
-mapEl.style.width = width + 'px';
-mapEl.style.height = height + 'px';
+console.log('Initializing map...');
 
 map = L.map('map', {
 center: [25, 50],
@@ -523,45 +477,34 @@ subdomains: 'abcd',
 maxZoom: 19
 }).addTo(map);
 
-// Hotspots
-const targetCounts = {};
-window.ACTOR_DATA.forEach(function(actor) {
-(actor.targets || []).forEach(function(target) {
-const tc = getTCoords(target);
-if (!tc) return;
-const key = tc[0].toFixed(0) + ',' + tc[1].toFixed(0);
-targetCounts[key] = (targetCounts[key] || 0) + 1;
-});
+// Wait for tiles to load, then add markers
+map.whenReady(function() {
+console.log('Map ready, adding markers...');
+addMarkers();
+addArcs();
+addHotspots();
+map.invalidateSize();
 });
 
-Object.entries(targetCounts).forEach(function([key, count]) {
-if (count < 2) return;
-const [lat, lng] = key.split(',').map(Number);
-const radius = 200000 + (count * 150000);
-const opacity = Math.min(0.15 + count * 0.05, 0.4);
-const hotspot = L.circle([lat, lng], {
-radius: radius,
-color: '#ff2244',
-fillColor: '#ff2244',
-fillOpacity: opacity,
-weight: 0,
-className: 'hotspot',
-interactive: false
-}).addTo(map);
-hotspot.options._baseOpacity = opacity;
-hotspotLayers.push(hotspot);
+map.on('click', function() { if (selectedSlug) closeDetail(); });
+map.on('mousemove', function(e) {
+document.getElementById('go-coords').textContent = 'LAT ' + e.latlng.lat.toFixed(2) + ' · LNG ' + e.latlng.lng.toFixed(2);
 });
 
-// MARKERS
-console.log("Placing markers...");
+window.addEventListener('resize', function() {
+setTimeout(function() { map.invalidateSize(); }, 100);
+});
+}
+
+function addMarkers() {
+console.log('Adding', window.ACTOR_DATA.length, 'markers');
+
 window.ACTOR_DATA.forEach(function(actor) {
 const coords = getCoords(actor.origin);
-const lat = coords[0];
-const lng = coords[1];
 const t = (actor.threat || 'medium').toLowerCase();
 const col = TCOL[t] || TCOL.medium;
 
-console.log(`Marker: ${actor.title} -> ${lat}, ${lng}`);
+console.log('Marker:', actor.title, 'at', coords[0], coords[1]);
 
 const icon = L.divIcon({
 className: 'threat-marker marker-' + t,
@@ -570,7 +513,7 @@ iconSize: [14, 14],
 iconAnchor: [7, 7]
 });
 
-const marker = L.marker([lat, lng], { icon: icon }).addTo(map);
+const marker = L.marker([coords[0], coords[1]], { icon: icon }).addTo(map);
 
 const tooltipContent = '<div class="tt-name" style="color:' + col + '">' + actor.title + '</div>' +
 '<div class="tt-row"><span class="tt-k">origin</span><span class="tt-v">' + (actor.origin || '?') + '</span></div>' +
@@ -593,7 +536,10 @@ selectActor(actor.slug);
 markersMap[actor.slug] = { marker, actor, threat: t, color: col, arcs: [] };
 });
 
-// ARCS
+console.log('Markers added:', Object.keys(markersMap).length);
+}
+
+function addArcs() {
 window.ACTOR_DATA.forEach(function(actor) {
 const src = getCoords(actor.origin);
 if (!actor.targets || !actor.targets.length) return;
@@ -624,13 +570,36 @@ markersMap[actor.slug].arcs.push(arc);
 }
 });
 });
+}
 
-map.on('click', function() { if (selectedSlug) closeDetail(); });
-map.on('mousemove', function(e) {
-document.getElementById('go-coords').textContent = 'LAT ' + e.latlng.lat.toFixed(2) + ' · LNG ' + e.latlng.lng.toFixed(2);
+function addHotspots() {
+const targetCounts = {};
+window.ACTOR_DATA.forEach(function(actor) {
+(actor.targets || []).forEach(function(target) {
+const tc = getTCoords(target);
+if (!tc) return;
+const key = tc[0].toFixed(0) + ',' + tc[1].toFixed(0);
+targetCounts[key] = (targetCounts[key] || 0) + 1;
+});
 });
 
-setTimeout(function() { map.invalidateSize(); }, 200);
+Object.entries(targetCounts).forEach(function([key, count]) {
+if (count < 2) return;
+const [lat, lng] = key.split(',').map(Number);
+const radius = 200000 + (count * 150000);
+const opacity = Math.min(0.15 + count * 0.05, 0.4);
+const hotspot = L.circle([lat, lng], {
+radius: radius,
+color: '#ff2244',
+fillColor: '#ff2244',
+fillOpacity: opacity,
+weight: 0,
+className: 'hotspot',
+interactive: false
+}).addTo(map);
+hotspot.options._baseOpacity = opacity;
+hotspotLayers.push(hotspot);
+});
 }
 
 function initKeyboard() {
@@ -736,8 +705,8 @@ let h = '<div class="d-name">' + actor.title + '</div>' +
 if (actor.tldr) h += '<div class="d-sec"><div class="d-lbl">// tl;dr</div><div class="d-val">' + actor.tldr + '</div></div>';
 if (actor.origin || actor.motivation || actor.first_seen) {
 h += '<div class="d-sec"><div class="d-lbl">// profile</div>';
-if (actor.origin) h += '<div class="d-val" style="font-size:.58rem"> ' + actor.origin + '</div>';
-if (actor.motivation) h += '<div class="d-val" style="font-size:.58rem"> ' + actor.motivation + '</div>';
+if (actor.origin) h += '<div class="d-val" style="font-size:.58rem">📍 ' + actor.origin + '</div>';
+if (actor.motivation) h += '<div class="d-val" style="font-size:.58rem">💰 ' + actor.motivation + '</div>';
 if (actor.first_seen) h += '<div class="d-val" style="font-size:.58rem">📅 ' + actor.first_seen + ' → ' + (actor.last_seen || 'present') + '</div>';
 h += '</div>';
 }
