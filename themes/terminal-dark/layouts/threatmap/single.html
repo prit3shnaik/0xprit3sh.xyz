@@ -30,9 +30,9 @@ window.ACTOR_DATA = [{{ range $actors }}{
       <span id="ti-title">THREAT INTELLIGENCE</span>
     </div>
     <div id="ti-bar-c">
-      <button class="vi-btn active" onclick="setView('globe',this)">◉ GLOBE</button>
-      <button class="vi-btn" onclick="setView('graph',this)">⬡ GRAPH</button>
-      <button class="vi-btn" onclick="setView('split',this)">⊟ SPLIT</button>
+      <button class="vi-btn active" data-view="globe" onclick="setView('globe',this)">◉ GLOBE</button>
+      <button class="vi-btn" data-view="graph" onclick="setView('graph',this)">⬡ GRAPH</button>
+      <button class="vi-btn" data-view="split" onclick="setView('split',this)">⊟ SPLIT</button>
     </div>
     <div id="ti-bar-r">
       <div class="ti-stat"><span class="ti-sd critical"></span><b id="n-c">0</b> CRIT</div>
@@ -56,8 +56,10 @@ window.ACTOR_DATA = [{{ range $actors }}{
         <div class="go-corner bl"></div><div class="go-corner br"></div>
         <div id="go-label">ROTATING THREAT MAP</div>
         <div id="go-coords"></div>
+        <div id="go-actor-count"></div>
       </div>
       <div id="globe-tip" class="gi-tip"></div>
+      <div id="globe-loading" class="globe-loading">INITIALIZING GLOBE...</div>
     </div>
 
     {{/* ── GRAPH PANEL ── */}}
@@ -79,6 +81,12 @@ window.ACTOR_DATA = [{{ range $actors }}{
     <div id="ti-side">
       <div id="side-list">
         <div class="side-hdr">// tracked actors <span id="actor-count"></span></div>
+        <div id="actor-filter">
+          <button class="af-btn active" data-filter="all" onclick="filterActors('all',this)">ALL</button>
+          <button class="af-btn" data-filter="critical" onclick="filterActors('critical',this)">CRIT</button>
+          <button class="af-btn" data-filter="high" onclick="filterActors('high',this)">HIGH</button>
+          <button class="af-btn" data-filter="active" onclick="filterActors('active',this)">ACTIVE</button>
+        </div>
         <div id="actor-list">
           {{ range $actors }}
           <div class="a-row"
@@ -207,6 +215,7 @@ window.ACTOR_DATA = [{{ range $actors }}{
 .go-corner.br{bottom:12px;right:12px;border-bottom:1px solid rgba(0,220,90,.4);border-right:1px solid rgba(0,220,90,.4)}
 #go-label  { position:absolute;top:16px;left:50%;transform:translateX(-50%);font-size:.5rem;color:rgba(0,220,90,.4);letter-spacing:.14em }
 #go-coords { position:absolute;bottom:16px;right:16px;font-size:.48rem;color:rgba(255,255,255,.2);letter-spacing:.06em }
+#go-actor-count { position:absolute;bottom:16px;left:16px;font-size:.48rem;color:rgba(0,220,90,.3);letter-spacing:.06em }
 
 #graph-legend { position:absolute;top:16px;left:20px;display:flex;gap:12px }
 .gl-item { display:flex;align-items:center;gap:5px;font-size:.52rem;color:rgba(255,255,255,.3) }
@@ -216,13 +225,21 @@ window.ACTOR_DATA = [{{ range $actors }}{
 .gl-node.target { background:#00aaff;box-shadow:0 0 4px #00aaff }
 .gl-node.tool   { background:#bc8cff;box-shadow:0 0 4px #bc8cff }
 
+/* Globe loading */
+.globe-loading {
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  font-size:.6rem;color:rgba(0,220,90,.5);letter-spacing:.1em;
+  animation:loadBlink 1s infinite;
+}
+@keyframes loadBlink{0%,100%{opacity:1}50%{opacity:.3}}
+
 /* Globe tooltip */
 #globe-tip {
   position:absolute;z-index:20;
-  background:rgba(4,6,14,.92);
+  background:rgba(4,6,14,.95);
   border:1px solid #00dc5a;
   border-radius:3px;padding:.55rem .8rem;
-  min-width:180px;pointer-events:none;
+  min-width:180px;max-width:280px;pointer-events:none;
   display:none;font-size:.62rem;
   box-shadow:0 0 24px rgba(0,220,90,.15);
 }
@@ -232,9 +249,8 @@ window.ACTOR_DATA = [{{ range $actors }}{
 .gi-tip-v    { color:rgba(255,255,255,.55) }
 .gi-tip-hint { color:#00dc5a;font-size:.5rem;margin-top:.4rem;letter-spacing:.06em }
 
-/* ── SIDE PANEL ── */
-#ti-side {
-  width:252px;flex-shrink:0;
+/* ── SIDE PANEL ── */</think>#ti-side {
+  width:280px;flex-shrink:0;
   background:#060810;
   border-left:1px solid rgba(0,220,90,.08);
   display:flex;flex-direction:column;overflow:hidden;
@@ -251,13 +267,31 @@ window.ACTOR_DATA = [{{ range $actors }}{
 #actor-count { color:rgba(255,255,255,.2);font-size:.52rem }
 #side-back { background:none;border:none;color:rgba(255,255,255,.25);font-family:inherit;font-size:.56rem;cursor:pointer;padding:0;transition:color .15s }
 #side-back:hover { color:#00dc5a }
+
+/* Actor filter */
+#actor-filter {
+  display:flex;gap:3px;padding:6px 8px;
+  border-bottom:1px solid rgba(255,255,255,.04);
+  flex-shrink:0;
+}
+.af-btn {
+  background:none;border:1px solid rgba(255,255,255,.06);
+  color:rgba(255,255,255,.2);font-family:inherit;
+  font-size:.48rem;padding:2px 6px;border-radius:2px;
+  cursor:pointer;transition:all .15s;letter-spacing:.04em;
+}
+.af-btn:hover,.af-btn.active {
+  border-color:rgba(0,220,90,.3);color:#00dc5a;background:rgba(0,220,90,.05);
+}
+
 #actor-list { overflow-y:auto;flex:1 }
 #actor-list::-webkit-scrollbar { width:2px }
 #actor-list::-webkit-scrollbar-thumb { background:rgba(0,220,90,.2);border-radius:2px }
 
-.a-row { padding:.45rem .8rem;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;transition:background .15s }
+.a-row { padding:.5rem .8rem;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;transition:all .15s;border-left:2px solid transparent; }
 .a-row:hover { background:rgba(0,220,90,.04) }
-.a-row.sel { background:rgba(0,220,90,.09);border-left:2px solid #00dc5a }
+.a-row.sel { background:rgba(0,220,90,.09);border-left-color:#00dc5a }
+.a-row.hidden { display:none; }
 .a-row-top { display:flex;align-items:center;gap:7px;margin-bottom:2px }
 .a-dot { width:7px;height:7px;border-radius:50%;flex-shrink:0 }
 .dot-critical { background:#ff2244;box-shadow:0 0 5px #ff2244 }
@@ -296,6 +330,13 @@ window.ACTOR_DATA = [{{ range $actors }}{
 }
 .sb-sep { color:rgba(255,255,255,.08) }
 .sb-item { letter-spacing:.04em }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  #ti-bar-c { display:none; }
+  #ti-bar-r .ti-stat:nth-child(n+3) { display:none; }
+  #ti-side { width:220px; }
+}
 </style>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -309,16 +350,21 @@ const COORDS = {
   "india":[20.59,78.96],"vietnam":[14.05,108.27],"indonesia":[-0.78,113.92],
   "turkey":[38.96,35.24],"israel":[31.04,34.85],"ukraine":[48.37,31.16],
   "germany":[51.16,10.45],"netherlands":[52.13,5.29],
-  "uk":[55.37,-3.43],"united kingdom":[55.37,-3.43],"france":[46.22,2.21],
-  "united states":[37.09,-95.71],"usa":[37.09,-95.71],"brazil":[-14.23,-51.92],
-  "nigeria":[9.08,8.67],"saudi arabia":[23.88,45.07],"egypt":[26.82,30.80],
-  "australia":[-25.27,133.77],"south korea":[37.56,126.97],
+  "uk":[55.37,-3.43],"united kingdom":[55.37,-3.43],"england":[52.0,-1.0],
+  "france":[46.22,2.21],"united states":[37.09,-95.71],"usa":[37.09,-95.71],
+  "brazil":[-14.23,-51.92],"nigeria":[9.08,8.67],"saudi arabia":[23.88,45.07],
+  "egypt":[26.82,30.80],"australia":[-25.27,133.77],"south korea":[37.56,126.97],
   "taiwan":[23.69,120.96],"japan":[36.2,138.25],"singapore":[1.35,103.82],
   "thailand":[15.87,100.99],"philippines":[12.87,121.77],
   "belarus":[53.7,27.95],"poland":[51.91,19.14],"spain":[40.46,-3.74],
   "italy":[41.87,12.56],"eastern europe":[50.0,30.0],
   "south africa":[-28.03,26.32],"kenya":[1.28,36.82],
-  "global":[20,15],"unknown":[20,15],
+  "global":[20,15],"unknown":[20,15],"multiple":[30,10],
+  "syria":[34.8,38.99],"iraq":[33.22,43.68],"libya":[26.33,17.23],
+  "romania":[45.94,24.96],"czech":[49.81,15.47],"hungary":[47.16,19.50],
+  "sweden":[60.12,18.64],"norway":[60.47,8.46],"finland":[61.92,25.74],
+  "canada":[56.13,-106.34],"mexico":[23.63,-102.55],"argentina":[-38.41,-63.61],
+  "colombia":[4.57,-74.29],"chile":[-35.67,-71.54],
 };
 const TARGET_COORDS = {
   "financial institutions":[40.71,-74.01],"cryptocurrency":[37.09,-95.71],
@@ -329,30 +375,45 @@ const TARGET_COORDS = {
   "south korea":[37.56,126.97],"japan":[36.2,138.25],
   "india":[20.59,78.96],"taiwan":[23.69,120.96],
   "supply chain":[37.38,-122.08],"saas":[37.38,-122.08],
+  "telecommunications":[51.5,-0.12],"media":[40.71,-74.01],
+  "critical infrastructure":[38.89,-77.03],"military":[38.89,-77.03],
+  "intellectual property":[37.38,-122.08],"research":[40.0,-74.0],
+  "universities":[42.36,-71.06],"technology":[37.38,-122.08],
+  "financial":[40.71,-74.01],"banking":[51.5,-0.12],
+  "insurance":[40.71,-74.01],"healthcare":[33.75,-84.38],
+  "pharmaceutical":[40.71,-74.01],"manufacturing":[42.36,-83.05],
+  "retail":[40.71,-74.01],"e-commerce":[37.38,-122.08],
 };
 const TCOL = {
   critical:'#ff2244', high:'#ff6820', medium:'#f0b830', low:'#00dc5a'
 };
 const CCOL = {
   'nation-state':'#ff2244','cybercriminal':'#f0b830','ransomware':'#ff6820',
-  'darkweb':'#bc8cff','defi':'#00aaff','hacktivism':'#00dc5a','unknown':'#445566'
+  'darkweb':'#bc8cff','defi':'#00aaff','hacktivism':'#00dc5a','unknown':'#445566',
+  'apt':'#ff2244','financial':'#f0b830'
 };
 
 function getCoords(origin) {
   if (!origin) return COORDS.unknown;
-  const o = origin.toLowerCase();
+  const o = origin.toLowerCase().trim();
+  // Exact match first
+  if (COORDS[o]) return COORDS[o];
+  // Partial match with longest key
   let best=null, score=0;
   for (const [k,v] of Object.entries(COORDS)) {
-    if (o===k) return v;
     if (o.includes(k) && k.length>score) { best=v; score=k.length; }
   }
   return best || COORDS.unknown;
 }
 function getTCoords(t) {
   if (!t) return null;
-  const tl = t.toLowerCase();
-  for (const [k,v] of Object.entries(TARGET_COORDS)) if (tl.includes(k)) return v;
-  for (const [k,v] of Object.entries(COORDS)) if (tl.includes(k) && k.length>3) return v;
+  const tl = t.toLowerCase().trim();
+  for (const [k,v] of Object.entries(TARGET_COORDS)) {
+    if (tl.includes(k)) return v;
+  }
+  for (const [k,v] of Object.entries(COORDS)) {
+    if (tl.includes(k) && k.length>3) return v;
+  }
   return null;
 }
 function latLngToVec3(lat, lng, r) {
@@ -370,6 +431,7 @@ function latLngToVec3(lat, lng, r) {
 // ══════════════════════════════════════════════════
 let currentView = 'globe';
 let selectedSlug = null;
+let currentFilter = 'all';
 
 // Globe state
 let renderer, scene, camera, globe, globeGroup;
@@ -377,11 +439,13 @@ let isDragging=false, prevMouse={x:0,y:0};
 let rotX=0, rotY=0, rotVX=0, rotVY=0;
 let globeMarkers=[], globeArcs=[];
 let raycaster, mouse3d;
+let globeReady = false;
 
 // Graph state
 let graphCanvas, graphCtx, graphNodes=[], graphEdges=[];
 let graphDragging=null, graphOffset={x:0,y:0};
 let graphAnimFrame=null, graphTick=0;
+let graphRunning = false;
 
 // ══════════════════════════════════════════════════
 //  INIT
@@ -389,19 +453,29 @@ let graphAnimFrame=null, graphTick=0;
 document.addEventListener('DOMContentLoaded', function() {
   // Nav height
   const nav = document.querySelector('nav,header,.site-header,.nav-wrap');
-  if (nav) document.getElementById('ti-root').style.top = nav.offsetHeight+'px';
+  if (nav) {
+    document.getElementById('ti-root').style.top = nav.offsetHeight+'px';
+  }
 
   calcStats();
   document.getElementById('actor-count').textContent = '('+window.ACTOR_DATA.length+')';
+  document.getElementById('go-actor-count').textContent = window.ACTOR_DATA.length+' markers plotted';
 
   // Clock
-  setInterval(function(){
+  function updateClock() {
     const t=new Date().toLocaleTimeString('en-US',{timeZone:'Asia/Kolkata',hour12:false});
     document.getElementById('ti-clock').textContent=t+' IST';
-  },1000);
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
 
-  initGlobe();
-  buildGraph();
+  // Init with delay to ensure DOM is ready
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() {
+      initGlobe();
+      buildGraph();
+    });
+  });
 });
 
 // ══════════════════════════════════════════════════
@@ -409,25 +483,53 @@ document.addEventListener('DOMContentLoaded', function() {
 // ══════════════════════════════════════════════════
 function setView(v, btn) {
   currentView = v;
-  document.querySelectorAll('.vi-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.vi-btn[data-view]').forEach(b=>b.classList.remove('active'));
   if (btn) btn.classList.add('active');
   document.getElementById('sb-mode').textContent = 'MODE: '+v.toUpperCase();
 
   const gp = document.getElementById('globe-panel');
   const np = document.getElementById('graph-panel');
 
+  // Stop graph animation if switching away
+  stopGraphAnimation();
+
   if (v==='globe') {
     gp.style.display='block'; np.style.display='none';
     gp.style.flex='1';
-    if (renderer) { resizeGlobe(); renderer.render(scene,camera); }
+    if (renderer) {
+      setTimeout(function() {
+        resizeGlobe();
+        renderer.render(scene,camera);
+      }, 50);
+    }
   } else if (v==='graph') {
     gp.style.display='none'; np.style.display='block';
     np.style.flex='1';
-    setTimeout(function(){ resizeGraph(); drawGraphFrame(); },50);
+    setTimeout(function(){
+      resizeGraph();
+      startGraphAnimation();
+    }, 100);
   } else { // split
     gp.style.display='block'; np.style.display='block';
     gp.style.flex='1'; np.style.flex='1';
-    setTimeout(function(){ resizeGlobe(); resizeGraph(); },50);
+    setTimeout(function(){
+      resizeGlobe();
+      resizeGraph();
+      startGraphAnimation();
+    }, 100);
+  }
+}
+
+function startGraphAnimation() {
+  if (graphRunning) return;
+  graphRunning = true;
+  drawGraphFrame();
+}
+function stopGraphAnimation() {
+  graphRunning = false;
+  if (graphAnimFrame) {
+    cancelAnimationFrame(graphAnimFrame);
+    graphAnimFrame = null;
   }
 }
 
@@ -439,34 +541,44 @@ function initGlobe() {
   const wrap   = document.getElementById('globe-panel');
   const W = wrap.offsetWidth, H = wrap.offsetHeight;
 
-  renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
-  renderer.setPixelRatio(window.devicePixelRatio);
-  renderer.setSize(W, H);
-  renderer.setClearColor(0x000000, 0);
+  if (W === 0 || H === 0) {
+    console.warn('Globe container has zero size, retrying...');
+    setTimeout(initGlobe, 100);
+    return;
+  }
+
+  try {
+    renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(W, H);
+    renderer.setClearColor(0x000000, 0);
+  } catch(e) {
+    console.error('WebGL initialization failed:', e);
+    document.getElementById('globe-loading').textContent = 'WEBGL NOT AVAILABLE';
+    return;
+  }
 
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(45, W/H, 0.1, 1000);
   camera.position.set(0, 0, 2.8);
 
   raycaster = new THREE.Raycaster();
-  mouse3d   = new THREE.Vector2();
+  mouse3d   = new THREE.Vector2(-999, -999);
 
   globeGroup = new THREE.Group();
   scene.add(globeGroup);
 
-  // Ambient + point lights
-  scene.add(new THREE.AmbientLight(0x223344, 0.8));
-  const sun = new THREE.PointLight(0x4488cc, 1.2, 100);
+  // Lights
+  scene.add(new THREE.AmbientLight(0x223344, 1.0));
+  const sun = new THREE.PointLight(0x4488cc, 1.5, 100);
   sun.position.set(5, 3, 5);
   scene.add(sun);
-  const rim = new THREE.PointLight(0x00dc5a, 0.3, 100);
+  const rim = new THREE.PointLight(0x00dc5a, 0.4, 100);
   rim.position.set(-4, -2, -4);
   scene.add(rim);
 
   // Globe sphere
   const geo = new THREE.SphereGeometry(1, 64, 64);
-
-  // Dark ocean material
   const mat = new THREE.MeshPhongMaterial({
     color:0x0a1628, specular:0x1a3a5c, shininess:25,
     transparent:true, opacity:0.98,
@@ -474,25 +586,47 @@ function initGlobe() {
   globe = new THREE.Mesh(geo, mat);
   globeGroup.add(globe);
 
-  // Wireframe land lines (lat/lng grid)
-  const wfGeo = new THREE.SphereGeometry(1.001, 36, 18);
+  // Wireframe grid
+  const wfGeo = new THREE.SphereGeometry(1.002, 36, 18);
   const wfMat = new THREE.MeshBasicMaterial({
-    color:0x1a3a5c, wireframe:true, transparent:true, opacity:0.15,
+    color:0x1a3a5c, wireframe:true, transparent:true, opacity:0.12,
   });
   globeGroup.add(new THREE.Mesh(wfGeo, wfMat));
 
+  // Latitude lines (more visible)
+  for (let lat = -60; lat <= 60; lat += 30) {
+    const points = [];
+    for (let lng = 0; lng <= 360; lng += 2) {
+      points.push(latLngToVec3(lat, lng, 1.003));
+    }
+    const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
+    const lineMat = new THREE.LineBasicMaterial({ color:0x1a3a5c, transparent:true, opacity:0.2 });
+    globeGroup.add(new THREE.Line(lineGeo, lineMat));
+  }
+
+  // Longitude lines
+  for (let lng = 0; lng < 360; lng += 30) {
+    const points = [];
+    for (let lat = -90; lat <= 90; lat += 2) {
+      points.push(latLngToVec3(lat, lng, 1.003));
+    }
+    const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
+    const lineMat = new THREE.LineBasicMaterial({ color:0x1a3a5c, transparent:true, opacity:0.2 });
+    globeGroup.add(new THREE.Line(lineGeo, lineMat));
+  }
+
   // Atmosphere glow
-  const atmGeo = new THREE.SphereGeometry(1.08, 32, 32);
+  const atmGeo = new THREE.SphereGeometry(1.06, 32, 32);
   const atmMat = new THREE.MeshPhongMaterial({
-    color:0x0033aa, transparent:true, opacity:0.08,
+    color:0x0033aa, transparent:true, opacity:0.1,
     side:THREE.BackSide,
   });
   globeGroup.add(new THREE.Mesh(atmGeo, atmMat));
 
-  // Outer glow ring
+  // Outer glow
   const ringGeo = new THREE.SphereGeometry(1.12, 32, 32);
   const ringMat = new THREE.MeshBasicMaterial({
-    color:0x00dc5a, transparent:true, opacity:0.03,
+    color:0x00dc5a, transparent:true, opacity:0.04,
     side:THREE.BackSide,
   });
   globeGroup.add(new THREE.Mesh(ringGeo, ringMat));
@@ -500,35 +634,58 @@ function initGlobe() {
   // Stars
   const starGeo = new THREE.BufferGeometry();
   const starVerts = [];
-  for (let i=0;i<2000;i++) {
-    starVerts.push((Math.random()-0.5)*400,(Math.random()-0.5)*400,(Math.random()-0.5)*400);
+  for (let i=0;i<1500;i++) {
+    starVerts.push((Math.random()-0.5)*300,(Math.random()-0.5)*300,(Math.random()-0.5)*300);
   }
   starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starVerts,3));
-  scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({color:0x334455,size:0.4})));
+  scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({color:0x334455,size:0.3})));
 
   // Plot actors
-  window.ACTOR_DATA.forEach(addGlobeMarker);
+  window.ACTOR_DATA.forEach(function(actor) {
+    addGlobeMarker(actor);
+  });
 
   // Add arcs
-  window.ACTOR_DATA.forEach(addGlobeArcs);
+  window.ACTOR_DATA.forEach(function(actor) {
+    addGlobeArcs(actor);
+  });
 
-  // Events
+  // Events - Mouse
   canvas.addEventListener('mousedown', onGlobeDown);
   canvas.addEventListener('mousemove', onGlobeMove);
   canvas.addEventListener('mouseup',   onGlobeUp);
-  canvas.addEventListener('mouseleave',onGlobeUp);
+  canvas.addEventListener('mouseleave', onGlobeLeave);
   canvas.addEventListener('wheel',     onGlobeWheel, {passive:true});
   canvas.addEventListener('click',     onGlobeClick);
 
-  window.addEventListener('resize', resizeGlobe);
+  // Events - Touch
+  canvas.addEventListener('touchstart', onGlobeTouchStart, {passive:false});
+  canvas.addEventListener('touchmove', onGlobeTouchMove, {passive:false});
+  canvas.addEventListener('touchend', onGlobeTouchEnd);
+
+  window.addEventListener('resize', debounce(resizeGlobe, 100));
+
+  // Hide loading
+  document.getElementById('globe-loading').style.display = 'none';
+  globeReady = true;
+
   animGlobe();
+}
+
+function debounce(fn, ms) {
+  let timer;
+  return function() {
+    clearTimeout(timer);
+    timer = setTimeout(fn, ms);
+  };
 }
 
 function resizeGlobe() {
   const wrap = document.getElementById('globe-panel');
   if (!wrap||!renderer) return;
   const W=wrap.offsetWidth, H=wrap.offsetHeight;
-  renderer.setSize(W,H);
+  if (W === 0 || H === 0) return;
+  renderer.setSize(W, H);
   camera.aspect=W/H;
   camera.updateProjectionMatrix();
 }
@@ -537,40 +694,62 @@ function addGlobeMarker(actor) {
   const c  = getCoords(actor.origin);
   const t  = (actor.threat||'medium').toLowerCase();
   const col= new THREE.Color(TCOL[t]||TCOL.medium);
-  const r  = {critical:0.045,high:0.038,medium:0.032,low:0.028}[t]||0.032;
+  const baseR = {critical:0.025,high:0.02,medium:0.018,low:0.015}[t]||0.018;
 
-  // Main dot
-  const geo = new THREE.SphereGeometry(r, 12, 12);
+  const pos = latLngToVec3(c[0], c[1], 1.02);
+
+  // Main dot - larger for visibility
+  const geo = new THREE.SphereGeometry(baseR * 2, 12, 12);
   const mat = new THREE.MeshBasicMaterial({color:col});
   const dot = new THREE.Mesh(geo, mat);
-  const pos = latLngToVec3(c[0], c[1], 1.015);
   dot.position.copy(pos);
   dot.userData = { actor, baseScale:1 };
   globeGroup.add(dot);
 
-  // Glow ring
-  const rGeo = new THREE.RingGeometry(r*1.4, r*2.2, 16);
-  const rMat = new THREE.MeshBasicMaterial({color:col, transparent:true, opacity:0.4, side:THREE.DoubleSide});
+  // Inner glow
+  const glowGeo = new THREE.SphereGeometry(baseR * 4, 12, 12);
+  const glowMat = new THREE.MeshBasicMaterial({color:col, transparent:true, opacity:0.2});
+  const glow = new THREE.Mesh(glowGeo, glowMat);
+  glow.position.copy(pos);
+  globeGroup.add(glow);
+
+  // Pulse ring
+  const rGeo = new THREE.RingGeometry(baseR * 3, baseR * 5, 16);
+  const rMat = new THREE.MeshBasicMaterial({color:col, transparent:true, opacity:0.5, side:THREE.DoubleSide});
   const ring = new THREE.Mesh(rGeo, rMat);
   ring.position.copy(pos);
   ring.lookAt(new THREE.Vector3(0,0,0));
   ring.userData = { pulse:true, phase:Math.random()*Math.PI*2 };
   globeGroup.add(ring);
 
-  globeMarkers.push({dot, ring, actor, pos});
+  // Second pulse ring (offset)
+  const r2Geo = new THREE.RingGeometry(baseR * 4, baseR * 6, 16);
+  const r2Mat = new THREE.MeshBasicMaterial({color:col, transparent:true, opacity:0.3, side:THREE.DoubleSide});
+  const ring2 = new THREE.Mesh(r2Geo, r2Mat);
+  ring2.position.copy(pos);
+  ring2.lookAt(new THREE.Vector3(0,0,0));
+  ring2.userData = { pulse:true, phase:Math.random()*Math.PI*2 + 1.5 };
+  globeGroup.add(ring2);
+
+  globeMarkers.push({dot, glow, ring, ring2, actor, pos});
 }
 
 function addGlobeArcs(actor) {
   const src = getCoords(actor.origin);
-  if (!actor.targets) return;
-  actor.targets.slice(0,3).forEach(function(target, i) {
+  if (!actor.targets || !actor.targets.length) return;
+  
+  actor.targets.slice(0, 4).forEach(function(target, i) {
     const tc = getTCoords(target);
     if (!tc) return;
+    
     const col = new THREE.Color(TCOL[(actor.threat||'medium').toLowerCase()]||TCOL.medium);
-    const points = buildArcPoints(src, tc, 40);
-    const geo = new THREE.BufferGeometry().setFromPoints(points);
-    const mat = new THREE.LineBasicMaterial({color:col, transparent:true, opacity:0.3});
-    const line = new THREE.Line(geo, mat);
+    const points = buildArcPoints(src, tc, 50);
+    
+    const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
+    const lineMat = new THREE.LineBasicMaterial({
+      color:col, transparent:true, opacity:0.4
+    });
+    const line = new THREE.Line(lineGeo, lineMat);
     line.userData = { phase:Math.random()*Math.PI*2, actor };
     globeGroup.add(line);
     globeArcs.push(line);
@@ -584,102 +763,190 @@ function buildArcPoints(src, dst, segments) {
   for (let i=0;i<=segments;i++) {
     const t=i/segments;
     const v = new THREE.Vector3().lerpVectors(v1,v2,t);
-    const bulge = 1.0 + 0.25 * Math.sin(t*Math.PI);
+    const bulge = 1.0 + 0.3 * Math.sin(t*Math.PI);
     v.normalize().multiplyScalar(bulge);
     pts.push(v);
   }
   return pts;
 }
 
-// Globe drag
-function onGlobeDown(e) { isDragging=true; prevMouse={x:e.clientX,y:e.clientY}; }
+// Globe mouse handlers
+function onGlobeDown(e) { 
+  isDragging=true; 
+  prevMouse={x:e.clientX,y:e.clientY}; 
+  document.getElementById('globe-tip').style.display='none';
+}
 function onGlobeUp()    { isDragging=false; }
+function onGlobeLeave() { 
+  isDragging=false; 
+  document.getElementById('globe-tip').style.display='none';
+  document.getElementById('globe-canvas').style.cursor='grab';
+}
+
 function onGlobeMove(e) {
   if (isDragging) {
     const dx=(e.clientX-prevMouse.x)*0.005;
     const dy=(e.clientY-prevMouse.y)*0.005;
     rotVY+=dx; rotVX+=dy;
     prevMouse={x:e.clientX,y:e.clientY};
+    return;
   }
+  
   // Tooltip raycast
   const rect = document.getElementById('globe-canvas').getBoundingClientRect();
   mouse3d.x = ((e.clientX-rect.left)/rect.width)*2-1;
   mouse3d.y =-((e.clientY-rect.top)/rect.height)*2+1;
+  
+  if (!globeReady) return;
+  
   raycaster.setFromCamera(mouse3d, camera);
-  const hits = raycaster.intersectObjects(globeMarkers.map(m=>m.dot));
+  const dots = globeMarkers.map(m=>m.dot);
+  const hits = raycaster.intersectObjects(dots);
+  
   if (hits.length) {
     const actor = hits[0].object.userData.actor;
     const tip   = document.getElementById('globe-tip');
     const tc    = TCOL[(actor.threat||'medium').toLowerCase()]||TCOL.medium;
+    
     tip.innerHTML = `
       <div class="gi-tip-name" style="color:${tc}">${actor.title}</div>
       <div class="gi-tip-row"><span class="gi-tip-k">origin</span><span class="gi-tip-v">${actor.origin||'?'}</span></div>
       <div class="gi-tip-row"><span class="gi-tip-k">threat</span><span class="gi-tip-v" style="color:${tc}">${(actor.threat||'').toUpperCase()}</span></div>
       <div class="gi-tip-row"><span class="gi-tip-k">status</span><span class="gi-tip-v">${actor.status||'?'}</span></div>
-      ${actor.tldr?`<div style="font-size:.58rem;color:rgba(255,255,255,.35);margin-top:.35rem;line-height:1.4">${actor.tldr.substring(0,90)}…</div>`:''}
+      ${actor.tldr?`<div style="font-size:.58rem;color:rgba(255,255,255,.35);margin-top:.35rem;line-height:1.4">${actor.tldr.substring(0,100)}${actor.tldr.length>100?'…':''}</div>`:''}
       <div class="gi-tip-hint">click for profile →</div>`;
+    
     tip.style.display='block';
-    tip.style.left=(e.clientX-rect.left+16)+'px';
-    tip.style.top=(e.clientY-rect.top-8)+'px';
+    
+    // Position with bounds checking
+    let tipX = e.clientX-rect.left+16;
+    let tipY = e.clientY-rect.top-8;
+    
+    // Prevent overflow on right
+    if (tipX + 200 > rect.width) {
+      tipX = e.clientX-rect.left - 200;
+    }
+    // Prevent overflow on bottom
+    if (tipY + 150 > rect.height) {
+      tipY = rect.height - 160;
+    }
+    
+    tip.style.left = tipX + 'px';
+    tip.style.top = tipY + 'px';
     document.getElementById('globe-canvas').style.cursor='pointer';
   } else {
     document.getElementById('globe-tip').style.display='none';
-    document.getElementById('globe-canvas').style.cursor=isDragging?'grabbing':'grab';
-    // Show coords
+    document.getElementById('globe-canvas').style.cursor='grab';
+    
+    // Show coords on globe
     const hitGlobe = raycaster.intersectObject(globe);
     if (hitGlobe.length) {
-      const p=hitGlobe[0].point.clone().normalize();
+      const p=hitGlobe[0].point.clone();
+      // Transform to world space first, then to local
+      p.applyMatrix4(globeGroup.matrixWorld.clone().invert());
       const lat=(Math.asin(p.y)*180/Math.PI).toFixed(1);
       const lng=(Math.atan2(p.z,-p.x)*180/Math.PI).toFixed(1);
       document.getElementById('go-coords').textContent=`LAT ${lat} · LNG ${lng}`;
     }
   }
 }
+
 function onGlobeWheel(e) {
-  camera.position.z = Math.max(1.8, Math.min(5, camera.position.z + e.deltaY*0.003));
+  camera.position.z = Math.max(1.6, Math.min(5, camera.position.z + e.deltaY*0.003));
 }
+
 function onGlobeClick(e) {
+  if (!globeReady) return;
   raycaster.setFromCamera(mouse3d, camera);
   const hits=raycaster.intersectObjects(globeMarkers.map(m=>m.dot));
   if (hits.length) selectActor(hits[0].object.userData.actor.slug);
 }
 
+// Touch handlers
+let touchStartDist = 0;
+function onGlobeTouchStart(e) {
+  e.preventDefault();
+  if (e.touches.length === 1) {
+    isDragging=true;
+    prevMouse={x:e.touches[0].clientX,y:e.touches[0].clientY};
+  } else if (e.touches.length === 2) {
+    touchStartDist = Math.hypot(
+      e.touches[0].clientX - e.touches[1].clientX,
+      e.touches[0].clientY - e.touches[1].clientY
+    );
+  }
+}
+function onGlobeTouchMove(e) {
+  e.preventDefault();
+  if (e.touches.length === 1 && isDragging) {
+    const dx=(e.touches[0].clientX-prevMouse.x)*0.005;
+    const dy=(e.touches[0].clientY-prevMouse.y)*0.005;
+    rotVY+=dx; rotVX+=dy;
+    prevMouse={x:e.touches[0].clientX,y:e.touches[0].clientY};
+  } else if (e.touches.length === 2) {
+    const dist = Math.hypot(
+      e.touches[0].clientX - e.touches[1].clientX,
+      e.touches[0].clientY - e.touches[1].clientY
+    );
+    const delta = touchStartDist - dist;
+    camera.position.z = Math.max(1.6, Math.min(5, camera.position.z + delta*0.01));
+    touchStartDist = dist;
+  }
+}
+function onGlobeTouchEnd() { isDragging=false; }
+
 let globeTick=0;
 function animGlobe() {
   requestAnimationFrame(animGlobe);
+  if (!globeReady) return;
   globeTick++;
 
   // Auto-rotate when not dragging
   if (!isDragging) {
-    rotVY *= 0.95;
-    rotVX *= 0.95;
-    rotVY += 0.0015;
+    rotVY *= 0.96;
+    rotVX *= 0.96;
+    rotVY += 0.001;
   }
   rotX += rotVX; rotY += rotVY;
   globeGroup.rotation.x = rotX;
   globeGroup.rotation.y = rotY;
 
-  // Pulse rings
-  globeMarkers.forEach(function({ring}) {
-    if (!ring.userData.pulse) return;
-    const ph = ring.userData.phase;
-    const scale = 1 + 0.4*Math.sin(globeTick*0.04+ph);
-    ring.scale.setScalar(scale);
-    ring.material.opacity = 0.15 + 0.25*Math.abs(Math.sin(globeTick*0.04+ph));
+  // Pulse effects
+  globeMarkers.forEach(function({ring, ring2, glow}) {
+    if (ring.userData.pulse) {
+      const ph = ring.userData.phase;
+      const scale = 1 + 0.5*Math.sin(globeTick*0.03+ph);
+      ring.scale.setScalar(scale);
+      ring.material.opacity = 0.15 + 0.35*Math.abs(Math.sin(globeTick*0.03+ph));
+    }
+    if (ring2.userData.pulse) {
+      const ph = ring2.userData.phase;
+      const scale = 1 + 0.6*Math.sin(globeTick*0.025+ph);
+      ring2.scale.setScalar(scale);
+      ring2.material.opacity = 0.1 + 0.25*Math.abs(Math.sin(globeTick*0.025+ph));
+    }
+    // Glow pulse
+    glow.material.opacity = 0.15 + 0.1*Math.sin(globeTick*0.04);
   });
 
   // Arc pulse
   globeArcs.forEach(function(arc) {
-    arc.material.opacity = 0.15 + 0.2*Math.abs(Math.sin(globeTick*0.03+arc.userData.phase));
+    arc.material.opacity = 0.2 + 0.25*Math.abs(Math.sin(globeTick*0.02+arc.userData.phase));
   });
 
   // Pulse selected marker
   if (selectedSlug) {
-    const sel=globeMarkers.find(m=>m.actor.slug===selectedSlug);
-    if (sel) {
-      const s=1+0.3*Math.sin(globeTick*0.1);
-      sel.dot.scale.setScalar(s);
-    }
+    globeMarkers.forEach(function(m) {
+      if (m.actor.slug===selectedSlug) {
+        const s=1+0.4*Math.sin(globeTick*0.08);
+        m.dot.scale.setScalar(s);
+        m.glow.scale.setScalar(1.5+0.5*Math.sin(globeTick*0.06));
+        m.glow.material.opacity = 0.4;
+      } else {
+        m.dot.scale.setScalar(1);
+        m.glow.scale.setScalar(1);
+      }
+    });
   }
 
   renderer.render(scene, camera);
@@ -691,11 +958,12 @@ function animGlobe() {
 function buildGraph() {
   graphCanvas = document.getElementById('graph-canvas');
   graphCtx    = graphCanvas.getContext('2d');
-  resizeGraph();
+  
+  const W = graphCanvas.parentElement.offsetWidth || 800;
+  const H = graphCanvas.parentElement.offsetHeight || 600;
+  graphCanvas.width = W;
+  graphCanvas.height = H;
 
-  const W=graphCanvas.width, H=graphCanvas.height;
-
-  // Build nodes
   graphNodes=[];
   graphEdges=[];
   const nodeMap={};
@@ -704,8 +972,8 @@ function buildGraph() {
     if (nodeMap[id]) return nodeMap[id];
     const node={
       id, label, type, color, size,
-      x: W/2+(Math.random()-0.5)*W*0.6,
-      y: H/2+(Math.random()-0.5)*H*0.6,
+      x: W/2+(Math.random()-0.5)*W*0.5,
+      y: H/2+(Math.random()-0.5)*H*0.5,
       vx:0, vy:0, fixed:false,
       actor: type==='actor'?window.ACTOR_DATA.find(a=>a.slug===id):null
     };
@@ -716,58 +984,88 @@ function buildGraph() {
 
   window.ACTOR_DATA.forEach(function(actor) {
     const tc  = TCOL[(actor.threat||'medium').toLowerCase()]||TCOL.medium;
-    const aN  = addNode(actor.slug, actor.title, 'actor', tc, 14);
+    const aN  = addNode(actor.slug, actor.title, 'actor', tc, 16);
 
     // TTP nodes
     (actor.ttps||[]).slice(0,4).forEach(function(ttp) {
-      const id='ttp:'+ttp.substring(0,30);
-      const tN=addNode(id, ttp.substring(0,25)+(ttp.length>25?'…':''), 'ttp','#00dc5a',8);
-      graphEdges.push({src:aN, dst:tN, col:'rgba(0,220,90,0.25)'});
+      const id='ttp:'+ttp.substring(0,30).toLowerCase();
+      const tN=addNode(id, ttp.substring(0,22)+(ttp.length>22?'…':''), 'ttp','#00dc5a',8);
+      graphEdges.push({src:aN, dst:tN, col:'rgba(0,220,90,0.2)'});
     });
 
     // Target nodes
     (actor.targets||[]).slice(0,3).forEach(function(tgt) {
-      const id='tgt:'+tgt.substring(0,30);
-      const tN=addNode(id, tgt.substring(0,22)+(tgt.length>22?'…':''), 'target','#00aaff',9);
-      graphEdges.push({src:aN, dst:tN, col:'rgba(0,170,255,0.25)'});
+      const id='tgt:'+tgt.substring(0,30).toLowerCase();
+      const tN=addNode(id, tgt.substring(0,20)+(tgt.length>20?'…':''), 'target','#00aaff',9);
+      graphEdges.push({src:aN, dst:tN, col:'rgba(0,170,255,0.2)'});
     });
 
     // Tool nodes
     (actor.tools||[]).slice(0,3).forEach(function(tool) {
-      const id='tool:'+tool.substring(0,30);
-      const tN=addNode(id, tool.substring(0,20)+(tool.length>20?'…':''), 'tool','#bc8cff',8);
-      graphEdges.push({src:aN, dst:tN, col:'rgba(188,140,255,0.25)'});
+      const id='tool:'+tool.substring(0,30).toLowerCase();
+      const tN=addNode(id, tool.substring(0,18)+(tool.length>18?'…':''), 'tool','#bc8cff',8);
+      graphEdges.push({src:aN, dst:tN, col:'rgba(188,140,255,0.2)'});
     });
   });
 
-  // Mouse interaction
+  // Mouse events
   graphCanvas.addEventListener('mousedown', graphMouseDown);
   graphCanvas.addEventListener('mousemove', graphMouseMove);
   graphCanvas.addEventListener('mouseup',   graphMouseUp);
+  graphCanvas.addEventListener('mouseleave', graphMouseUp);
   graphCanvas.addEventListener('click',     graphClick);
-  window.addEventListener('resize', resizeGraph);
+  
+  // Touch events for graph
+  graphCanvas.addEventListener('touchstart', function(e) {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const r = graphCanvas.getBoundingClientRect();
+    const n = getGraphNodeAt(touch.clientX-r.left, touch.clientY-r.top);
+    if(n) { graphDragging=n; n.fixed=true; graphOffset={x:n.x-(touch.clientX-r.left),y:n.y-(touch.clientY-r.top)}; }
+  }, {passive:false});
+  graphCanvas.addEventListener('touchmove', function(e) {
+    e.preventDefault();
+    if(graphDragging) {
+      const touch = e.touches[0];
+      const r = graphCanvas.getBoundingClientRect();
+      graphDragging.x = touch.clientX-r.left+graphOffset.x;
+      graphDragging.y = touch.clientY-r.top+graphOffset.y;
+    }
+  }, {passive:false});
+  graphCanvas.addEventListener('touchend', function() {
+    if(graphDragging) { graphDragging.fixed=false; graphDragging=null; }
+  });
 
-  drawGraphFrame();
+  window.addEventListener('resize', debounce(resizeGraph, 100));
+  
+  // Don't start animation here - let setView control it
 }
 
 function resizeGraph() {
   if (!graphCanvas) return;
   const wrap=document.getElementById('graph-panel');
-  if (!wrap) return;
-  graphCanvas.width=wrap.offsetWidth;
-  graphCanvas.height=wrap.offsetHeight;
+  if (!wrap || wrap.style.display === 'none') return;
+  const W = wrap.offsetWidth;
+  const H = wrap.offsetHeight;
+  if (W === 0 || H === 0) return;
+  graphCanvas.width = W;
+  graphCanvas.height = H;
 }
 
 let graphHovered=null;
 function drawGraphFrame() {
-  if (!graphCtx) return;
+  if (!graphRunning || !graphCtx) return;
+  graphAnimFrame = requestAnimationFrame(drawGraphFrame);
   graphTick++;
+  
   const W=graphCanvas.width, H=graphCanvas.height;
+  if (W === 0 || H === 0) return;
+  
   graphCtx.clearRect(0,0,W,H);
 
   // Background grid
   graphCtx.save();
-  graphCtx.strokeStyle='rgba(0,220,90,0.04)';
+  graphCtx.strokeStyle='rgba(0,220,90,0.03)';
   graphCtx.lineWidth=0.5;
   for(let x=0;x<W;x+=40){graphCtx.beginPath();graphCtx.moveTo(x,0);graphCtx.lineTo(x,H);graphCtx.stroke();}
   for(let y=0;y<H;y+=40){graphCtx.beginPath();graphCtx.moveTo(0,y);graphCtx.lineTo(W,y);graphCtx.stroke();}
@@ -778,7 +1076,7 @@ function drawGraphFrame() {
 
   // Draw edges
   graphEdges.forEach(function(e) {
-    const t=(graphTick*0.5)%60/60;
+    const t=(graphTick*0.3)%60/60;
     graphCtx.save();
     graphCtx.beginPath();
     graphCtx.moveTo(e.src.x,e.src.y);
@@ -796,49 +1094,55 @@ function drawGraphFrame() {
   graphNodes.forEach(function(n) {
     const isHov = n===graphHovered;
     const isSel = n.actor&&n.actor.slug===selectedSlug;
-    const pulse = 1 + (isHov||isSel?0.4:0.15)*Math.sin(graphTick*0.06+graphNodes.indexOf(n));
+    const pulse = 1 + (isHov||isSel?0.35:0.12)*Math.sin(graphTick*0.05+graphNodes.indexOf(n)*0.5);
     const r = n.size * pulse;
 
     // Glow
     graphCtx.save();
     graphCtx.shadowColor=n.color;
-    graphCtx.shadowBlur=isHov?20:10;
+    graphCtx.shadowBlur=isHov?25:12;
     graphCtx.beginPath();
     graphCtx.arc(n.x,n.y,r,0,Math.PI*2);
-    graphCtx.fillStyle=n.color+(isHov?'ff':'aa');
+    graphCtx.fillStyle=n.color;
+    graphCtx.globalAlpha = isHov ? 1 : 0.7;
     graphCtx.fill();
+    graphCtx.globalAlpha = 1;
 
     // Ring for actor nodes
     if (n.type==='actor') {
+      graphCtx.shadowBlur=0;
       graphCtx.beginPath();
-      graphCtx.arc(n.x,n.y,r+4,0,Math.PI*2);
-      graphCtx.strokeStyle=n.color+'55';
+      graphCtx.arc(n.x,n.y,r+5,0,Math.PI*2);
+      graphCtx.strokeStyle=n.color;
+      graphCtx.globalAlpha=0.3;
       graphCtx.lineWidth=1;
       graphCtx.stroke();
+      graphCtx.globalAlpha=1;
     }
     graphCtx.restore();
 
     // Label
     graphCtx.save();
-    graphCtx.font = (n.type==='actor'?'bold ':'')+'.6rem JetBrains Mono,monospace';
-    graphCtx.fillStyle = isHov ? '#fff' : 'rgba(255,255,255,'+(n.type==='actor'?.6:.35)+')';
+    graphCtx.font = (n.type==='actor'?'bold ':'')+'11px JetBrains Mono, monospace';
+    graphCtx.fillStyle = isHov ? '#fff' : (n.type==='actor'?'rgba(255,255,255,0.6)':'rgba(255,255,255,0.3)');
     graphCtx.textAlign='center';
-    graphCtx.fillText(n.label, n.x, n.y+r+11);
+    graphCtx.textBaseline='top';
+    graphCtx.fillText(n.label, n.x, n.y+r+6);
     graphCtx.restore();
   });
-
-  graphAnimFrame=requestAnimationFrame(drawGraphFrame);
 }
 
 function applyForces() {
   const W=graphCanvas.width, H=graphCanvas.height;
+  if (W === 0 || H === 0) return;
+  
   // Repulsion
   for(let i=0;i<graphNodes.length;i++) {
     for(let j=i+1;j<graphNodes.length;j++) {
       const a=graphNodes[i],b=graphNodes[j];
       const dx=b.x-a.x, dy=b.y-a.y;
       const d=Math.max(Math.sqrt(dx*dx+dy*dy),1);
-      const f=1200/(d*d);
+      const f=1500/(d*d);
       const fx=dx/d*f, fy=dy/d*f;
       if(!a.fixed){a.vx-=fx;a.vy-=fy;}
       if(!b.fixed){b.vx+=fx;b.vy+=fy;}
@@ -848,7 +1152,7 @@ function applyForces() {
   graphEdges.forEach(function(e) {
     const dx=e.dst.x-e.src.x, dy=e.dst.y-e.src.y;
     const d=Math.max(Math.sqrt(dx*dx+dy*dy),1);
-    const f=(d-120)*0.003;
+    const f=(d-100)*0.004;
     const fx=dx/d*f, fy=dy/d*f;
     if(!e.src.fixed){e.src.vx+=fx;e.src.vy+=fy;}
     if(!e.dst.fixed){e.dst.vx-=fx;e.dst.vy-=fy;}
@@ -856,17 +1160,17 @@ function applyForces() {
   // Center gravity
   graphNodes.forEach(function(n) {
     if(n.fixed) return;
-    n.vx+=(W/2-n.x)*0.001;
-    n.vy+=(H/2-n.y)*0.001;
-    n.vx*=0.88; n.vy*=0.88;
+    n.vx+=(W/2-n.x)*0.0008;
+    n.vy+=(H/2-n.y)*0.0008;
+    n.vx*=0.85; n.vy*=0.85;
     n.x+=n.vx; n.y+=n.vy;
-    n.x=Math.max(30,Math.min(W-30,n.x));
-    n.y=Math.max(30,Math.min(H-30,n.y));
+    n.x=Math.max(40,Math.min(W-40,n.x));
+    n.y=Math.max(40,Math.min(H-40,n.y));
   });
 }
 
 function getGraphNodeAt(x,y) {
-  return graphNodes.find(n=>Math.hypot(n.x-x,n.y-y)<n.size+6)||null;
+  return graphNodes.find(n=>Math.hypot(n.x-x,n.y-y)<n.size+8)||null;
 }
 
 function graphMouseDown(e) {
@@ -888,6 +1192,37 @@ function graphClick(e) {
   const r=graphCanvas.getBoundingClientRect();
   const n=getGraphNodeAt(e.clientX-r.left,e.clientY-r.top);
   if(n&&n.actor) selectActor(n.actor.slug);
+}
+
+// ══════════════════════════════════════════════════
+//  ACTOR FILTER
+// ══════════════════════════════════════════════════
+function filterActors(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll('.af-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  
+  document.querySelectorAll('.a-row').forEach(function(row) {
+    const threat = row.dataset.threat;
+    const status = row.dataset.status;
+    let show = true;
+    
+    switch(filter) {
+      case 'critical':
+        show = threat === 'critical';
+        break;
+      case 'high':
+        show = threat === 'critical' || threat === 'high';
+        break;
+      case 'active':
+        show = status === 'active';
+        break;
+      default:
+        show = true;
+    }
+    
+    row.classList.toggle('hidden', !show);
+  });
 }
 
 // ══════════════════════════════════════════════════
@@ -915,19 +1250,36 @@ function selectActor(slug) {
     </div>`;
 
   if(actor.tldr) h+=`<div class="d-sec"><div class="d-lbl">// tl;dr</div><div class="d-val">${actor.tldr}</div></div>`;
-  if(actor.origin||actor.motivation||actor.first_seen) h+=`<div class="d-sec"><div class="d-lbl">// profile</div>
-    ${actor.origin?`<div class="d-val" style="font-size:.58rem">📍 ${actor.origin}</div>`:''}
-    ${actor.motivation?`<div class="d-val" style="font-size:.58rem">💰 ${actor.motivation}</div>`:''}
-    ${actor.first_seen?`<div class="d-val" style="font-size:.58rem">📅 ${actor.first_seen} → ${actor.last_seen||'present'}</div>`:''}
-  </div>`;
-  if(actor.ttps&&actor.ttps.length) h+=`<div class="d-sec"><div class="d-lbl">// ttps</div>
+  
+  if(actor.origin||actor.motivation||actor.first_seen) {
+    h+=`<div class="d-sec"><div class="d-lbl">// profile</div>`;
+    if(actor.origin) h+=`<div class="d-val" style="font-size:.58rem">📍 ${actor.origin}</div>`;
+    if(actor.motivation) h+=`<div class="d-val" style="font-size:.58rem">💰 ${actor.motivation}</div>`;
+    if(actor.first_seen) h+=`<div class="d-val" style="font-size:.58rem">📅 ${actor.first_seen} → ${actor.last_seen||'present'}</div>`;
+    h+=`</div>`;
+  }
+  
+  if(actor.aliases&&actor.aliases.length) {
+    h+=`<div class="d-sec"><div class="d-lbl">// aliases</div>
+    <div class="d-tags">${actor.aliases.map(a=>`<span class="d-tag">${a}</span>`).join('')}</div></div>`;
+  }
+  
+  if(actor.ttps&&actor.ttps.length) {
+    h+=`<div class="d-sec"><div class="d-lbl">// ttps</div>
     ${actor.ttps.slice(0,5).map(t=>`<div class="d-ttp">• ${t}</div>`).join('')}
     ${actor.ttps.length>5?`<div style="font-size:.52rem;color:rgba(255,255,255,.2);padding:.1rem .42rem">+${actor.ttps.length-5} more</div>`:''}
   </div>`;
-  if(actor.targets&&actor.targets.length) h+=`<div class="d-sec"><div class="d-lbl">// targets</div>
+  }
+  
+  if(actor.targets&&actor.targets.length) {
+    h+=`<div class="d-sec"><div class="d-lbl">// targets</div>
     <div class="d-tags">${actor.targets.map(t=>`<span class="d-tag">${t}</span>`).join('')}</div></div>`;
-  if(actor.tools&&actor.tools.length) h+=`<div class="d-sec"><div class="d-lbl">// tools</div>
+  }
+  
+  if(actor.tools&&actor.tools.length) {
+    h+=`<div class="d-sec"><div class="d-lbl">// tools</div>
     <div class="d-tags">${actor.tools.map(t=>`<span class="d-tag d-tag-o">${t}</span>`).join('')}</div></div>`;
+  }
 
   h+=`<a href="${actor.url}" class="d-link">→ full intelligence profile</a>`;
 
@@ -936,12 +1288,16 @@ function selectActor(slug) {
   document.getElementById('side-detail').style.display='flex';
 
   // Fly globe to actor
-  if(currentView!=='graph') {
+  if(currentView!=='graph' && globeReady) {
     const c=getCoords(actor.origin);
     const targetRotY=-(c[1]+180)*Math.PI/180;
     const targetRotX=-c[0]*Math.PI/180;
-    rotVY=(targetRotY-rotY)*0.05;
-    rotVX=(targetRotX-rotX)*0.05;
+    // Calculate shortest rotation path
+    let dy = targetRotY - rotY;
+    while(dy > Math.PI) dy -= Math.PI*2;
+    while(dy < -Math.PI) dy += Math.PI*2;
+    rotVY = dy * 0.04;
+    rotVX = (targetRotX-rotX) * 0.04;
   }
 }
 
@@ -957,7 +1313,10 @@ function closeDetail() {
 // ══════════════════════════════════════════════════
 function calcStats() {
   const c={critical:0,high:0,medium:0,low:0};
-  window.ACTOR_DATA.forEach(a=>{const t=(a.threat||'medium').toLowerCase().trim();if(c[t]!==undefined)c[t]++;});
+  window.ACTOR_DATA.forEach(a=>{
+    const t=(a.threat||'medium').toLowerCase().trim();
+    if(c[t]!==undefined) c[t]++;
+  });
   document.getElementById('n-c').textContent=c.critical;
   document.getElementById('n-h').textContent=c.high;
   document.getElementById('n-m').textContent=c.medium;
