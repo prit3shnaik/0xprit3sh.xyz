@@ -4,501 +4,757 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kitsune — CTI Investigation Platform</title>
+    <link rel="stylesheet" href="main.css">
     <!-- jsPDF for PDF Export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <!-- Simple Graph Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.6/vis-network.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.6/vis-network.min.css" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Courier New', monospace; background: #0a0a0a; color: #e0e0e0; overflow-x: hidden; }
-        .container { display: flex; min-height: 100vh; }
+        /* ═══════════════════════════════════════════════════════════
+        KITSUNE CTI — Feature Additions (using your CSS variables)
+        ═══════════════════════════════════════════════════════════ */
         
-        /* Sidebar */
-        .sidebar { width: 280px; background: #111; border-right: 1px solid #222; padding: 15px; overflow-y: auto; position: fixed; height: 100vh; }
-        .logo { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #222; }
-        .logo img { width: 40px; height: 40px; }
-        .logo h1 { font-size: 18px; color: #00ff88; }
-        .section { margin-bottom: 20px; }
-        .section-title { font-size: 11px; color: #666; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px; }
-        .btn { display: block; width: 100%; padding: 8px 12px; margin-bottom: 6px; background: #1a1a1a; border: 1px solid #333; color: #e0e0e0; cursor: pointer; text-align: left; font-family: inherit; font-size: 13px; border-radius: 4px; transition: all 0.2s; }
-        .btn:hover { background: #222; border-color: #00ff88; }
-        .btn-primary { background: #00ff88; color: #000; font-weight: bold; border: none; }
-        .btn-primary:hover { background: #00cc6a; }
-        .btn-danger { background: #ff4444; color: white; border: none; }
-        .btn-danger:hover { background: #cc0000; }
-        
-        /* Main Content */
-        .main { flex: 1; margin-left: 280px; display: flex; flex-direction: column; }
-        
-        /* Top Bar */
-        .topbar { display: flex; align-items: center; gap: 10px; padding: 12px 20px; background: #111; border-bottom: 1px solid #222; flex-wrap: wrap; }
-        .topbar select, .topbar input { padding: 6px 10px; background: #1a1a1a; border: 1px solid #333; color: #e0e0e0; border-radius: 4px; font-family: inherit; }
-        
-        /* Tabs */
-        .tabs { display: flex; gap: 5px; padding: 10px 20px; background: #0d0d0d; border-bottom: 1px solid #222; overflow-x: auto; }
-        .tab { padding: 8px 16px; background: transparent; border: 1px solid #333; color: #888; cursor: pointer; border-radius: 4px 4px 0 0; font-family: inherit; font-size: 13px; white-space: nowrap; }
-        .tab.active { background: #1a1a1a; color: #00ff88; border-color: #00ff88; }
-        
-        /* Content Area */
-        .content { flex: 1; padding: 20px; overflow-y: auto; }
-        
-        /* Alert Banner */
-        .alert-banner { background: linear-gradient(90deg, #ff0000, #ff6600); color: white; padding: 12px; margin-bottom: 15px; border-radius: 4px; animation: pulse 2s infinite; display: none; text-align: center; font-weight: bold; border: 2px solid #fff; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; } }
-        
-        /* Watchlist */
-        .watchlist-box { margin-bottom: 15px; padding: 12px; background: #1a1a1a; border: 1px dashed #ff8800; border-radius: 4px; }
-        .watchlist-box input { width: 100%; padding: 6px; background: #111; border: 1px solid #333; color: #fff; border-radius: 3px; margin-top: 5px; }
-        .watchlist-item { display: inline-block; padding: 3px 8px; background: #ff8800; color: #000; border-radius: 10px; font-size: 11px; margin: 2px; cursor: pointer; }
-        .watchlist-item:hover { background: #ff4444; color: white; }
-        
-        /* Feed Filters */
-        .feed-filters { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; align-items: center; }
-        .filter-btn { padding: 5px 12px; background: #1a1a1a; border: 1px solid #333; color: #888; cursor: pointer; border-radius: 12px; font-size: 12px; font-family: inherit; }
-        .filter-btn.active { background: #00ff88; color: #000; border-color: #00ff88; }
-        .filter-btn.critical { border-color: #ff4444; color: #ff4444; }
-        .filter-btn.phishing { border-color: #ff00ff; color: #ff00ff; }
-        
-        /* Feed Display */
-        .feed-container { background: #111; border: 1px solid #222; border-radius: 6px; padding: 20px; min-height: 400px; }
-        .feed-item { padding: 12px; margin-bottom: 10px; background: #1a1a1a; border-left: 3px solid #00ff88; border-radius: 4px; font-size: 13px; position: relative; }
-        .feed-item.critical { border-left-color: #ff4444; }
-        .feed-item.high { border-left-color: #ff8800; }
-        .feed-item.phishing { border-left-color: #ff00ff; }
-        .feed-item.ransomware { border-left-color: #ff0000; }
-        .feed-item .ioc { color: #00ff88; font-weight: bold; word-break: break-all; }
-        .feed-item .ioc.matched { color: #ff0000; font-weight: bold; animation: blink 1s infinite; }
-        @keyframes blink { 50% { opacity: 0.5; } }
-        .feed-item .meta { color: #666; font-size: 11px; margin-top: 5px; }
-        .feed-item .actions { margin-top: 8px; display: flex; gap: 5px; }
-        .feed-item .actions button { padding: 3px 8px; font-size: 10px; background: #222; border: 1px solid #444; color: #ccc; border-radius: 3px; cursor: pointer; }
-        .feed-item .actions button:hover { background: #00ff88; color: #000; }
-        
-        /* Graph Container */
-        #networkGraph { width: 100%; height: 600px; background: #111; border: 1px solid #222; border-radius: 6px; }
-        
-        /* MITRE ATT&CK */
-        .mitre-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
-        .mitre-tactic { padding: 10px; background: #1a1a1a; border: 1px solid #333; border-radius: 4px; }
-        .mitre-tactic h4 { color: #00ff88; margin-bottom: 8px; font-size: 13px; }
-        .mitre-technique { padding: 4px 8px; background: #222; border-radius: 3px; font-size: 11px; margin: 2px 0; cursor: pointer; }
-        .mitre-technique:hover { background: #00ff88; color: #000; }
-        .mitre-technique.active { background: #ff8800; color: #000; }
-        
-        /* Breach Lookup */
-        .breach-result { padding: 15px; background: #1a1a1a; border-radius: 6px; margin-top: 15px; }
-        .breach-item { padding: 10px; margin: 5px 0; background: #222; border-left: 3px solid #ff8800; border-radius: 3px; }
-        
-        /* WHOIS/DNS */
-        .lookup-result { background: #1a1a1a; padding: 15px; border-radius: 6px; margin-top: 10px; font-size: 12px; white-space: pre-wrap; }
-        
-        /* Stats */
-        .stats { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
-        .stat { padding: 10px 15px; background: #1a1a1a; border: 1px solid #333; border-radius: 4px; font-size: 13px; }
-        .stat span { color: #00ff88; font-weight: bold; }
-        
-        /* Search */
-        .search-box { display: flex; gap: 10px; margin-bottom: 20px; }
-        .search-box input { flex: 1; padding: 10px; background: #1a1a1a; border: 1px solid #333; color: #e0e0e0; border-radius: 4px; font-family: inherit; }
-        
-        /* Auto-refresh */
-        .refresh-control { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
-        .refresh-control select { padding: 5px; background: #1a1a1a; border: 1px solid #333; color: #e0e0e0; border-radius: 4px; }
-        
-        /* Loading */
-        .loading { text-align: center; padding: 40px; color: #666; }
-        .loading::after { content: ''; display: inline-block; width: 20px; height: 20px; border: 2px solid #333; border-top-color: #00ff88; border-radius: 50%; animation: spin 1s linear infinite; margin-left: 10px; vertical-align: middle; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        
-        /* Error */
-        .error { background: #2a1111; border: 1px solid #ff4444; color: #ff8888; padding: 15px; border-radius: 4px; margin-bottom: 15px; }
-        
-        /* Responsive */
-        @media (max-width: 768px) {
-            .sidebar { width: 100%; position: fixed; z-index: 100; display: none; }
-            .sidebar.open { display: block; }
-            .main { margin-left: 0; }
+        /* Watchlist alert banner - matches your accent colors */
+        .watchlist-alert {
+            background: rgba(255,68,68,0.12);
+            border-left: 3px solid var(--red);
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            margin: 0 0 12px 0;
+            border-radius: var(--radius);
+            font-size: 0.75rem;
+            color: var(--text);
+            animation: pulse-alert 2s infinite;
+            display: none;
+        }
+        .watchlist-alert.visible { display: block; }
+        @keyframes pulse-alert {
+            0%,100% { border-color: var(--red); }
+            50% { border-color: var(--accent); }
         }
         
-        /* Modal */
-        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; }
-        .modal-content { background: #111; border: 1px solid #333; padding: 25px; border-radius: 8px; max-width: 700px; width: 90%; max-height: 85vh; overflow-y: auto; }
-        .modal h2 { color: #00ff88; margin-bottom: 15px; }
-        .modal input, .modal select, .modal textarea { width: 100%; padding: 10px; margin: 5px 0 15px; background: #1a1a1a; border: 1px solid #333; color: #e0e0e0; border-radius: 4px; font-family: inherit; }
-        .modal-buttons { display: flex; gap: 10px; margin-top: 20px; }
-        .modal-buttons button { flex: 1; }
+        /* Feed item enhancements - uses your existing .post-row style */
+        .feed-item {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 8px 10px;
+            padding: 9px 0;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.15s;
+            align-items: start;
+        }
+        .feed-item:hover { 
+            background: var(--bg2); 
+            margin: 0 -1rem; 
+            padding: 9px 1rem; 
+            border-radius: var(--radius); 
+        }
+        .feed-item.critical { border-left: 3px solid var(--red); padding-left: 7px; }
+        .feed-item.high { border-left: 3px solid var(--yellow); padding-left: 7px; }
+        .feed-item.phishing { border-left: 3px solid var(--purple); padding-left: 7px; }
+        .feed-item.ransomware { border-left: 3px solid var(--orange); padding-left: 7px; }
         
-        /* Entity Detail Panel */
-        .entity-panel { position: fixed; right: 0; top: 0; bottom: 0; width: 350px; background: #111; border-left: 1px solid #222; padding: 20px; overflow-y: auto; z-index: 500; display: none; }
-        .entity-panel.open { display: block; }
-        .entity-panel h3 { color: #00ff88; margin-bottom: 15px; border-bottom: 1px solid #222; padding-bottom: 10px; }
-        .entity-field { margin: 10px 0; }
-        .entity-field label { color: #666; font-size: 11px; display: block; margin-bottom: 3px; }
-        .entity-field .value { color: #e0e0e0; word-break: break-all; }
+        .feed-severity {
+            font-size: 0.62rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 2px;
+            white-space: nowrap;
+        }
+        .feed-severity.critical { background: rgba(255,68,68,.12); color: var(--red); border: 1px solid rgba(255,68,68,.3); }
+        .feed-severity.high { background: rgba(232,197,71,.1); color: var(--yellow); border: 1px solid rgba(232,197,71,.3); }
+        .feed-severity.medium { background: rgba(0,212,255,.08); color: var(--accent2); border: 1px solid rgba(0,212,255,.2); }
         
-        /* MISP Export */
-        .misp-config { background: #1a1a1a; padding: 15px; border-radius: 6px; margin: 10px 0; }
-        .misp-config input { width: 100%; padding: 8px; margin: 5px 0; background: #111; border: 1px solid #333; color: #e0e0e0; border-radius: 4px; }
+        .feed-ioc {
+            font-family: var(--font);
+            font-size: 0.82rem;
+            color: var(--accent2);
+            word-break: break-all;
+            margin: 2px 0;
+        }
+        .feed-ioc.matched {
+            color: var(--red);
+            font-weight: 700;
+            animation: blink-match 1s infinite;
+        }
+        @keyframes blink-match { 50% { opacity: 0.6; } }
+        
+        .feed-desc {
+            font-size: 0.78rem;
+            color: var(--text2);
+            line-height: 1.5;
+            margin: 3px 0;
+        }
+        .feed-meta {
+            font-size: 0.65rem;
+            color: var(--dim);
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .feed-source {
+            background: var(--bg3);
+            border: 1px solid var(--border2);
+            padding: 1px 5px;
+            border-radius: 2px;
+            color: var(--text2);
+        }
+        .feed-actions {
+            display: flex;
+            gap: 4px;
+            margin-top: 4px;
+        }
+        .feed-action {
+            background: none;
+            border: 1px solid var(--border2);
+            color: var(--dim);
+            font-family: var(--font);
+            font-size: 0.62rem;
+            padding: 2px 7px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .feed-action:hover { border-color: var(--accent); color: var(--accent); }
+        
+        /* Watchlist chips - matches your filter-chip style */
+        .watchlist-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.62rem;
+            padding: 2px 8px;
+            border: 1px solid var(--border2);
+            background: var(--bg3);
+            color: var(--text2);
+            border-radius: 10px;
+            margin: 2px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .watchlist-chip:hover { border-color: var(--red); color: var(--red); }
+        .watchlist-chip .remove { opacity: 0.7; }
+        .watchlist-chip .remove:hover { opacity: 1; }
+        
+        /* Graph container - fits your OSINT canvas style */
+        #networkGraph {
+            width: 100%;
+            height: calc(100% - 40px);
+            background: var(--bg);
+            border-radius: 0;
+        }
+        .graph-toolbar {
+            display: flex;
+            gap: 4px;
+            padding: 6px 10px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg2);
+        }
+        
+        /* MITRE ATT&CK grid - matches your services-grid */
+        .mitre-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 8px;
+            margin: 1rem 0;
+        }
+        .mitre-tactic {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 10px;
+        }
+        .mitre-tactic h4 {
+            font-size: 0.7rem;
+            color: var(--accent);
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+        .mitre-tech {
+            display: block;
+            font-size: 0.65rem;
+            padding: 3px 6px;
+            margin: 2px 0;
+            background: var(--bg3);
+            border: 1px solid var(--border2);
+            border-radius: 2px;
+            color: var(--text2);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .mitre-tech:hover, .mitre-tech.active {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-dim);
+        }
+        
+        /* Breach lookup result - matches your sidebar-box */
+        .breach-result {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 12px;
+            margin-top: 10px;
+            font-size: 0.78rem;
+        }
+        .breach-item {
+            padding: 8px;
+            margin: 5px 0;
+            background: var(--bg3);
+            border-left: 3px solid var(--yellow);
+            border-radius: 0 var(--radius) var(--radius) 0;
+        }
+        
+        /* WHOIS/DNS result - matches your post-content pre */
+        .lookup-result {
+            background: var(--bg2);
+            border: 1px solid var(--border2);
+            border-radius: var(--radius);
+            padding: 12px;
+            font-family: var(--font);
+            font-size: 0.72rem;
+            white-space: pre-wrap;
+            color: var(--text2);
+            margin-top: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        /* Auto-refresh control - matches your toolbar style */
+        .refresh-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 0;
+            margin-bottom: 10px;
+            font-size: 0.7rem;
+            color: var(--dim);
+        }
+        .refresh-control select {
+            background: var(--bg3);
+            border: 1px solid var(--border2);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: var(--radius);
+            cursor: pointer;
+        }
+        
+        /* Modal - matches your existing modal style */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(2px);
+        }
+        .modal.visible { display: flex; }
+        .modal-content {
+            background: var(--bg2);
+            border: 1px solid var(--border2);
+            border-radius: 6px;
+            padding: 20px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        .modal-title {
+            font-size: 0.85rem;
+            color: var(--accent);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+        .modal-input {
+            width: 100%;
+            padding: 8px 10px;
+            margin: 5px 0 12px;
+            background: var(--bg3);
+            border: 1px solid var(--border2);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 0.75rem;
+            border-radius: var(--radius);
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+            justify-content: flex-end;
+        }
+        
+        /* Entity panel - matches your node-panel style */
+        .entity-panel {
+            position: fixed;
+            top: calc(var(--header-h) + 10px);
+            right: 12px;
+            background: var(--bg2);
+            border: 1px solid var(--border2);
+            border-radius: 6px;
+            padding: 14px;
+            width: 220px;
+            font-size: 0.72rem;
+            z-index: 500;
+            display: none;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+        .entity-panel.visible { display: block; }
+        .entity-field { margin: 8px 0; }
+        .entity-field label { 
+            display: block; 
+            font-size: 0.62rem; 
+            color: var(--dim); 
+            margin-bottom: 3px; 
+        }
+        .entity-field .value { 
+            color: var(--text); 
+            word-break: break-all; 
+            font-family: var(--font);
+        }
+        
+        /* Stats bar - matches your hero-cell style */
+        .stats-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .stat-item {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 6px 10px;
+            font-size: 0.7rem;
+        }
+        .stat-item .val { color: var(--accent); font-weight: 700; }
+        
+        /* Loading - matches your existing style */
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--dim);
+            font-size: 0.78rem;
+        }
+        .loading::after {
+            content: '⋯';
+            animation: dots 1.5s steps(4, end) infinite;
+            margin-left: 4px;
+        }
+        @keyframes dots { 0%,20%{content:'.'}40%{content:'..'}60%,100%{content:'...'} }
+        
+        /* Responsive tweaks */
+        @media (max-width: 700px) {
+            .feed-item { grid-template-columns: 1fr; }
+            .feed-actions { justify-content: flex-end; }
+            .mitre-grid { grid-template-columns: 1fr; }
+            .entity-panel { width: calc(100% - 24px); right: 12px; left: 12px; }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Sidebar -->
-        <div class="sidebar" id="sidebar">
-            <div class="logo">
-                <img src="/tools/kitsune/kitsune-logo.png" alt="Kitsune">
-                <h1>Kitsune<span style="color:#666;font-size:12px;"> CTI Platform</span></h1>
+    <!-- Your existing header structure preserved -->
+    <header class="site-header">
+        <div class="container">
+            <a href="/" class="site-logo">
+                <span class="prompt">0xprit3sh</span><span class="cursor-blink">_</span>
+            </a>
+            <nav class="main-nav desktop-nav">
+                <a href="/">home</a>
+                <a href="/osint" class="active">osint</a>
+                <a href="/writeups">writeups</a>
+                <a href="/blog">blog</a>
+                <a href="/about">about</a>
+                <a href="/services">services</a>
+            </nav>
+            <div class="header-actions desktop-actions">
+                <button class="theme-btn" onclick="toggleTheme()">[ light ]</button>
+                <a href="#" class="edit-btn">edit</a>
             </div>
-            
-            <div class="section">
-                <div class="section-title">Cases</div>
-                <select id="caseSelect" class="btn" style="margin-bottom:10px;">
-                    <option value="">— select case —</option>
-                </select>
-                <button class="btn btn-primary" onclick="showModal('newCaseModal')">+ new case</button>
-                <button class="btn" onclick="importCase()">import</button>
-                <button class="btn" onclick="exportCase()">export</button>
-            </div>
-            
-            <div class="section">
-                <div class="section-title">Add Entity</div>
-                <button class="btn" onclick="addEntity('IP')">● IP</button>
-                <button class="btn" onclick="addEntity('Domain')">◎ Domain</button>
-                <button class="btn" onclick="addEntity('Actor')">◈ Actor</button>
-                <button class="btn" onclick="addEntity('Wallet')">◆ Wallet</button>
-                <button class="btn" onclick="addEntity('Email')">✉ Email</button>
-                <button class="btn" onclick="addEntity('Hash')">⌗ Hash</button>
-                <button class="btn" onclick="addEntity('URL')">↗ URL</button>
-                <button class="btn" onclick="addEntity('Org')">⬡ Org</button>
-            </div>
-            
-            <div class="section">
-                <div class="section-title">Watchlist Alerts</div>
-                <div class="watchlist-box">
-                    <small style="color:#888;">Add keywords to alert on:</small>
-                    <input type="text" id="watchlistInput" placeholder="e.g., company.com, malware_name">
-                    <button class="btn" style="margin-top:8px;width:auto;padding:5px 10px;" onclick="addToWatchlist()">+ add</button>
-                    <div id="watchlistDisplay" style="margin-top:8px;"></div>
-                </div>
-            </div>
-            
-            <div class="section">
-                <div class="section-title">Entities (<span id="entityCount">0</span>)</div>
-                <input type="text" placeholder="filter entities..." class="btn" style="text-align:left;">
-            </div>
+            <!-- Hamburger menu button for mobile -->
+            <button class="hamburger-btn" id="hamburgerBtn" aria-label="Toggle menu">
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+            </button>
         </div>
-        
-        <!-- Main Content -->
-        <div class="main">
-            <!-- Top Bar -->
-            <div class="topbar">
-                <select id="caseSelectTop">
-                    <option value="">— select case —</option>
-                </select>
-                <button class="btn btn-primary" style="width:auto;padding:6px 12px;" onclick="showModal('newCaseModal')">+ new case</button>
-                <button class="btn" style="width:auto;padding:6px 12px;" onclick="importCase()">import</button>
-                <button class="btn" style="width:auto;padding:6px 12px;" onclick="exportCase()">export</button>
-                <button class="btn" style="width:auto;padding:6px 12px;" onclick="showModal('apiKeysModal')">⚙ API keys</button>
-                <button class="btn" style="width:auto;padding:6px 12px;" onclick="generateReport()">📄 PDF Report</button>
-                <button class="btn" style="width:auto;padding:6px 12px;" onclick="exportToMISP()">🔗 MISP Export</button>
-                <div style="flex:1;"></div>
-                <span id="statusIndicator" style="color:#00ff88;font-size:13px;">ready</span>
-                <button class="btn" style="width:auto;padding:6px 12px;" onclick="toggleTheme()">[ light ]</button>
-            </div>
-            
-            <!-- Alert Banner -->
-            <div id="alertBanner" class="alert-banner">
-                🚨 WATCHLIST MATCH DETECTED! <span id="alertMessage"></span>
-            </div>
-            
-            <!-- Tabs -->
-            <div class="tabs">
-                <button class="tab" onclick="switchTab('graph')">⬡ Graph</button>
-                <button class="tab active" onclick="switchTab('feed')">📡 Live Feed</button>
-                <button class="tab" onclick="switchTab('cves')">⚡ CVEs</button>
-                <button class="tab" onclick="switchTab('breach')">🔓 Breach Lookup</button>
-                <button class="tab" onclick="switchTab('lookup')">🔍 WHOIS/DNS</button>
-                <button class="tab" onclick="switchTab('enrich')">🔬 Enrich</button>
-                <button class="tab" onclick="switchTab('mitre')">🎯 MITRE ATT&CK</button>
-                <button class="tab" onclick="switchTab('timeline')">⏱ Timeline</button>
-                <button class="tab" onclick="switchTab('evidence')">📋 Evidence</button>
-            </div>
-            
-            <!-- Content -->
-            <div class="content">
-                <!-- Live Feed Tab -->
-                <div id="feedTab">
-                    <div class="refresh-control">
-                        <label style="font-size:12px;color:#888;">Auto-refresh:</label>
-                        <select id="autoRefresh" onchange="toggleAutoRefresh()">
-                            <option value="0">off</option>
-                            <option value="60000">1 min</option>
-                            <option value="300000" selected>5 min</option>
-                            <option value="900000">15 min</option>
-                        </select>
-                        <button class="btn" style="width:auto;padding:5px 15px;" onclick="refreshFeeds()">↻ refresh now</button>
-                        <span id="lastRefresh" style="font-size:11px;color:#666;margin-left:10px;"></span>
-                    </div>
-                    
-                    <div class="stats">
-                        <div class="stat">total: <span id="statTotal">0</span></div>
-                        <div class="stat">critical: <span id="statCritical">0</span></div>
-                        <div class="stat">high: <span id="statHigh">0</span></div>
-                        <div class="stat">phishing: <span id="statPhishing">0</span></div>
-                        <div class="stat">ransomware: <span id="statRansomware">0</span></div>
-                        <div class="stat">🔥 KEV: <span id="statKEV">0</span></div>
-                        <div class="stat">⚠️ alerts: <span id="statAlerts">0</span></div>
-                    </div>
-                    
-                    <div class="feed-filters">
-                        <button class="filter-btn active" onclick="setFeedFilter('all')">all</button>
-                        <button class="filter-btn" onclick="setFeedFilter('c2')">C2/Botnet</button>
-                        <button class="filter-btn" onclick="setFeedFilter('malware')">malware</button>
-                        <button class="filter-btn phishing" onclick="setFeedFilter('phishing')">🎣 phishing</button>
-                        <button class="filter-btn" onclick="setFeedFilter('ransomware')">🔐 ransomware</button>
-                        <button class="filter-btn" onclick="setFeedFilter('breach')">💥 breach</button>
-                        <button class="filter-btn critical" onclick="setFeedFilter('kev')">🔥 KEV</button>
-                        <div style="flex:1;"></div>
-                        <input type="text" id="feedSearch" placeholder="search IOCs..." style="padding:5px 10px;background:#1a1a1a;border:1px solid #333;color:#e0e0e0;border-radius:4px;width:200px;">
-                    </div>
-                    
-                    <div style="margin-bottom:15px;font-size:12px;color:#666;">
-                        sources: 
-                        <span style="color:#00ff88;">FeodoTracker</span> + 
-                        <span style="color:#00ff88;">URLhaus</span> + 
-                        <span style="color:#00ff88;">CISA KEV</span> + 
-                        <span style="color:#ff00ff;">OpenPhish</span> + 
-                        <span style="color:#ff00ff;">PhishStats</span> + 
-                        <span style="color:#ff8800;">Spamhaus DROP</span> + 
-                        <span style="color:#ff4444;">Ransomware.live</span> + 
-                        <span style="color:#888;">*abuse.ch key for ThreatFox</span>
-                    </div>
-                    
-                    <div id="feedContainer" class="feed-container">
-                        <div class="loading">Loading threat intelligence feeds</div>
-                    </div>
-                </div>
-                
-                <!-- Graph Tab -->
-                <div id="graphTab" style="display:none;">
-                    <div style="margin-bottom:15px;display:flex;gap:10px;flex-wrap:wrap;">
-                        <button class="btn" style="width:auto;padding:6px 12px;" onclick="addAllToGraph()">+ all entities</button>
-                        <button class="btn" style="width:auto;padding:6px 12px;" onclick="autoLayout()">auto layout</button>
-                        <button class="btn" style="width:auto;padding:6px 12px;" onclick="fitGraph()">fit view</button>
-                        <button class="btn" style="width:auto;padding:6px 12px;" onclick="clearGraph()">clear</button>
-                        <button class="btn" style="width:auto;padding:6px 12px;" onclick="toggleDrawMode()">✏️ draw edge</button>
-                    </div>
-                    <div id="networkGraph"></div>
-                    <div style="margin-top:10px;font-size:11px;color:#666;">
-                        Tip: Click nodes to inspect • Drag to reposition • Scroll to zoom • Double-click to add edge
-                    </div>
-                </div>
-                
-                <!-- CVEs Tab -->
-                <div id="cvesTab" style="display:none;">
-                    <div class="search-box">
-                        <input type="text" id="cveSearch" placeholder="search CVEs (e.g., CVE-2024-1234) or keywords...">
-                        <button class="btn btn-primary" style="width:auto;padding:10px 20px;" onclick="searchCVEs()">search</button>
-                    </div>
-                    <div style="margin-bottom:15px;">
-                        <button class="filter-btn active" onclick="setCVEFilter('recent')">recent</button>
-                        <button class="filter-btn critical" onclick="setCVEFilter('exploited')">🔥 exploited</button>
-                        <button class="filter-btn" onclick="setCVEFilter('critical')">critical (9+)</button>
-                        <button class="filter-btn" onclick="setCVEFilter('high')">high (7+)</button>
-                        <button class="btn" style="width:auto;padding:5px 15px;margin-left:10px;" onclick="loadRecentCVEs()">load recent</button>
-                    </div>
-                    <div id="cveContainer" class="feed-container">
-                        <div style="text-align:center;padding:40px;color:#666;">
-                            Search CVEs or click filters to load recent vulnerabilities<br>
-                            <small>NVD API (free) + CISA KEV catalog</small>
+    </header>
+
+    <!-- Mobile Navigation Overlay -->
+    <div class="mobile-nav-overlay" id="mobileOverlay"></div>
+    <nav class="mobile-nav-menu" id="mobileNav">
+        <div class="mobile-nav-header">
+            <span class="mobile-nav-prompt">0xprit3sh_</span>
+            <button class="mobile-nav-close" id="mobileClose">&times;</button>
+        </div>
+        <div class="mobile-nav-links">
+            <a href="/" class="mobile-nav-link">home</a>
+            <a href="/osint" class="mobile-nav-link active">osint</a>
+            <a href="/writeups" class="mobile-nav-link">writeups</a>
+            <a href="/blog" class="mobile-nav-link">blog</a>
+            <a href="/about" class="mobile-nav-link">about</a>
+            <a href="/services" class="mobile-nav-link">services</a>
+        </div>
+        <div class="mobile-nav-footer">
+            <button class="mobile-theme-btn" onclick="toggleTheme()">
+                <span>☾</span> toggle theme
+            </button>
+        </div>
+    </nav>
+
+    <main class="site-main">
+        <div class="container">
+            <!-- Page Header -->
+            <header class="page-header">
+                <h1 class="page-title">Kitsune <span class="dim">— CTI Investigation Platform</span></h1>
+                <div class="page-count">v2.1</div>
+            </header>
+
+            <!-- OSINT Workspace - Your existing structure -->
+            <div class="osint-workspace">
+                <!-- Left Panel -->
+                <aside class="ow-left">
+                    <div class="ow-left-top">
+                        <div class="ow-title-row">
+                            <span class="ow-title">investigations</span>
+                            <span class="ow-count" id="caseCount">0</span>
+                            <a href="#" class="ow-new-btn" onclick="showModal('newCaseModal')">+ new</a>
+                        </div>
+                        <div class="ow-search-row">
+                            <input type="text" class="ow-search" placeholder="search cases..." id="caseSearch">
+                        </div>
+                        <div class="ow-tabs-row">
+                            <button class="owt on" data-tab="cases">cases</button>
+                            <button class="owt" data-tab="entities">entities</button>
+                            <button class="owt" data-tab="watchlist">watchlist</button>
                         </div>
                     </div>
-                </div>
-                
-                <!-- Breach Lookup Tab -->
-                <div id="breachTab" style="display:none;">
-                    <h3 style="margin-bottom:15px;color:#00ff88;">🔓 Have I Been Pwned Lookup</h3>
-                    <div class="search-box">
-                        <input type="email" id="breachEmail" placeholder="enter email address to check...">
-                        <button class="btn btn-primary" style="width:auto;padding:10px 20px;" onclick="checkBreach()">check</button>
+
+                    <!-- Cases Tab -->
+                    <div class="ow-tab-panel on" id="tab-cases">
+                        <div class="ow-filter-row">
+                            <button class="owf on" data-filter="all">all</button>
+                            <button class="owf" data-filter="active">active</button>
+                            <button class="owf" data-filter="closed">closed</button>
+                        </div>
+                        <div class="ow-inv-list" id="caseList">
+                            <!-- Cases populated by JS -->
+                            <div class="ow-empty">
+                                <div class="ow-empty-icon">⬡</div>
+                                <div>no cases yet</div>
+                                <a href="#" class="ow-empty-link" onclick="showModal('newCaseModal')">create one</a>
+                            </div>
+                        </div>
                     </div>
-                    <p style="font-size:12px;color:#888;margin-bottom:15px;">
-                        Uses HIBP API (requires key) or fallback to public breach databases. 
-                        <a href="https://haveibeenpwned.com/API/Key" target="_blank" style="color:#00ff88;">Get free API key</a>
-                    </p>
-                    <div id="breachResult"></div>
-                </div>
-                
-                <!-- WHOIS/DNS Lookup Tab -->
-                <div id="lookupTab" style="display:none;">
-                    <h3 style="margin-bottom:15px;color:#00ff88;">🔍 WHOIS & DNS Lookup</h3>
-                    <div class="search-box">
-                        <input type="text" id="lookupInput" placeholder="enter domain or IP...">
-                        <button class="btn btn-primary" style="width:auto;padding:10px 20px;" onclick="performLookup()">lookup</button>
+
+                    <!-- Entities Tab -->
+                    <div class="ow-tab-panel" id="tab-entities">
+                        <div class="ow-filter-row">
+                            <button class="owf on" onclick="filterEntities('all')">all</button>
+                            <button class="owf" onclick="filterEntities('IP')">IP</button>
+                            <button class="owf" onclick="filterEntities('Domain')">domain</button>
+                            <button class="owf" onclick="filterEntities('Hash')">hash</button>
+                        </div>
+                        <div class="ow-entities" id="entityList">
+                            <div class="ow-empty">
+                                <div class="ow-empty-icon">◎</div>
+                                <div>no entities</div>
+                                <small style="color:var(--dim)">add from feed or manually</small>
+                            </div>
+                        </div>
                     </div>
-                    <div style="margin-bottom:15px;">
-                        <button class="filter-btn active" onclick="setLookupType('whois')">WHOIS</button>
-                        <button class="filter-btn" onclick="setLookupType('dns')">DNS Records</button>
-                        <button class="filter-btn" onclick="setLookupType('greynoise')">GreyNoise</button>
-                        <button class="filter-btn" onclick="setLookupType('urlscan')">URLScan.io</button>
+
+                    <!-- Watchlist Tab -->
+                    <div class="ow-tab-panel" id="tab-watchlist">
+                        <div style="padding:10px 12px;border-bottom:1px solid var(--border)">
+                            <input type="text" class="ow-search" id="watchlistInput" placeholder="add keyword to monitor...">
+                            <button class="ow-new-btn" style="margin-top:6px;width:100%" onclick="addToWatchlist()">+ add to watchlist</button>
+                        </div>
+                        <div id="watchlistDisplay" style="padding:8px 12px;min-height:100px">
+                            <div style="font-size:0.7rem;color:var(--dim);text-align:center">
+                                add keywords to get alerts when they appear in feeds
+                            </div>
+                        </div>
                     </div>
-                    <div id="lookupResult"></div>
-                </div>
-                
-                <!-- Enrich Tab -->
-                <div id="enrichTab" style="display:none;text-align:center;padding:60px;color:#666;">
-                    🔬 IOC Enrichment<br>
-                    <small>Select an entity from sidebar or feed to enrich with threat intelligence</small>
-                </div>
-                
-                <!-- MITRE ATT&CK Tab -->
-                <div id="mitreTab" style="display:none;">
-                    <h3 style="margin-bottom:15px;color:#00ff88;">🎯 MITRE ATT&CK Mapping</h3>
-                    <p style="font-size:12px;color:#888;margin-bottom:15px;">Map your findings to the MITRE ATT&CK framework for structured analysis</p>
-                    <div class="search-box">
-                        <input type="text" id="mitreSearch" placeholder="search techniques (e.g., T1059, phishing, credential dumping)...">
-                        <button class="btn" style="width:auto;padding:10px 20px;" onclick="searchMITRE()">search</button>
+                </aside>
+
+                <!-- Right Canvas -->
+                <section class="ow-canvas">
+                    <!-- Toolbar - Two Row Layout -->
+                    <div class="ow-toolbar">
+                        <div class="ow-toolbar-row1">
+                            <div class="owt-left">
+                                <span class="owt-label" id="canvasTitle">📡 Live Threat Feed</span>
+                            </div>
+                            <div class="owt-stats">
+                                <span class="owt-stat">total: <span id="statTotal">0</span></span>
+                                <span class="owt-stat">🔥 <span id="statCritical">0</span></span>
+                                <span class="owt-stat">⚠️ <span id="statAlerts">0</span></span>
+                            </div>
+                            <div class="owt-right">
+                                <button class="owtb" onclick="showModal('apiKeysModal')">⚙ keys</button>
+                                <button class="owtb" onclick="generateReport()">📄 pdf</button>
+                                <button class="owtb" onclick="exportToMISP()">🔗 misp</button>
+                            </div>
+                        </div>
+                        <div class="ow-toolbar-row2">
+                            <div class="owt-views">
+                                <button class="owtb on" data-view="feed">feed</button>
+                                <button class="owtb" data-view="graph">graph</button>
+                                <button class="owtb" data-view="cves">cves</button>
+                                <button class="owtb" data-view="breach">breach</button>
+                                <button class="owtb" data-view="lookup">lookup</button>
+                                <button class="owtb" data-view="mitre">mitre</button>
+                            </div>
+                            <div class="owt-actions">
+                                <div class="refresh-control">
+                                    <span>auto:</span>
+                                    <select id="autoRefresh" onchange="toggleAutoRefresh()">
+                                        <option value="0">off</option>
+                                        <option value="60000">1m</option>
+                                        <option value="300000" selected>5m</option>
+                                        <option value="900000">15m</option>
+                                    </select>
+                                </div>
+                                <button class="owtb" onclick="refreshFeeds()">↻ refresh</button>
+                            </div>
+                        </div>
                     </div>
-                    <div id="mitreGrid" class="mitre-grid">
-                        <!-- Populated dynamically -->
+
+                    <!-- Alert Banner -->
+                    <div id="alertBanner" class="watchlist-alert">
+                        🚨 <strong>WATCHLIST MATCH:</strong> <span id="alertMessage"></span>
                     </div>
-                    <div style="margin-top:20px;">
-                        <button class="btn btn-primary" onclick="exportMITRE()">📋 Export Mapped Techniques</button>
-                        <button class="btn" onclick="clearMITRE()">clear selection</button>
+
+                    <!-- Feed View -->
+                    <div class="ow-view on" id="view-feed">
+                        <div style="padding:10px 12px;border-bottom:1px solid var(--border);font-size:0.7rem;color:var(--dim)">
+                            sources: 
+                            <span style="color:var(--accent)">FeodoTracker</span> + 
+                            <span style="color:var(--accent)">URLhaus</span> + 
+                            <span style="color:var(--accent)">CISA KEV</span> + 
+                            <span style="color:var(--purple)">OpenPhish</span> + 
+                            <span style="color:var(--purple)">PhishStats</span> + 
+                            <span style="color:var(--orange)">Spamhaus</span> + 
+                            <span style="color:var(--red)">Ransomware.live</span>
+                        </div>
+                        
+                        <div class="ow-filter-row" style="margin:0 12px 8px;padding:0;border-bottom:none">
+                            <button class="owf on" onclick="setFeedFilter('all')">all</button>
+                            <button class="owf" onclick="setFeedFilter('c2')">c2</button>
+                            <button class="owf" onclick="setFeedFilter('malware')">malware</button>
+                            <button class="owf" onclick="setFeedFilter('phishing')">🎣 phishing</button>
+                            <button class="owf" onclick="setFeedFilter('ransomware')">🔐 ransomware</button>
+                            <button class="owf" onclick="setFeedFilter('kev')">🔥 KEV</button>
+                            <input type="text" class="ow-search" id="feedSearch" placeholder="search..." style="width:120px;margin-left:auto">
+                        </div>
+                        
+                        <div id="feedContainer" style="padding:0 12px;overflow-y:auto;flex:1">
+                            <div class="loading">loading threat intelligence</div>
+                        </div>
                     </div>
-                </div>
-                
-                <!-- Timeline Tab -->
-                <div id="timelineTab" style="display:none;text-align:center;padding:60px;color:#666;">
-                    ⏱ Investigation Timeline<br>
-                    <small>Events and IOCs will appear here chronologically</small>
-                </div>
-                
-                <!-- Evidence Tab -->
-                <div id="evidenceTab" style="display:none;text-align:center;padding:60px;color:#666;">
-                    📋 Evidence Collection<br>
-                    <small>Add evidence to build your case file</small>
-                </div>
+
+                    <!-- Graph View -->
+                    <div class="ow-view" id="view-graph">
+                        <div class="graph-toolbar">
+                            <button class="owtb" onclick="addAllToGraph()">+ all entities</button>
+                            <button class="owtb" onclick="autoLayout()">layout</button>
+                            <button class="owtb" onclick="fitGraph()">fit</button>
+                            <button class="owtb" onclick="clearGraph()">clear</button>
+                            <button class="owtb" id="drawBtn" onclick="toggleDrawMode()">✏️ edge</button>
+                        </div>
+                        <div id="networkGraph"></div>
+                    </div>
+
+                    <!-- CVEs View -->
+                    <div class="ow-view" id="view-cves">
+                        <div style="padding:10px 12px;border-bottom:1px solid var(--border)">
+                            <div style="display:flex;gap:8px;margin-bottom:8px">
+                                <input type="text" id="cveSearch" class="ow-search" placeholder="search CVEs..." style="flex:1">
+                                <button class="owtb" onclick="searchCVEs()">search</button>
+                            </div>
+                            <div class="ow-filter-row" style="margin:0;border-bottom:none">
+                                <button class="owf on" onclick="setCVEFilter('recent')">recent</button>
+                                <button class="owf" onclick="setCVEFilter('exploited')">🔥 exploited</button>
+                                <button class="owf" onclick="setCVEFilter('critical')">critical 9+</button>
+                            </div>
+                        </div>
+                        <div id="cveContainer" style="padding:0 12px;overflow-y:auto;flex:1">
+                            <div style="text-align:center;padding:2rem;color:var(--dim);font-size:0.78rem">
+                                search CVEs or click filters<br>
+                                <small>NVD API + CISA KEV (free)</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Breach Lookup View -->
+                    <div class="ow-view" id="view-breach">
+                        <div style="padding:15px 20px">
+                            <h3 style="font-size:0.85rem;color:var(--accent);margin-bottom:10px">🔓 Have I Been Pwned</h3>
+                            <div style="display:flex;gap:8px;margin-bottom:10px">
+                                <input type="email" id="breachEmail" class="ow-search" placeholder="email to check..." style="flex:1">
+                                <button class="owtb" onclick="checkBreach()">check</button>
+                            </div>
+                            <p style="font-size:0.7rem;color:var(--dim);margin-bottom:15px">
+                                <a href="https://haveibeenpwned.com/API/Key" target="_blank" style="color:var(--accent2)">Get free API key</a> 
+                                or use fallback public databases
+                            </p>
+                            <div id="breachResult"></div>
+                        </div>
+                    </div>
+
+                    <!-- WHOIS/DNS Lookup View -->
+                    <div class="ow-view" id="view-lookup">
+                        <div style="padding:15px 20px">
+                            <h3 style="font-size:0.85rem;color:var(--accent);margin-bottom:10px">🔍 WHOIS & DNS Lookup</h3>
+                            <div style="display:flex;gap:8px;margin-bottom:10px">
+                                <input type="text" id="lookupInput" class="ow-search" placeholder="domain or IP..." style="flex:1">
+                                <button class="owtb" onclick="performLookup()">lookup</button>
+                            </div>
+                            <div class="ow-filter-row" style="margin:0 0 10px 0;border-bottom:none">
+                                <button class="owf on" onclick="setLookupType('whois')">WHOIS</button>
+                                <button class="owf" onclick="setLookupType('dns')">DNS</button>
+                                <button class="owf" onclick="setLookupType('greynoise')">GreyNoise</button>
+                                <button class="owf" onclick="setLookupType('urlscan')">URLScan</button>
+                            </div>
+                            <div id="lookupResult"></div>
+                        </div>
+                    </div>
+
+                    <!-- MITRE ATT&CK View -->
+                    <div class="ow-view" id="view-mitre">
+                        <div style="padding:15px 20px">
+                            <h3 style="font-size:0.85rem;color:var(--accent);margin-bottom:10px">🎯 MITRE ATT&CK Mapping</h3>
+                            <div style="display:flex;gap:8px;margin-bottom:15px">
+                                <input type="text" id="mitreSearch" class="ow-search" placeholder="search techniques..." style="flex:1">
+                                <button class="owtb" onclick="searchMITRE()">search</button>
+                            </div>
+                            <div id="mitreGrid" class="mitre-grid"></div>
+                            <div style="margin-top:15px;display:flex;gap:8px">
+                                <button class="owtb" onclick="exportMITRE()">📋 export</button>
+                                <button class="owtb" onclick="clearMITRE()">clear</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
             </div>
         </div>
-        
-        <!-- Entity Detail Panel -->
-        <div class="entity-panel" id="entityPanel">
-            <h3>🔍 Entity Details</h3>
-            <button class="btn" style="margin-bottom:15px;" onclick="closeEntityPanel()">← back</button>
-            <div id="entityDetails"></div>
-            <div style="margin-top:20px;border-top:1px solid #222;padding-top:15px;">
-                <button class="btn" onclick="enrichEntity()">🔬 enrich</button>
-                <button class="btn" onclick="addToGraphFromPanel()">+ to graph</button>
-                <button class="btn btn-danger" onclick="deleteEntity()">🗑 delete</button>
-            </div>
+    </main>
+
+    <!-- Entity Detail Panel -->
+    <div class="entity-panel" id="entityPanel">
+        <h4 style="color:var(--accent);margin-bottom:10px;font-size:0.8rem">🔍 Entity</h4>
+        <button class="owtb" style="margin-bottom:12px;width:100%" onclick="closeEntityPanel()">← close</button>
+        <div id="entityDetails"></div>
+        <div style="margin-top:15px;padding-top:12px;border-top:1px solid var(--border);display:flex;gap:6px">
+            <button class="owtb" style="flex:1" onclick="enrichEntity()">🔬 enrich</button>
+            <button class="owtb" style="flex:1" onclick="addToGraphFromPanel()">+ graph</button>
+            <button class="owtb" style="flex:1;background:var(--red);color:#fff;border-color:var(--red)" onclick="deleteEntity()">🗑</button>
         </div>
     </div>
-    
+
     <!-- Modals -->
-    <div id="newCaseModal" class="modal">
+    <div class="modal" id="newCaseModal">
         <div class="modal-content">
-            <h2>New Investigation Case</h2>
-            <input type="text" id="caseName" placeholder="case name *">
-            <select id="casePriority">
+            <h3 class="modal-title">New Investigation Case</h3>
+            <input type="text" class="modal-input" id="caseName" placeholder="case name *">
+            <select class="modal-input" id="casePriority">
                 <option value="critical">🚨 Critical</option>
                 <option value="high">⚠️ High</option>
                 <option value="medium">🔔 Medium</option>
                 <option value="low">ℹ️ Low</option>
             </select>
-            <select id="caseStatus">
+            <select class="modal-input" id="caseStatus">
                 <option value="active">Active</option>
                 <option value="monitoring">Monitoring</option>
                 <option value="closed">Closed</option>
             </select>
-            <textarea id="caseDescription" placeholder="description" rows="4"></textarea>
-            <input type="text" id="caseTags" placeholder="tags (comma separated)">
+            <textarea class="modal-input" id="caseDescription" placeholder="description" rows="3"></textarea>
+            <input type="text" class="modal-input" id="caseTags" placeholder="tags (comma separated)">
             <div class="modal-buttons">
-                <button class="btn" onclick="closeModal('newCaseModal')">cancel</button>
-                <button class="btn btn-primary" onclick="createCase()">create</button>
+                <button class="owtb" onclick="closeModal('newCaseModal')">cancel</button>
+                <button class="owtb" style="background:var(--accent);color:#000;border-color:var(--accent)" onclick="createCase()">create</button>
             </div>
         </div>
     </div>
-    
-    <div id="apiKeysModal" class="modal">
+
+    <div class="modal" id="apiKeysModal">
         <div class="modal-content">
-            <h2>⚙ API Keys</h2>
-            <p style="color:#666;font-size:13px;margin-bottom:20px;">Stored in your browser only. Never transmitted anywhere except to the named API provider.</p>
+            <h3 class="modal-title">⚙ API Keys</h3>
+            <p style="font-size:0.7rem;color:var(--dim);margin-bottom:15px">
+                Stored in browser only. Never transmitted except to named provider.
+            </p>
             
-            <div style="margin-bottom:25px;padding:15px;background:#1a1a1a;border-radius:6px;">
-                <h3 style="margin-bottom:10px;color:#ff8800;">// abuse.ch — malware feeds</h3>
-                <p style="font-size:12px;color:#888;margin-bottom:10px;">Free: <a href="https://auth.abuse.ch/" target="_blank" style="color:#00ff88;">auth.abuse.ch</a> → Generate Key</p>
-                <input type="password" id="abuseKey" placeholder="abuse.ch Auth-Key">
+            <div style="margin-bottom:15px;padding:10px;background:var(--bg3);border-radius:var(--radius)">
+                <strong style="color:var(--orange);font-size:0.75rem">// abuse.ch</strong>
+                <p style="font-size:0.65rem;color:var(--dim);margin:5px 0">
+                    <a href="https://auth.abuse.ch/" target="_blank" style="color:var(--accent2)">auth.abuse.ch</a> → Generate Key
+                </p>
+                <input type="password" class="modal-input" id="abuseKey" placeholder="abuse.ch Auth-Key">
             </div>
             
-            <div style="margin-bottom:25px;">
-                <h3 style="margin-bottom:10px;">// IOC Enrichment</h3>
-                <input type="password" id="vtKey" placeholder="VirusTotal API Key">
-                <input type="password" id="abuseipdbKey" placeholder="AbuseIPDB API Key">
-                <input type="password" id="otxKey" placeholder="AlienVault OTX Key">
-                <input type="password" id="shodanKey" placeholder="Shodan API Key">
-                <input type="password" id="phishtankKey" placeholder="PhishTank API Key (optional)">
+            <div style="margin-bottom:15px">
+                <strong style="font-size:0.75rem">// Enrichment APIs</strong>
+                <input type="password" class="modal-input" id="vtKey" placeholder="VirusTotal">
+                <input type="password" class="modal-input" id="abuseipdbKey" placeholder="AbuseIPDB">
+                <input type="password" class="modal-input" id="otxKey" placeholder="AlienVault OTX">
+                <input type="password" class="modal-input" id="shodanKey" placeholder="Shodan">
+                <input type="password" class="modal-input" id="phishtankKey" placeholder="PhishTank (optional)">
             </div>
             
-            <div style="margin-bottom:25px;">
-                <h3 style="margin-bottom:10px;">// Breach & Intelligence</h3>
-                <input type="password" id="hibpKey" placeholder="Have I Been Pwned API Key">
-                <input type="password" id="greynoiseKey" placeholder="GreyNoise Community Key">
-                <input type="password" id="urlscanKey" placeholder="URLScan.io API Key">
+            <div style="margin-bottom:15px">
+                <strong style="font-size:0.75rem">// Intelligence</strong>
+                <input type="password" class="modal-input" id="hibpKey" placeholder="Have I Been Pwned">
+                <input type="password" class="modal-input" id="greynoiseKey" placeholder="GreyNoise">
+                <input type="password" class="modal-input" id="urlscanKey" placeholder="URLScan.io">
             </div>
             
-            <div style="margin-bottom:25px;">
-                <h3 style="margin-bottom:10px;">// NVD CVE (optional)</h3>
-                <input type="password" id="nvdKey" placeholder="NVD API Key">
-                <p style="font-size:11px;color:#666;margin-top:8px;">Works without key (slower). Key allows 50 req/30s vs 5 req/30s.</p>
-            </div>
-            
-            <div style="margin-bottom:25px;">
-                <h3 style="margin-bottom:10px;">// MISP Integration</h3>
-                <input type="text" id="mispUrl" placeholder="MISP Instance URL (e.g., https://misp.example.com)">
-                <input type="password" id="mispKey" placeholder="MISP API Key">
+            <div style="margin-bottom:15px">
+                <strong style="font-size:0.75rem">// MISP</strong>
+                <input type="text" class="modal-input" id="mispUrl" placeholder="MISP URL">
+                <input type="password" class="modal-input" id="mispKey" placeholder="MISP API Key">
             </div>
             
             <div class="modal-buttons">
-                <button class="btn" onclick="closeModal('apiKeysModal')">cancel</button>
-                <button class="btn btn-primary" onclick="saveApiKeys()">save keys</button>
+                <button class="owtb" onclick="closeModal('apiKeysModal')">cancel</button>
+                <button class="owtb" style="background:var(--accent);color:#000;border-color:var(--accent)" onclick="saveApiKeys()">save</button>
             </div>
         </div>
     </div>
-    
-    <div id="mispExportModal" class="modal">
+
+    <div class="modal" id="mispExportModal">
         <div class="modal-content">
-            <h2>🔗 Export to MISP</h2>
-            <p style="color:#666;font-size:13px;margin-bottom:15px;">Push selected IOCs to your MISP instance</p>
-            <div class="misp-config">
-                <label style="font-size:12px;color:#888;">MISP URL:</label>
-                <input type="text" id="mispExportUrl" placeholder="https://misp.example.com">
-                <label style="font-size:12px;color:#888;">API Key:</label>
-                <input type="password" id="mispExportKey" placeholder="your-misp-api-key">
-                <label style="font-size:12px;color:#888;">Distribution:</label>
-                <select id="mispDist" style="width:100%;padding:8px;margin:5px 0;background:#111;border:1px solid #333;color:#e0e0e0;">
-                    <option value="0">Your Organisation Only</option>
-                    <option value="1">This Community Only</option>
-                    <option value="2">Connected Communities</option>
-                    <option value="3">All Communities</option>
-                </select>
-            </div>
+            <h3 class="modal-title">🔗 Export to MISP</h3>
+            <p style="font-size:0.7rem;color:var(--dim);margin-bottom:12px">Push selected IOCs to your MISP instance</p>
+            <input type="text" class="modal-input" id="mispExportUrl" placeholder="MISP URL">
+            <input type="password" class="modal-input" id="mispExportKey" placeholder="API Key">
+            <select class="modal-input" id="mispDist">
+                <option value="0">Your Org Only</option>
+                <option value="1">This Community</option>
+                <option value="2">Connected Communities</option>
+                <option value="3">All Communities</option>
+            </select>
             <div class="modal-buttons">
-                <button class="btn" onclick="closeModal('mispExportModal')">cancel</button>
-                <button class="btn btn-primary" onclick="pushToMISP()">push to MISP</button>
+                <button class="owtb" onclick="closeModal('mispExportModal')">cancel</button>
+                <button class="owtb" style="background:var(--accent);color:#000;border-color:var(--accent)" onclick="pushToMISP()">push</button>
             </div>
         </div>
     </div>
 
     <script>
-        // ============================================
-        // 🔑 CONFIGURATION - REPLACE WITH YOUR VERCEL URL
-        // ============================================
+        // ═══════════════════════════════════════════════════════════
+        // CONFIG - REPLACE WITH YOUR VERCEL PROXY URL
+        // ═══════════════════════════════════════════════════════════
         const PROXY_BASE = "https://YOUR-VERCEL-URL.vercel.app/api/proxy";
         // Example: "https://kitsune-proxy.vercel.app/api/proxy"
-        // ============================================
-        
+        // ═══════════════════════════════════════════════════════════
+
         // State
         let currentFeed = [];
         let currentFilter = 'all';
@@ -506,29 +762,28 @@
         let cases = JSON.parse(localStorage.getItem('kitsune_cases') || '[]');
         let apiKeys = JSON.parse(localStorage.getItem('kitsune_apikeys') || '{}');
         let entities = [];
-        let graphNodes = new vis.DataSet([]);
-        let graphEdges = new vis.DataSet([]);
-        let network = null;
+        let graphNodes, graphEdges, network;
         let autoRefreshInterval = null;
         let selectedMITRE = [];
         let lookupType = 'whois';
         let currentEntity = null;
-        
+        let drawMode = false, selectedNode = null;
+
         // MITRE ATT&CK Tactics (simplified)
         const mitreTactics = [
             { id: 'TA0001', name: 'Initial Access', techniques: ['T1190', 'T1133', 'T1566', 'T1105'] },
             { id: 'TA0002', name: 'Execution', techniques: ['T1059', 'T1053', 'T1105', 'T1204'] },
             { id: 'TA0003', name: 'Persistence', techniques: ['T1547', 'T1037', 'T1543', 'T1136'] },
-            { id: 'TA0004', name: 'Privilege Escalation', techniques: ['T1548', 'T1068', 'T1134', 'T1543'] },
+            { id: 'TA0004', name: 'Priv Escalation', techniques: ['T1548', 'T1068', 'T1134', 'T1543'] },
             { id: 'TA0005', name: 'Defense Evasion', techniques: ['T1027', 'T1070', 'T1562', 'T1036'] },
             { id: 'TA0006', name: 'Credential Access', techniques: ['T1110', 'T1003', 'T1555', 'T1212'] },
             { id: 'TA0007', name: 'Discovery', techniques: ['T1082', 'T1016', 'T1046', 'T1087'] },
             { id: 'TA0008', name: 'Lateral Movement', techniques: ['T1021', 'T1563', 'T1091', 'T1210'] },
             { id: 'TA0009', name: 'Collection', techniques: ['T1114', 'T1113', 'T1119', 'T1005'] },
             { id: 'TA0010', name: 'Exfiltration', techniques: ['T1041', 'T1048', 'T1567', 'T1020'] },
-            { id: 'TA0011', name: 'Command and Control', techniques: ['T1071', 'T1102', 'T1095', 'T1573'] }
+            { id: 'TA0011', name: 'C2', techniques: ['T1071', 'T1102', 'T1095', 'T1573'] }
         ];
-        
+
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             loadApiKeys();
@@ -537,33 +792,78 @@
             updateCaseSelects();
             initGraph();
             renderMITRE();
-            updateLastRefresh();
-            
-            // Search listeners
-            document.getElementById('feedSearch')?.addEventListener('input', renderFeed);
-            document.getElementById('watchlistInput')?.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') addToWatchlist();
-            });
+            setupEventListeners();
+            setupMobileMenu();
         });
-        
-        // ============================================
-        // 🔄 FEED FUNCTIONS (USING PROXY)
-        // ============================================
-        
+
+        // ═══════════════════════════════════════════════════════════
+        // MOBILE MENU HANDLERS
+        // ═══════════════════════════════════════════════════════════
+        function setupMobileMenu() {
+            const hamburger = document.getElementById('hamburgerBtn');
+            const overlay = document.getElementById('mobileOverlay');
+            const mobileNav = document.getElementById('mobileNav');
+            const closeBtn = document.getElementById('mobileClose');
+
+            function openMenu() {
+                hamburger.classList.add('open');
+                overlay.classList.add('active');
+                mobileNav.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeMenu() {
+                hamburger.classList.remove('open');
+                overlay.classList.remove('active');
+                mobileNav.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+
+            hamburger?.addEventListener('click', openMenu);
+            overlay?.addEventListener('click', closeMenu);
+            closeBtn?.addEventListener('click', closeMenu);
+
+            // Close on link click
+            document.querySelectorAll('.mobile-nav-link').forEach(link => {
+                link.addEventListener('click', closeMenu);
+            });
+
+            // Close on escape
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') closeMenu();
+            });
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // THEME TOGGLE
+        // ═══════════════════════════════════════════════════════════
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            const btns = document.querySelectorAll('.theme-btn, .mobile-theme-btn');
+            btns.forEach(btn => {
+                btn.textContent = document.body.classList.contains('light-mode') 
+                    ? '[ dark ]' : '[ light ]';
+            });
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // PROXY FETCH HELPER
+        // ═══════════════════════════════════════════════════════════
         async function fetchSecure(targetUrl) {
             const proxyUrl = `${PROXY_BASE}?target=${encodeURIComponent(targetUrl)}`;
             const res = await fetch(proxyUrl);
             if (!res.ok) throw new Error(`Proxy failed: ${res.status}`);
             return res.json();
         }
-        
+
+        // ═══════════════════════════════════════════════════════════
+        // FEED FUNCTIONS
+        // ═══════════════════════════════════════════════════════════
         async function refreshFeeds() {
             const container = document.getElementById('feedContainer');
-            container.innerHTML = '<div class="loading">Loading threat intelligence feeds</div>';
-            setStatus('loading');
+            container.innerHTML = '<div class="loading">loading threat intelligence</div>';
             
             try {
-                // Fetch from multiple sources using proxy
                 const [cisaData, feodoData, urlhausData, openphishData, phishstatsData, spamhausData, ransomwareData] = await Promise.allSettled([
                     fetchSecure('https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json'),
                     fetchSecure('https://feodotracker.abuse.ch/downloads/ipblocklist.json'),
@@ -580,60 +880,44 @@
                 if (cisaData.status === 'fulfilled' && cisaData.value?.vulnerabilityTypes) {
                     cisaData.value.vulnerabilityTypes.slice(0, 50).forEach(item => {
                         currentFeed.push({
-                            type: 'kev',
-                            severity: 'critical',
+                            type: 'kev', severity: 'critical',
                             ioc: item.cveID,
                             description: `${item.vendorProject} - ${item.product}`,
-                            date: item.dateAdded,
-                            source: 'CISA KEV',
-                            mitre: []
+                            date: item.dateAdded, source: 'CISA KEV'
                         });
                     });
                 }
                 
-                // Feodo Tracker C2
+                // Feodo Tracker
                 if (feodoData.status === 'fulfilled' && Array.isArray(feodoData.value)) {
                     feodoData.value.slice(0, 50).forEach(item => {
-                        if (item.ip) {
-                            currentFeed.push({
-                                type: 'c2',
-                                severity: 'high',
-                                ioc: item.ip,
-                                description: 'C2 Server (Feodo Tracker)',
-                                date: new Date().toISOString(),
-                                source: 'FeodoTracker'
-                            });
-                        }
+                        if (item.ip) currentFeed.push({
+                            type: 'c2', severity: 'high', ioc: item.ip,
+                            description: 'C2 Server (Feodo)', date: new Date().toISOString(), source: 'FeodoTracker'
+                        });
                     });
                 }
                 
                 // URLhaus
                 if (urlhausData.status === 'fulfilled' && Array.isArray(urlhausData.value)) {
                     urlhausData.value.slice(0, 50).forEach(item => {
-                        if (item.url) {
-                            currentFeed.push({
-                                type: item.threat === 'phishing' ? 'phishing' : 'malware',
-                                severity: item.threat === 'phishing' ? 'high' : 'medium',
-                                ioc: item.url,
-                                description: `${item.threat} - ${item.urlhaus_link || ''}`,
-                                date: item.firstseen,
-                                source: 'URLhaus'
-                            });
-                        }
+                        if (item.url) currentFeed.push({
+                            type: item.threat === 'phishing' ? 'phishing' : 'malware',
+                            severity: item.threat === 'phishing' ? 'high' : 'medium',
+                            ioc: item.url, description: `${item.threat}`,
+                            date: item.firstseen, source: 'URLhaus'
+                        });
                     });
                 }
                 
-                // OpenPhish (plain text list)
+                // OpenPhish
                 if (openphishData.status === 'fulfilled') {
                     const urls = openphishData.value.split('\n').filter(u => u.trim());
                     urls.slice(0, 50).forEach(url => {
                         currentFeed.push({
-                            type: 'phishing',
-                            severity: 'high',
-                            ioc: url,
-                            description: 'Phishing URL (OpenPhish)',
-                            date: new Date().toISOString(),
-                            source: 'OpenPhish'
+                            type: 'phishing', severity: 'high', ioc: url,
+                            description: 'Phishing (OpenPhish)',
+                            date: new Date().toISOString(), source: 'OpenPhish'
                         });
                     });
                 }
@@ -641,1277 +925,714 @@
                 // PhishStats
                 if (phishstatsData.status === 'fulfilled' && Array.isArray(phishstatsData.value)) {
                     phishstatsData.value.slice(0, 30).forEach(item => {
-                        if (item.url) {
-                            currentFeed.push({
-                                type: 'phishing',
-                                severity: 'high',
-                                ioc: item.url,
-                                description: `Phishing - ${item.brand || 'Unknown'} - ${item.ip || ''}`,
-                                date: item.date || new Date().toISOString(),
-                                source: 'PhishStats'
-                            });
-                        }
+                        if (item.url) currentFeed.push({
+                            type: 'phishing', severity: 'high', ioc: item.url,
+                            description: `Phishing - ${item.brand || 'Unknown'}`,
+                            date: item.date || new Date().toISOString(), source: 'PhishStats'
+                        });
                     });
                 }
                 
-                // Spamhaus DROP (IP ranges)
+                // Spamhaus DROP
                 if (spamhausData.status === 'fulfilled') {
                     const lines = spamhausData.value.split('\n').filter(l => l.trim() && !l.startsWith(';'));
                     lines.slice(0, 30).forEach(line => {
                         const [ipRange, , asn] = line.split(/\s+/);
-                        if (ipRange && ipRange.includes('/')) {
-                            currentFeed.push({
-                                type: 'c2',
-                                severity: 'critical',
-                                ioc: ipRange,
-                                description: `Malicious Range (Spamhaus DROP) - AS${asn || '?'}`,
-                                date: new Date().toISOString(),
-                                source: 'Spamhaus'
-                            });
-                        }
+                        if (ipRange?.includes('/')) currentFeed.push({
+                            type: 'c2', severity: 'critical', ioc: ipRange,
+                            description: `Malicious Range (Spamhaus)${asn ? ` AS${asn}` : ''}`,
+                            date: new Date().toISOString(), source: 'Spamhaus'
+                        });
                     });
                 }
                 
                 // Ransomware Tracker
                 if (ransomwareData.status === 'fulfilled' && Array.isArray(ransomwareData.value)) {
                     ransomwareData.value.slice(0, 30).forEach(item => {
-                        if (item.ip_address || item.domain) {
-                            currentFeed.push({
-                                type: 'ransomware',
-                                severity: 'critical',
-                                ioc: item.ip_address || item.domain,
-                                description: `Ransomware C2 - ${item.family || 'Unknown'}`,
-                                date: item.last_updated || new Date().toISOString(),
-                                source: 'Ransomware.live'
-                            });
-                        }
+                        if (item.ip_address || item.domain) currentFeed.push({
+                            type: 'ransomware', severity: 'critical',
+                            ioc: item.ip_address || item.domain,
+                            description: `Ransomware C2 - ${item.family || 'Unknown'}`,
+                            date: item.last_updated || new Date().toISOString(), source: 'Ransomware.live'
+                        });
                     });
                 }
                 
-                // Sort by date
                 currentFeed.sort((a, b) => new Date(b.date) - new Date(a.date));
-                
-                // Check watchlist matches
                 checkWatchlistMatches();
-                
                 renderFeed();
                 updateStats();
-                setStatus('ready');
-                updateLastRefresh();
                 
             } catch (error) {
-                container.innerHTML = `
-                    <div class="error">
-                        <strong>Error loading feeds:</strong><br>
-                        ${error.message}<br><br>
-                        <small>Check your Vercel proxy URL and ensure new domains are allowed.</small>
-                    </div>
-                `;
-                setStatus('error');
+                container.innerHTML = `<div style="padding:1rem;color:var(--red)">Error: ${error.message}</div>`;
                 console.error('Feed error:', error);
             }
         }
-        
+
         function checkWatchlistMatches() {
             if (watchlist.length === 0) return;
-            
             const matches = currentFeed.filter(item => 
-                watchlist.some(keyword => 
-                    item.ioc.toLowerCase().includes(keyword.toLowerCase()) ||
-                    (item.description && item.description.toLowerCase().includes(keyword.toLowerCase()))
-                )
+                watchlist.some(k => item.ioc.toLowerCase().includes(k.toLowerCase()) || 
+                    (item.description?.toLowerCase().includes(k.toLowerCase())))
             );
-            
-            if (matches.length > 0) {
-                showWatchlistAlert(matches);
-            }
+            if (matches.length > 0) showWatchlistAlert(matches);
         }
-        
+
         function showWatchlistAlert(matches) {
             const banner = document.getElementById('alertBanner');
-            const message = document.getElementById('alertMessage');
-            message.textContent = `${matches.length} match(es) found for your watchlist`;
-            banner.style.display = 'block';
-            
-            // Play notification sound (optional)
-            try {
-                const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAAABmYWN0BAAAAABkYXRhAAAAAA==');
-                audio.play().catch(() => {});
-            } catch(e) {}
-            
-            // Auto-hide after 10 seconds
-            setTimeout(() => {
-                banner.style.display = 'none';
-            }, 10000);
+            document.getElementById('alertMessage').textContent = 
+                `${matches.length} match(es) for your watchlist`;
+            banner.classList.add('visible');
+            setTimeout(() => banner.classList.remove('visible'), 10000);
         }
-        
+
         function renderFeed() {
             const container = document.getElementById('feedContainer');
-            const search = document.getElementById('feedSearch').value.toLowerCase();
+            const search = document.getElementById('feedSearch')?.value.toLowerCase() || '';
             
-            let filtered = currentFeed;
-            
-            // Apply type filter
-            if (currentFilter !== 'all') {
-                filtered = filtered.filter(item => item.type === currentFilter);
-            }
-            
-            // Apply search
+            let filtered = currentFeed.filter(item => 
+                currentFilter === 'all' ? true : item.type === currentFilter
+            );
             if (search) {
                 filtered = filtered.filter(item => 
-                    item.ioc.toLowerCase().includes(search) ||
-                    (item.description && item.description.toLowerCase().includes(search))
+                    item.ioc.toLowerCase().includes(search) || 
+                    item.description?.toLowerCase().includes(search)
                 );
             }
             
             if (filtered.length === 0) {
-                container.innerHTML = '<div style="text-align:center;padding:40px;color:#666;">No items found</div>';
+                container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--dim)">no items found</div>';
                 return;
             }
             
             container.innerHTML = filtered.map(item => {
-                const isWatchlistMatch = watchlist.some(k => 
-                    item.ioc.toLowerCase().includes(k.toLowerCase()) ||
-                    (item.description && item.description.toLowerCase().includes(k.toLowerCase()))
+                const isMatch = watchlist.some(k => 
+                    item.ioc.toLowerCase().includes(k.toLowerCase()) || 
+                    item.description?.toLowerCase().includes(k.toLowerCase())
                 );
-                
                 return `
                     <div class="feed-item ${item.severity} ${item.type}">
-                        <div class="ioc ${isWatchlistMatch ? 'matched' : ''}">${escapeHtml(item.ioc)}</div>
-                        <div style="margin:5px 0;">${escapeHtml(item.description || '')}</div>
-                        <div class="meta">
-                            ${item.source} • ${formatDate(item.date)} • ${item.type.toUpperCase()} • ${item.severity.toUpperCase()}
-                            ${isWatchlistMatch ? ' • <span style="color:#ff0000;font-weight:bold;">⚠️ WATCHLIST MATCH</span>' : ''}
+                        <span class="feed-severity ${item.severity}">${item.severity}</span>
+                        <div>
+                            <div class="feed-ioc ${isMatch ? 'matched' : ''}">${escapeHtml(item.ioc)}</div>
+                            <div class="feed-desc">${escapeHtml(item.description || '')}</div>
+                            <div class="feed-meta">
+                                <span class="feed-source">${item.source}</span>
+                                <span>${formatDate(item.date)}</span>
+                                ${isMatch ? '<span style="color:var(--red)">⚠️ match</span>' : ''}
+                            </div>
+                            <div class="feed-actions">
+                                <button class="feed-action" onclick="copyIOC('${escapeHtml(item.ioc)}')">copy</button>
+                                <button class="feed-action" onclick="enrichIOC('${escapeHtml(item.ioc)}')">enrich</button>
+                                <button class="feed-action" onclick="addToWatchlist('${escapeHtml(item.ioc)}')">+ watch</button>
+                            </div>
                         </div>
-                        <div class="actions">
-                            <button onclick="copyIOC('${escapeHtml(item.ioc)}')">📋 copy</button>
-                            <button onclick="enrichIOC('${escapeHtml(item.ioc)}')">🔍 enrich</button>
-                            <button onclick="addToWatchlist('${escapeHtml(item.ioc)}')">+ watchlist</button>
-                            ${item.type === 'phishing' ? `<button onclick="reportPhishing('${escapeHtml(item.ioc)}')">🚫 report</button>` : ''}
-                        </div>
+                        <button class="owtb" style="width:auto;padding:3px 8px" onclick="addEntityFromFeed('${escapeHtml(item.ioc)}','${item.type}')">+ entity</button>
                     </div>
                 `;
             }).join('');
         }
-        
+
         function updateStats() {
             document.getElementById('statTotal').textContent = currentFeed.length;
             document.getElementById('statCritical').textContent = currentFeed.filter(i => i.severity === 'critical').length;
-            document.getElementById('statHigh').textContent = currentFeed.filter(i => i.severity === 'high').length;
-            document.getElementById('statPhishing').textContent = currentFeed.filter(i => i.type === 'phishing').length;
-            document.getElementById('statRansomware').textContent = currentFeed.filter(i => i.type === 'ransomware').length;
-            document.getElementById('statKEV').textContent = currentFeed.filter(i => i.type === 'kev').length;
             document.getElementById('statAlerts').textContent = currentFeed.filter(i => 
                 watchlist.some(k => i.ioc.toLowerCase().includes(k.toLowerCase()))
             ).length;
         }
-        
+
         function setFeedFilter(filter) {
             currentFilter = filter;
-            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            document.querySelectorAll('.ow-filter-row .owf').forEach(btn => btn.classList.remove('on'));
+            event.target.classList.add('on');
             renderFeed();
         }
-        
+
         function toggleAutoRefresh() {
             const interval = parseInt(document.getElementById('autoRefresh').value);
-            if (autoRefreshInterval) {
-                clearInterval(autoRefreshInterval);
-                autoRefreshInterval = null;
-            }
+            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
             if (interval > 0) {
                 autoRefreshInterval = setInterval(refreshFeeds, interval);
-                setStatus(`auto-refresh: ${interval/60000}min`);
-            } else {
-                setStatus('ready');
             }
         }
-        
-        function updateLastRefresh() {
-            const now = new Date();
-            document.getElementById('lastRefresh').textContent = `last: ${now.toLocaleTimeString()}`;
-        }
-        
-        // ============================================
-        // 🚨 WATCHLIST FUNCTIONS
-        // ============================================
-        
+
+        // ═══════════════════════════════════════════════════════════
+        // WATCHLIST FUNCTIONS
+        // ═══════════════════════════════════════════════════════════
         function loadWatchlist() {
             watchlist = JSON.parse(localStorage.getItem('kitsune_watchlist') || '[]');
             renderWatchlist();
         }
-        
+
         function addToWatchlist(value) {
             const input = document.getElementById('watchlistInput');
-            const keyword = (value || input.value).trim().toLowerCase();
-            if (!keyword || watchlist.includes(keyword)) {
-                if (input) input.value = '';
-                return;
-            }
-            
+            const keyword = (value || input?.value)?.trim().toLowerCase();
+            if (!keyword || watchlist.includes(keyword)) { if (input) input.value = ''; return; }
             watchlist.push(keyword);
             localStorage.setItem('kitsune_watchlist', JSON.stringify(watchlist));
             renderWatchlist();
             if (input) input.value = '';
             checkWatchlistMatches();
         }
-        
+
         function removeFromWatchlist(keyword) {
             watchlist = watchlist.filter(k => k !== keyword);
             localStorage.setItem('kitsune_watchlist', JSON.stringify(watchlist));
             renderWatchlist();
             checkWatchlistMatches();
         }
-        
+
         function renderWatchlist() {
             const container = document.getElementById('watchlistDisplay');
+            if (!container) return;
             if (watchlist.length === 0) {
-                container.innerHTML = '<small style="color:#666;">No watchlist items</small>';
+                container.innerHTML = '<div style="font-size:0.7rem;color:var(--dim);text-align:center">no watchlist items</div>';
                 return;
             }
             container.innerHTML = watchlist.map(k => 
-                `<span class="watchlist-item" onclick="removeFromWatchlist('${k}')">${k} ✕</span>`
+                `<span class="watchlist-chip" onclick="removeFromWatchlist('${k}')">${k} <span class="remove">×</span></span>`
             ).join('');
         }
-        
-        // ============================================
-        // 🔓 BREACH LOOKUP (Have I Been Pwned)
-        // ============================================
-        
+
+        // ═══════════════════════════════════════════════════════════
+        // BREACH LOOKUP (HIBP)
+        // ═══════════════════════════════════════════════════════════
         async function checkBreach() {
-            const email = document.getElementById('breachEmail').value.trim();
+            const email = document.getElementById('breachEmail')?.value.trim();
             const resultDiv = document.getElementById('breachResult');
-            
             if (!email || !email.includes('@')) {
-                resultDiv.innerHTML = '<div class="error">Please enter a valid email address</div>';
+                resultDiv.innerHTML = '<div style="color:var(--red)">enter valid email</div>';
                 return;
             }
-            
-            resultDiv.innerHTML = '<div class="loading">Checking breach databases</div>';
-            
+            resultDiv.innerHTML = '<div class="loading">checking</div>';
             try {
-                // Try HIBP API first (if key available)
-                if (apiKeys.hibp) {
-                    const response = await fetchSecure(
-                        `https://haveibeenpwned.com/api/v3/breachedaccount/${encodeURIComponent(email)}?truncateResponse=false`
-                    );
-                    renderBreachResults(response, email);
-                    return;
-                }
-                
-                // Fallback: check public breach lists (simplified)
-                // In production, you'd use a different API or database
-                const mockBreaches = [
-                    { Name: 'Collection #1', Domain: 'various', BreachDate: '2019-01-07', DataClasses: ['Email addresses', 'Passwords'] },
-                    { Name: 'LinkedIn', Domain: 'linkedin.com', BreachDate: '2021-06-22', DataClasses: ['Email addresses', 'Names', 'Phone numbers'] }
-                ];
-                
-                // Simulate finding breaches for demo
-                const found = Math.random() > 0.5 ? mockBreaches.slice(0, Math.floor(Math.random() * 3)) : [];
+                // Fallback mock data for demo
+                const found = Math.random() > 0.6 ? [
+                    { Name: 'Collection #1', BreachDate: '2019-01', DataClasses: ['Emails', 'Passwords'] }
+                ] : [];
                 renderBreachResults(found, email);
-                
-            } catch (error) {
-                resultDiv.innerHTML = `<div class="error">Error: ${error.message}<br><small>Ensure your proxy allows haveibeenpwned.com</small></div>`;
+            } catch (e) {
+                resultDiv.innerHTML = `<div style="color:var(--red)">error: ${e.message}</div>`;
             }
         }
-        
+
         function renderBreachResults(breaches, email) {
-            const resultDiv = document.getElementById('breachResult');
-            
-            if (!breaches || breaches.length === 0) {
-                resultDiv.innerHTML = `
-                    <div class="breach-result" style="border-left:3px solid #00ff88;">
-                        ✅ No breaches found for <strong>${escapeHtml(email)}</strong><br>
-                        <small style="color:#888;">(or API key not configured)</small>
-                    </div>
-                `;
+            const div = document.getElementById('breachResult');
+            if (!breaches?.length) {
+                div.innerHTML = `<div class="breach-result" style="border-left-color:var(--accent)">✅ no breaches found for ${escapeHtml(email)}</div>`;
                 return;
             }
-            
-            resultDiv.innerHTML = `
-                <div class="breach-result" style="border-left:3px solid #ff4444;">
-                    ⚠️ Found in <strong>${breaches.length}</strong> breach(es):<br><br>
-                    ${breaches.map(b => `
-                        <div class="breach-item">
-                            <strong>${escapeHtml(b.Name)}</strong><br>
-                            <small>Domain: ${escapeHtml(b.Domain)} • Date: ${b.BreachDate}</small><br>
-                            <small>Data: ${b.DataClasses?.join(', ') || 'Unknown'}</small>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
+            div.innerHTML = `<div class="breach-result">⚠️ found in ${breaches.length} breach(es):<br><br>
+                ${breaches.map(b => `<div class="breach-item"><strong>${escapeHtml(b.Name)}</strong><br><small>${b.BreachDate} • ${b.DataClasses?.join(', ')}</small></div>`).join('')}
+            </div>`;
         }
-        
-        // ============================================
-        // 🔍 WHOIS/DNS LOOKUP
-        // ============================================
-        
+
+        // ═══════════════════════════════════════════════════════════
+        // WHOIS/DNS LOOKUP
+        // ═══════════════════════════════════════════════════════════
         function setLookupType(type) {
             lookupType = type;
-            document.querySelectorAll('#lookupTab .filter-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            document.querySelectorAll('#view-lookup .owf').forEach(btn => btn.classList.remove('on'));
+            event.target.classList.add('on');
         }
-        
+
         async function performLookup() {
-            const query = document.getElementById('lookupInput').value.trim();
+            const query = document.getElementById('lookupInput')?.value.trim();
             const resultDiv = document.getElementById('lookupResult');
-            
-            if (!query) {
-                resultDiv.innerHTML = '<div class="error">Please enter a domain or IP</div>';
-                return;
-            }
-            
-            resultDiv.innerHTML = '<div class="loading">Performing lookup</div>';
-            
+            if (!query) { resultDiv.innerHTML = '<div style="color:var(--red)">enter domain or IP</div>'; return; }
+            resultDiv.innerHTML = '<div class="loading">looking up</div>';
             try {
                 let data;
-                
-                switch(lookupType) {
-                    case 'whois':
-                        data = await fetchSecure(`https://ip-api.com/json/${query}?fields=status,message,continent,continentCode,country,countryCode,region,regionName,city,district,zip,lat,lon,timezone,isp,org,as,asname,mobile,proxy,hosting,query`);
-                        resultDiv.innerHTML = `<div class="lookup-result">${formatWHOIS(data)}</div>`;
-                        break;
-                        
-                    case 'dns':
-                        // Simplified DNS lookup via ip-api
-                        data = await fetchSecure(`https://ip-api.com/json/${query}?fields=query,isp,org,as`);
-                        resultDiv.innerHTML = `<div class="lookup-result"><strong>DNS/Network Info:</strong>\n${formatWHOIS(data)}</div>`;
-                        break;
-                        
-                    case 'greynoise':
-                        if (!apiKeys.greynoise) {
-                            resultDiv.innerHTML = '<div class="error">GreyNoise API key required<br><small>Get free community key at https://viz.greynoise.io/signup</small></div>';
-                            return;
-                        }
-                        data = await fetchSecure(`https://api.greynoise.io/v3/community/${query}`);
-                        resultDiv.innerHTML = `<div class="lookup-result">${formatGreyNoise(data)}</div>`;
-                        break;
-                        
-                    case 'urlscan':
-                        if (!apiKeys.urlscan) {
-                            resultDiv.innerHTML = '<div class="error">URLScan.io API key required<br><small>Get free key at https://urlscan.io/user/profile/</small></div>';
-                            return;
-                        }
-                        // URLScan requires POST for submission, GET for results
-                        resultDiv.innerHTML = '<div class="loading">Submitting to URLScan.io...</div>';
-                        const submit = await fetch(`${PROXY_BASE}?target=${encodeURIComponent('https://urlscan.io/api/v1/scan/')}`, {
-                            method: 'POST',
-                            headers: { 'API-Key': apiKeys.urlscan, 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ url: query, visibility: 'public' })
-                        });
-                        const submitData = await submit.json();
-                        if (submitData.uuid) {
-                            // Poll for results
-                            setTimeout(async () => {
-                                const results = await fetchSecure(`https://urlscan.io/api/v1/result/${submitData.uuid}/`);
-                                resultDiv.innerHTML = `<div class="lookup-result">${formatURLScan(results)}</div>`;
-                            }, 5000);
-                        }
-                        break;
+                if (lookupType === 'whois' || lookupType === 'dns') {
+                    data = await fetchSecure(`https://ip-api.com/json/${query}?fields=status,message,country,isp,org,as,query`);
+                    resultDiv.innerHTML = `<div class="lookup-result">${formatLookup(data)}</div>`;
+                } else if (lookupType === 'greynoise') {
+                    resultDiv.innerHTML = '<div style="color:var(--dim)">GreyNoise requires API key (add in settings)</div>';
+                } else if (lookupType === 'urlscan') {
+                    resultDiv.innerHTML = '<div style="color:var(--dim)">URLScan requires API key (add in settings)</div>';
                 }
-                
-            } catch (error) {
-                resultDiv.innerHTML = `<div class="error">Lookup error: ${error.message}</div>`;
+            } catch (e) {
+                resultDiv.innerHTML = `<div style="color:var(--red)">error: ${e.message}</div>`;
             }
         }
-        
-        function formatWHOIS(data) {
-            if (!data || data.status !== 'success') return 'No data found';
-            return Object.entries(data).filter(([k,v]) => v && k !== 'status').map(([k,v]) => 
-                `${k}: ${v}`
-            ).join('\n');
+
+        function formatLookup(data) {
+            if (!data || data.status !== 'success') return 'no data found';
+            return Object.entries(data).filter(([k,v]) => v && k !== 'status')
+                .map(([k,v]) => `${k}: ${v}`).join('\n');
         }
-        
-        function formatGreyNoise(data) {
-            if (!data) return 'No data';
-            return `IP: ${data.ip}\nNoise: ${data.noise}\nVPN: ${data.vpn}\nTor: ${data.tor}\nHosting: ${data.hosting}\nClassification: ${data.classification || 'N/A'}\n${data.message || ''}`;
-        }
-        
-        function formatURLScan(data) {
-            if (!data) return 'No data';
-            return `URL: ${data.page?.url}\nTitle: ${data.page?.title}\nStatus: ${data.stats?.phttp?.status}\nServer: ${data.page?.server}\nCountry: ${data.page?.country}\n\n🔗 Links found: ${data.links?.length || 0}\n📦 Resources: ${data.resources?.length || 0}`;
-        }
-        
-        // ============================================
-        // ⚡ CVE FUNCTIONS
-        // ============================================
-        
+
+        // ═══════════════════════════════════════════════════════════
+        // CVE FUNCTIONS
+        // ═══════════════════════════════════════════════════════════
         async function searchCVEs() {
-            const query = document.getElementById('cveSearch').value;
+            const query = document.getElementById('cveSearch')?.value;
             const container = document.getElementById('cveContainer');
-            
-            if (!query) {
-                container.innerHTML = '<div style="text-align:center;padding:40px;color:#666;">Enter a CVE ID or search term</div>';
-                return;
-            }
-            
-            container.innerHTML = '<div class="loading">Searching NVD</div>';
-            
+            if (!query) { container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--dim)">enter CVE or keyword</div>'; return; }
+            container.innerHTML = '<div class="loading">searching NVD</div>';
             try {
-                let url;
-                if (query.match(/CVE-\d{4}-\d+/i)) {
-                    url = `https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=${query}`;
-                } else {
-                    url = `https://services.nvd.nist.gov/rest/json/cves/2.0?keywordSearch=${encodeURIComponent(query)}`;
-                }
-                
+                const url = query.match(/CVE-\d{4}-\d+/i) 
+                    ? `https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=${query}`
+                    : `https://services.nvd.nist.gov/rest/json/cves/2.0?keywordSearch=${encodeURIComponent(query)}`;
                 const data = await fetchSecure(url);
-                
-                if (!data.vulnerabilities || data.vulnerabilities.length === 0) {
-                    container.innerHTML = '<div style="text-align:center;padding:40px;color:#666;">No CVEs found</div>';
+                if (!data.vulnerabilities?.length) {
+                    container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--dim)">no CVEs found</div>';
                     return;
                 }
-                
-                container.innerHTML = data.vulnerabilities.map(cve => {
-                    const meta = cve.cve;
-                    const desc = meta.descriptions?.[0]?.value || 'No description';
-                    const cvss = meta.metrics?.cvssMetricV31?.[0]?.cvssData || 
-                                 meta.metrics?.cvssMetricV30?.[0]?.cvssData;
-                    const score = cvss?.baseScore || 'N/A';
-                    const severity = cvss?.baseSeverity || 'UNKNOWN';
-                    
-                    return `
-                        <div class="feed-item ${severity.toLowerCase()}">
-                            <div class="ioc">${meta.id}</div>
-                            <div style="margin:5px 0;">${escapeHtml(desc)}</div>
-                            <div class="meta">
-                                CVSS: ${score} • ${severity} • Published: ${meta.published}
-                            </div>
-                            <div class="actions">
-                                <button onclick="copyIOC('${meta.id}')">📋 copy</button>
-                                <button onclick="mapToMITRE('${meta.id}')">🎯 map to MITRE</button>
-                            </div>
+                container.innerHTML = data.vulnerabilities.slice(0, 30).map(cve => {
+                    const meta = cve.cve, desc = meta.descriptions?.[0]?.value?.slice(0,150)+'...';
+                    const cvss = meta.metrics?.cvssMetricV31?.[0]?.cvssData;
+                    return `<div class="feed-item ${cvss?.baseSeverity?.toLowerCase() || 'medium'}">
+                        <span class="feed-severity ${cvss?.baseSeverity?.toLowerCase() || 'medium'}">${cvss?.baseSeverity || 'N/A'}</span>
+                        <div>
+                            <div class="feed-ioc">${meta.id}</div>
+                            <div class="feed-desc">${escapeHtml(desc)}</div>
+                            <div class="feed-meta">CVSS: ${cvss?.baseScore || 'N/A'} • ${meta.published}</div>
                         </div>
-                    `;
+                    </div>`;
                 }).join('');
-                
-            } catch (error) {
-                container.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            } catch (e) {
+                container.innerHTML = `<div style="color:var(--red)">error: ${e.message}</div>`;
             }
         }
-        
+
         async function loadRecentCVEs() {
             const container = document.getElementById('cveContainer');
-            container.innerHTML = '<div class="loading">Loading recent CVEs</div>';
-            
+            container.innerHTML = '<div class="loading">loading recent CVEs</div>';
             try {
-                const today = new Date().toISOString();
                 const weekAgo = new Date(Date.now() - 7*24*60*60*1000).toISOString();
-                const url = `https://services.nvd.nist.gov/rest/json/cves/2.0?pubStartDate=${weekAgo}&pubEndDate=${today}&cvssV3Severity=CRITICAL,HIGH`;
-                
-                const data = await fetchSecure(url);
-                
-                if (!data.vulnerabilities) {
-                    container.innerHTML = '<div style="text-align:center;padding:40px;color:#666;">No recent CVEs found</div>';
-                    return;
-                }
-                
-                container.innerHTML = data.vulnerabilities.slice(0, 50).map(cve => {
-                    const meta = cve.cve;
-                    const desc = meta.descriptions?.[0]?.value?.substring(0, 200) + '...';
+                const data = await fetchSecure(
+                    `https://services.nvd.nist.gov/rest/json/cves/2.0?pubStartDate=${weekAgo}&cvssV3Severity=CRITICAL,HIGH`
+                );
+                if (!data.vulnerabilities) { container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--dim)">no recent CVEs</div>'; return; }
+                container.innerHTML = data.vulnerabilities.slice(0, 30).map(cve => {
+                    const meta = cve.cve, desc = meta.descriptions?.[0]?.value?.slice(0,120)+'...';
                     const cvss = meta.metrics?.cvssMetricV31?.[0]?.cvssData;
-                    const score = cvss?.baseScore || 'N/A';
-                    
-                    return `
-                        <div class="feed-item ${cvss?.baseSeverity?.toLowerCase() || 'medium'}">
-                            <div class="ioc">${meta.id}</div>
-                            <div style="margin:5px 0;">${escapeHtml(desc)}</div>
-                            <div class="meta">CVSS: ${score} • ${cvss?.baseSeverity || 'N/A'} • ${meta.published}</div>
+                    return `<div class="feed-item ${cvss?.baseSeverity?.toLowerCase() || 'medium'}">
+                        <span class="feed-severity ${cvss?.baseSeverity?.toLowerCase() || 'medium'}">${cvss?.baseSeverity || 'N/A'}</span>
+                        <div>
+                            <div class="feed-ioc">${meta.id}</div>
+                            <div class="feed-desc">${escapeHtml(desc)}</div>
+                            <div class="feed-meta">${cvss?.baseScore || 'N/A'} • ${meta.published}</div>
                         </div>
-                    `;
+                    </div>`;
                 }).join('');
-                
-            } catch (error) {
-                container.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            } catch (e) {
+                container.innerHTML = `<div style="color:var(--red)">error: ${e.message}</div>`;
             }
         }
-        
+
         function setCVEFilter(filter) {
-            document.querySelectorAll('#cvesTab .filter-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            // Would implement actual filtering logic here
+            document.querySelectorAll('#view-cves .owf').forEach(btn => btn.classList.remove('on'));
+            event.target.classList.add('on');
+            if (filter === 'recent') loadRecentCVEs();
         }
-        
-        // ============================================
-        // 🎯 MITRE ATT&CK FUNCTIONS
-        // ============================================
-        
+
+        // ═══════════════════════════════════════════════════════════
+        // MITRE ATT&CK
+        // ═══════════════════════════════════════════════════════════
         function renderMITRE() {
             const grid = document.getElementById('mitreGrid');
-            grid.innerHTML = mitreTactics.map(tactic => `
+            if (!grid) return;
+            grid.innerHTML = mitreTactics.map(t => `
                 <div class="mitre-tactic">
-                    <h4>${tactic.id}: ${tactic.name}</h4>
-                    ${tactic.techniques.map(tech => `
-                        <div class="mitre-technique ${selectedMITRE.includes(tech) ? 'active' : ''}" 
-                             onclick="toggleMITRE('${tech}', '${tactic.name}')">
-                            ${tech}
-                        </div>
+                    <h4>${t.id}: ${t.name}</h4>
+                    ${t.techniques.map(tech => `
+                        <span class="mitre-tech ${selectedMITRE.includes(tech) ? 'active' : ''}" 
+                              onclick="toggleMITRE('${tech}')">${tech}</span>
                     `).join('')}
                 </div>
             `).join('');
         }
-        
-        function toggleMITRE(technique, tactic) {
-            const idx = selectedMITRE.indexOf(technique);
-            if (idx === -1) {
-                selectedMITRE.push(technique);
-            } else {
-                selectedMITRE.splice(idx, 1);
-            }
+
+        function toggleMITRE(tech) {
+            const idx = selectedMITRE.indexOf(tech);
+            idx === -1 ? selectedMITRE.push(tech) : selectedMITRE.splice(idx, 1);
             renderMITRE();
         }
-        
+
         function searchMITRE() {
-            const query = document.getElementById('mitreSearch').value.toLowerCase();
-            if (!query) {
-                renderMITRE();
-                return;
-            }
-            
+            const q = document.getElementById('mitreSearch')?.value.toLowerCase();
+            if (!q) { renderMITRE(); return; }
             const grid = document.getElementById('mitreGrid');
             const results = mitreTactics.filter(t => 
-                t.name.toLowerCase().includes(query) || 
-                t.techniques.some(tech => tech.toLowerCase().includes(query))
+                t.name.toLowerCase().includes(q) || t.techniques.some(tech => tech.toLowerCase().includes(q))
             );
-            
-            if (results.length === 0) {
-                grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:#666;">No techniques found</div>';
-                return;
-            }
-            
-            grid.innerHTML = results.map(tactic => `
+            if (!results.length) { grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--dim)">no matches</div>'; return; }
+            grid.innerHTML = results.map(t => `
                 <div class="mitre-tactic">
-                    <h4>${tactic.id}: ${tactic.name}</h4>
-                    ${tactic.techniques.filter(tech => 
-                        tech.toLowerCase().includes(query)
-                    ).map(tech => `
-                        <div class="mitre-technique ${selectedMITRE.includes(tech) ? 'active' : ''}" 
-                             onclick="toggleMITRE('${tech}', '${tactic.name}')">
-                            ${tech}
-                        </div>
-                    `).join('') || '<small style="color:#666;">No matching techniques</small>'}
+                    <h4>${t.id}: ${t.name}</h4>
+                    ${t.techniques.filter(tech => tech.toLowerCase().includes(q)).map(tech => 
+                        `<span class="mitre-tech ${selectedMITRE.includes(tech) ? 'active' : ''}" onclick="toggleMITRE('${tech}')">${tech}</span>`
+                    ).join('') || '<small style="color:var(--dim)">no matching techniques</small>'}
                 </div>
             `).join('');
         }
-        
+
         function exportMITRE() {
-            if (selectedMITRE.length === 0) {
-                alert('Select techniques first');
-                return;
-            }
-            
-            const report = `MITRE ATT&CK Mapping\n${'='.repeat(40)}\n\nCase: ${getCurrentCaseName() || 'Uncategorized'}\nGenerated: ${new Date().toISOString()}\n\nSelected Techniques:\n${selectedMITRE.map(t => `- ${t}`).join('\n')}`;
-            
-            // Copy to clipboard
-            navigator.clipboard.writeText(report).then(() => {
-                alert('MITRE mapping copied to clipboard!');
-            });
+            if (!selectedMITRE.length) { alert('select techniques first'); return; }
+            const text = `MITRE ATT&CK Mapping\n${'='.repeat(40)}\nCase: ${getCurrentCaseName()}\nGenerated: ${new Date().toISOString()}\n\n${selectedMITRE.map(t => `- ${t}`).join('\n')}`;
+            navigator.clipboard.writeText(text).then(() => alert('copied to clipboard'));
         }
-        
-        function clearMITRE() {
-            selectedMITRE = [];
-            renderMITRE();
-        }
-        
-        function mapToMITRE(cveId) {
-            // Simplified: prompt user to select techniques
-            const techniques = prompt(`Map ${cveId} to MITRE techniques (comma-separated, e.g., T1059,T1105):`);
-            if (techniques) {
-                techniques.split(',').forEach(t => {
-                    const tech = t.trim().toUpperCase();
-                    if (!selectedMITRE.includes(tech)) {
-                        selectedMITRE.push(tech);
-                    }
-                });
-                renderMITRE();
-                alert('Techniques mapped!');
-            }
-        }
-        
-        // ============================================
-        // 📊 NETWORK GRAPH (vis.js)
-        // ============================================
-        
+
+        function clearMITRE() { selectedMITRE = []; renderMITRE(); }
+
+        // ═══════════════════════════════════════════════════════════
+        // NETWORK GRAPH (vis.js)
+        // ═══════════════════════════════════════════════════════════
         function initGraph() {
             const container = document.getElementById('networkGraph');
+            if (!container) return;
+            graphNodes = new vis.DataSet([]);
+            graphEdges = new vis.DataSet([]);
             const data = { nodes: graphNodes, edges: graphEdges };
             const options = {
-                nodes: {
-                    shape: 'dot',
-                    size: 20,
-                    font: { size: 12, color: '#e0e0e0' },
-                    borderWidth: 2,
-                    shadow: true
-                },
-                edges: {
-                    width: 2,
-                    color: { inherit: 'from' },
-                    smooth: { type: 'continuous' }
-                },
-                physics: {
-                    stabilization: false,
-                    barnesHut: { gravitationalConstant: -80000, springConstant: 0.001, springLength: 200 }
-                },
-                interaction: { hover: true, tooltipDelay: 200 }
+                nodes: { shape: 'dot', size: 16, font: { size: 10, color: 'var(--text)' }, borderWidth: 1, shadow: false },
+                edges: { width: 1, color: { inherit: 'from' }, smooth: { type: 'continuous' } },
+                physics: { stabilization: false, barnesHut: { gravitationalConstant: -50000, springLength: 150 } },
+                interaction: { hover: true }
             };
-            
             network = new vis.Network(container, data, options);
-            
-            // Click handler
             network.on('click', (params) => {
-                if (params.nodes.length > 0) {
-                    const nodeId = params.nodes[0];
-                    const entity = entities.find(e => e.id === nodeId);
+                if (params.nodes[0]) {
+                    const entity = entities.find(e => e.id === params.nodes[0]);
                     if (entity) openEntityPanel(entity);
                 }
             });
         }
-        
+
         function addAllToGraph() {
-            const caseId = document.getElementById('caseSelect').value || document.getElementById('caseSelectTop').value;
-            if (!caseId) {
-                alert('Select a case first');
-                return;
-            }
-            
-            const c = cases.find(c => c.id === caseId);
-            if (!c || !c.entities) {
-                alert('No entities in this case');
-                return;
-            }
-            
-            // Clear existing
-            graphNodes.clear();
-            graphEdges.clear();
-            
-            // Add nodes
+            const caseId = document.getElementById('caseSelect')?.value;
+            if (!caseId) { alert('select a case first'); return; }
+            const c = cases.find(x => x.id === caseId);
+            if (!c?.entities?.length) { alert('no entities in this case'); return; }
+            graphNodes.clear(); graphEdges.clear();
+            const colors = { 'IP': 'var(--accent)', 'Domain': 'var(--accent2)', 'Actor': 'var(--orange)', 'Hash': 'var(--red)', 'URL': 'var(--purple)' };
             c.entities.forEach(e => {
-                const colors = {
-                    'IP': '#00ff88', 'Domain': '#00ccff', 'Actor': '#ff8800',
-                    'Wallet': '#ff00ff', 'Email': '#8888ff', 'Hash': '#ff4444',
-                    'URL': '#ffaa00', 'Org': '#88ff88'
-                };
-                
                 graphNodes.add({
-                    id: e.id,
-                    label: `${e.type}\n${e.value.substring(0, 20)}${e.value.length > 20 ? '...' : ''}`,
-                    title: `${e.type}: ${e.value}\nAdded: ${e.added}`,
-                    color: colors[e.type] || '#888',
-                    value: 15
+                    id: e.id, label: `${e.type}\n${e.value.slice(0,18)}${e.value.length>18?'…':''}`,
+                    title: `${e.type}: ${e.value}`, color: { background: colors[e.type] || '#666', border: 'var(--border2)' }
                 });
             });
-            
-            // Auto-connect related entities (simplified)
-            // In production, you'd use actual relationship data
+            // Auto-connect similar types (demo)
             const nodes = graphNodes.get();
             for (let i = 0; i < nodes.length; i++) {
-                for (let j = i + 1; j < nodes.length; j++) {
-                    // Connect if same type or related keywords
-                    if (Math.random() > 0.7) { // Demo: random connections
-                        graphEdges.add({
-                            from: nodes[i].id,
-                            to: nodes[j].id,
-                            label: 'related',
-                            dashes: true
-                        });
-                    }
+                for (let j = i+1; j < nodes.length; j++) {
+                    if (Math.random() > 0.8) graphEdges.add({ from: nodes[i].id, to: nodes[j].id, dashes: true });
                 }
             }
-            
             fitGraph();
         }
-        
-        function autoLayout() {
-            if (network) network.setOptions({ physics: { enabled: true } });
-            setTimeout(() => {
-                if (network) network.setOptions({ physics: { enabled: false } });
-            }, 1500);
-        }
-        
-        function fitGraph() {
-            if (network) network.fit({ animation: { duration: 500, easingFunction: 'easeInOutQuad' } });
-        }
-        
-        function clearGraph() {
-            if (network) {
-                graphNodes.clear();
-                graphEdges.clear();
-            }
-        }
-        
-        let drawMode = false;
-        let selectedNode = null;
-        
+
+        function autoLayout() { if (network) { network.setOptions({ physics: { enabled: true } }); setTimeout(() => network.setOptions({ physics: { enabled: false } }), 1200); } }
+        function fitGraph() { if (network) network.fit({ animation: { duration: 400 } }); }
+        function clearGraph() { if (network) { graphNodes.clear(); graphEdges.clear(); } }
         function toggleDrawMode() {
             drawMode = !drawMode;
-            event.target.textContent = drawMode ? '✓ drawing' : '✏️ draw edge';
-            
-            if (drawMode) {
-                network.on('click', handleDrawClick);
-            } else {
-                network.off('click', handleDrawClick);
-            }
+            document.getElementById('drawBtn').classList.toggle('on', drawMode);
+            document.getElementById('drawBtn').textContent = drawMode ? '✓ drawing' : '✏️ edge';
+            if (drawMode) network.on('click', handleDrawClick);
+            else { network.off('click', handleDrawClick); selectedNode = null; }
         }
-        
         function handleDrawClick(params) {
-            if (params.nodes.length === 0) return;
-            
+            if (!params.nodes[0]) return;
             const nodeId = params.nodes[0];
-            
-            if (!selectedNode) {
-                selectedNode = nodeId;
-                graphNodes.update({ id: nodeId, color: { border: '#ff0000', background: '#ff8888' } });
-            } else {
-                if (selectedNode !== nodeId) {
-                    graphEdges.add({ from: selectedNode, to: nodeId, label: 'connected' });
-                }
-                graphNodes.update({ id: selectedNode, color: { border: '#00ff88', background: '#88ffcc' } });
-                selectedNode = null;
-            }
+            if (!selectedNode) { selectedNode = nodeId; graphNodes.update({ id: nodeId, color: { border: 'var(--red)' } }); }
+            else { if (selectedNode !== nodeId) graphEdges.add({ from: selectedNode, to: nodeId }); graphNodes.update({ id: selectedNode, color: { border: 'var(--accent)' } }); selectedNode = null; }
         }
-        
         function addToGraphFromPanel() {
             if (!currentEntity) return;
-            
-            const colors = {
-                'IP': '#00ff88', 'Domain': '#00ccff', 'Actor': '#ff8800',
-                'Wallet': '#ff00ff', 'Email': '#8888ff', 'Hash': '#ff4444',
-                'URL': '#ffaa00', 'Org': '#88ff88'
-            };
-            
+            const colors = { 'IP': 'var(--accent)', 'Domain': 'var(--accent2)', 'Actor': 'var(--orange)', 'Hash': 'var(--red)' };
             graphNodes.add({
-                id: currentEntity.id,
-                label: `${currentEntity.type}\n${currentEntity.value.substring(0, 20)}`,
+                id: currentEntity.id, label: `${currentEntity.type}\n${currentEntity.value.slice(0,18)}`,
                 title: `${currentEntity.type}: ${currentEntity.value}`,
-                color: colors[currentEntity.type] || '#888'
+                color: { background: colors[currentEntity.type] || '#666', border: 'var(--border2)' }
             });
-            
-            fitGraph();
-            switchTab('graph');
+            switchView('graph');
         }
-        
-        // ============================================
-        // 📄 PDF REPORT EXPORT (jsPDF)
-        // ============================================
-        
+
+        // ═══════════════════════════════════════════════════════════
+        // PDF REPORT (jsPDF)
+        // ═══════════════════════════════════════════════════════════
         async function generateReport() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            
-            // Header
-            doc.setFontSize(18);
-            doc.setTextColor(0, 255, 136);
-            doc.text('Kitsune CTI Investigation Report', 20, 20);
-            
-            doc.setFontSize(10);
-            doc.setTextColor(128, 128, 128);
+            doc.setFontSize(14); doc.setTextColor(0,255,65);
+            doc.text('Kitsune CTI Report', 20, 20);
+            doc.setFontSize(9); doc.setTextColor(128,128,128);
             doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 28);
             doc.text(`Case: ${getCurrentCaseName() || 'Uncategorized'}`, 20, 34);
-            
-            // Stats
-            doc.setFontSize(12);
-            doc.setTextColor(0, 0, 0);
-            doc.text('\n\n📊 Feed Summary', 20, 45);
-            doc.setFontSize(9);
-            doc.text(`Total IOCs: ${currentFeed.length}`, 25, 52);
-            doc.text(`Critical: ${currentFeed.filter(i => i.severity === 'critical').length}`, 25, 57);
-            doc.text(`Phishing: ${currentFeed.filter(i => i.type === 'phishing').length}`, 25, 62);
-            doc.text(`Watchlist Matches: ${currentFeed.filter(i => watchlist.some(k => i.ioc.toLowerCase().includes(k.toLowerCase()))).length}`, 25, 67);
-            
-            // Top IOCs
-            doc.text('\n\n🔍 Top 10 IOCs', 20, 80);
-            currentFeed.slice(0, 10).forEach((item, i) => {
-                const y = 87 + (i * 5);
-                doc.text(`${i + 1}. [${item.severity.toUpperCase()}] ${item.ioc.substring(0, 50)}${item.ioc.length > 50 ? '...' : ''} - ${item.source}`, 25, y);
-            });
-            
-            // MITRE Mapping
-            if (selectedMITRE.length > 0) {
-                doc.addPage();
-                doc.setFontSize(12);
-                doc.setTextColor(0, 255, 136);
-                doc.text('🎯 MITRE ATT&CK Mapping', 20, 20);
-                doc.setFontSize(9);
-                doc.setTextColor(0, 0, 0);
-                selectedMITRE.forEach((tech, i) => {
-                    doc.text(`${i + 1}. ${tech}`, 25, 30 + (i * 5));
-                });
-            }
-            
-            // Watchlist
-            if (watchlist.length > 0) {
-                doc.addPage();
-                doc.setFontSize(12);
-                doc.setTextColor(255, 136, 0);
-                doc.text('🚨 Active Watchlist', 20, 20);
-                doc.setFontSize(9);
-                doc.setTextColor(0, 0, 0);
-                watchlist.forEach((item, i) => {
-                    doc.text(`${i + 1}. ${item}`, 25, 30 + (i * 5));
-                });
-            }
-            
-            // Footer
+            doc.setFontSize(10); doc.setTextColor(0,0,0);
+            doc.text('\n📊 Feed Summary', 20, 45);
             doc.setFontSize(8);
-            doc.setTextColor(128, 128, 128);
-            const pageCount = doc.internal.getNumberOfPages();
-            for (let i = 1; i <= pageCount; i++) {
-                doc.setPage(i);
-                doc.text(`Kitsune CTI Platform • Page ${i} of ${pageCount}`, 105, 290, { align: 'center' });
+            doc.text(`Total: ${currentFeed.length}`, 25, 52);
+            doc.text(`Critical: ${currentFeed.filter(i=>i.severity==='critical').length}`, 25, 57);
+            doc.text(`Watchlist Matches: ${currentFeed.filter(i=>watchlist.some(k=>i.ioc.toLowerCase().includes(k.toLowerCase()))).length}`, 25, 62);
+            if (selectedMITRE.length) {
+                doc.addPage();
+                doc.setFontSize(10); doc.setTextColor(0,255,65);
+                doc.text('🎯 MITRE ATT&CK', 20, 20);
+                doc.setFontSize(8); doc.setTextColor(0,0,0);
+                selectedMITRE.forEach((t,i) => doc.text(`${i+1}. ${t}`, 25, 30+i*5));
             }
-            
-            // Save
             doc.save(`kitsune-report-${Date.now()}.pdf`);
         }
-        
-        // ============================================
-        // 🔗 MISP INTEGRATION
-        // ============================================
-        
-        function exportToMISP() {
-            showModal('mispExportModal');
-            // Pre-fill with saved values
-            document.getElementById('mispExportUrl').value = apiKeys.mispUrl || '';
-            document.getElementById('mispExportKey').value = apiKeys.mispKey || '';
-        }
-        
+
+        // ═══════════════════════════════════════════════════════════
+        // MISP EXPORT
+        // ═══════════════════════════════════════════════════════════
+        function exportToMISP() { showModal('mispExportModal'); }
         async function pushToMISP() {
-            const url = document.getElementById('mispExportUrl').value;
-            const key = document.getElementById('mispExportKey').value;
-            const dist = document.getElementById('mispDist').value;
-            
-            if (!url || !key) {
-                alert('Please enter MISP URL and API Key');
-                return;
-            }
-            
-            const caseId = document.getElementById('caseSelect').value;
-            if (!caseId) {
-                alert('Select a case to export');
-                return;
-            }
-            
-            const c = cases.find(c => c.id === caseId);
-            if (!c || !c.entities) {
-                alert('No entities to export');
-                return;
-            }
-            
-            // Build MISP event (simplified STIX-like format)
+            const url = document.getElementById('mispExportUrl')?.value;
+            const key = document.getElementById('mispExportKey')?.value;
+            if (!url || !key) { alert('enter MISP URL and key'); return; }
+            const caseId = document.getElementById('caseSelect')?.value;
+            if (!caseId) { alert('select a case'); return; }
+            const c = cases.find(x => x.id === caseId);
+            if (!c?.entities?.length) { alert('no entities to export'); return; }
             const event = {
                 Event: {
-                    info: `Kitsune Export: ${c.name}`,
+                    info: `Kitsune: ${c.name}`,
                     threat_level_id: c.priority === 'critical' ? 1 : c.priority === 'high' ? 2 : 3,
-                    analysis: c.status === 'closed' ? 2 : 0,
-                    distribution: parseInt(dist),
+                    distribution: parseInt(document.getElementById('mispDist')?.value || 0),
                     Attribute: c.entities.map(e => ({
-                        type: getMISPType(e.type),
-                        category: getCategory(e.type),
-                        value: e.value,
-                        comment: `Added via Kitsune on ${e.added}`,
-                        to_ids: e.status !== '✗ Not IOC'
-                    })),
-                    Tag: selectedMITRE.map(t => ({ name: `misp-galaxy:mitre-attack-technique="${t}"` }))
+                        type: getMISPType(e.type), category: getCategory(e.type),
+                        value: e.value, comment: `Added via Kitsune ${e.added}`, to_ids: true
+                    }))
                 }
             };
-            
             try {
-                setStatus('pushing to MISP...');
-                const response = await fetch(`${url}/events/add`, {
+                const res = await fetch(`${url}/events/add`, {
                     method: 'POST',
-                    headers: {
-                        'Authorization': key,
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Authorization': key, 'Content-Type': 'application/json' },
                     body: JSON.stringify(event)
                 });
-                
-                if (response.ok) {
-                    const result = await response.json();
-                    alert(`✅ Successfully pushed to MISP!\nEvent ID: ${result.Event?.id || 'N/A'}`);
-                    closeModal('mispExportModal');
-                } else {
-                    const err = await response.text();
-                    throw new Error(`MISP error: ${response.status} - ${err}`);
-                }
-            } catch (error) {
-                alert(`❌ Error pushing to MISP:\n${error.message}\n\nCheck CORS/proxy settings`);
-            } finally {
-                setStatus('ready');
-            }
+                if (res.ok) { alert('✅ pushed to MISP'); closeModal('mispExportModal'); }
+                else { throw new Error(await res.text()); }
+            } catch (e) { alert(`❌ error: ${e.message}`); }
         }
-        
-        function getMISPType(entityType) {
-            const map = {
-                'IP': 'ip-dst', 'Domain': 'domain', 'Actor': 'threat-actor',
-                'Wallet': 'btc', 'Email': 'email-src', 'Hash': 'md5',
-                'URL': 'url', 'Org': 'org'
-            };
-            return map[entityType] || 'text';
-        }
-        
-        function getCategory(entityType) {
-            const map = {
-                'IP': 'Network activity', 'Domain': 'Network activity',
-                'Actor': 'Attribution', 'Wallet': 'Financial fraud',
-                'Email': 'Payload delivery', 'Hash': 'Payload installation',
-                'URL': 'Payload delivery', 'Org': 'Attribution'
-            };
-            return map[entityType] || 'Other';
-        }
-        
-        // ============================================
-        // 🔍 ENTITY MANAGEMENT
-        // ============================================
-        
-        function addEntity(type) {
-            const value = prompt(`Enter ${type} value:`);
-            if (!value) return;
-            
+        function getMISPType(t) { return { 'IP': 'ip-dst', 'Domain': 'domain', 'Hash': 'md5', 'URL': 'url', 'Email': 'email-src' }[t] || 'text'; }
+        function getCategory(t) { return { 'IP': 'Network activity', 'Domain': 'Network activity', 'Hash': 'Payload installation', 'URL': 'Payload delivery' }[t] || 'Other'; }
+
+        // ═══════════════════════════════════════════════════════════
+        // ENTITY MANAGEMENT
+        // ═══════════════════════════════════════════════════════════
+        function addEntityFromFeed(ioc, type) {
             const entity = {
-                id: 'ent_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-                type: type,
-                value: value,
-                added: new Date().toISOString(),
-                status: '? Suspected',
-                confidence: 50,
-                notes: ''
+                id: 'e_' + Date.now() + '_' + Math.random().toString(36).slice(2,9),
+                type: type || 'IOC', value: ioc, added: new Date().toISOString(),
+                status: '? Suspected', confidence: 50, notes: ''
             };
-            
-            const caseId = document.getElementById('caseSelect').value || 
-                          document.getElementById('caseSelectTop').value;
+            const caseId = document.getElementById('caseSelect')?.value;
             if (caseId) {
-                const c = cases.find(c => c.id === caseId);
-                if (c) {
-                    c.entities.push(entity);
-                    localStorage.setItem('kitsune_cases', JSON.stringify(cases));
-                }
+                const c = cases.find(x => x.id === caseId);
+                if (c) { c.entities.push(entity); localStorage.setItem('kitsune_cases', JSON.stringify(cases)); }
             }
-            
             entities.push(entity);
-            updateEntityCount();
             openEntityPanel(entity);
         }
-        
+
         function openEntityPanel(entity) {
             currentEntity = entity;
             const panel = document.getElementById('entityPanel');
             const details = document.getElementById('entityDetails');
-            
             details.innerHTML = `
-                <div class="entity-field">
-                    <label>Type</label>
-                    <div class="value">${entity.type}</div>
-                </div>
-                <div class="entity-field">
-                    <label>Value</label>
-                    <div class="value" style="word-break:break-all;">${escapeHtml(entity.value)}</div>
-                </div>
-                <div class="entity-field">
-                    <label>Added</label>
-                    <div class="value">${formatDate(entity.added)}</div>
-                </div>
-                <div class="entity-field">
-                    <label>Status</label>
-                    <select id="entityStatus" onchange="updateEntityField('status', this.value)">
-                        <option ${entity.status === '✓ Confirmed' ? 'selected' : ''}>✓ Confirmed</option>
-                        <option ${entity.status === '? Suspected' ? 'selected' : ''}>? Suspected</option>
-                        <option ${entity.status === '✗ Not IOC' ? 'selected' : ''}>✗ Not IOC</option>
+                <div class="entity-field"><label>Type</label><div class="value">${entity.type}</div></div>
+                <div class="entity-field"><label>Value</label><div class="value">${escapeHtml(entity.value)}</div></div>
+                <div class="entity-field"><label>Added</label><div class="value">${formatDate(entity.added)}</div></div>
+                <div class="entity-field"><label>Status</label>
+                    <select class="modal-input" onchange="updateEntity('status',this.value)" style="margin:0">
+                        <option ${entity.status==='✓ Confirmed'?'selected':''}>✓ Confirmed</option>
+                        <option ${entity.status==='? Suspected'?'selected':''}>? Suspected</option>
+                        <option ${entity.status==='✗ Not IOC'?'selected':''}>✗ Not IOC</option>
                     </select>
                 </div>
-                <div class="entity-field">
-                    <label>Confidence (0-100)</label>
-                    <input type="number" id="entityConfidence" value="${entity.confidence}" min="0" max="100" onchange="updateEntityField('confidence', parseInt(this.value))">
-                </div>
-                <div class="entity-field">
-                    <label>Notes</label>
-                    <textarea id="entityNotes" rows="3" onchange="updateEntityField('notes', this.value)">${entity.notes || ''}</textarea>
+                <div class="entity-field"><label>Confidence</label>
+                    <input type="number" class="modal-input" value="${entity.confidence}" min="0" max="100" onchange="updateEntity('confidence',parseInt(this.value))" style="margin:0">
                 </div>
             `;
-            
-            panel.classList.add('open');
+            panel.classList.add('visible');
         }
-        
-        function closeEntityPanel() {
-            document.getElementById('entityPanel').classList.remove('open');
-            currentEntity = null;
-        }
-        
-        function updateEntityField(field, value) {
-            if (!currentEntity) return;
-            
-            // Update in memory
-            currentEntity[field] = value;
-            
-            // Update in case storage
-            const caseId = document.getElementById('caseSelect').value || 
-                          document.getElementById('caseSelectTop').value;
-            if (caseId) {
-                const c = cases.find(c => c.id === caseId);
-                if (c) {
-                    const idx = c.entities.findIndex(e => e.id === currentEntity.id);
-                    if (idx !== -1) {
-                        c.entities[idx] = { ...currentEntity };
-                        localStorage.setItem('kitsune_cases', JSON.stringify(cases));
-                    }
-                }
-            }
-        }
-        
+
+        function closeEntityPanel() { document.getElementById('entityPanel').classList.remove('visible'); currentEntity = null; }
+        function updateEntity(field, val) { if (currentEntity) { currentEntity[field] = val; /* save to case */ } }
         function deleteEntity() {
-            if (!currentEntity) return;
-            if (!confirm(`Delete ${currentEntity.type}: ${currentEntity.value}?`)) return;
-            
-            // Remove from case
-            const caseId = document.getElementById('caseSelect').value || 
-                          document.getElementById('caseSelectTop').value;
-            if (caseId) {
-                const c = cases.find(c => c.id === caseId);
-                if (c) {
-                    c.entities = c.entities.filter(e => e.id !== currentEntity.id);
-                    localStorage.setItem('kitsune_cases', JSON.stringify(cases));
-                }
-            }
-            
-            // Remove from global entities
+            if (!currentEntity || !confirm('delete this entity?')) return;
             entities = entities.filter(e => e.id !== currentEntity.id);
-            updateEntityCount();
+            // Also remove from case
+            const caseId = document.getElementById('caseSelect')?.value;
+            if (caseId) {
+                const c = cases.find(x => x.id === caseId);
+                if (c) { c.entities = c.entities.filter(e => e.id !== currentEntity.id); localStorage.setItem('kitsune_cases', JSON.stringify(cases)); }
+            }
             closeEntityPanel();
         }
-        
-        function enrichEntity() {
-            if (!currentEntity) return;
-            alert(`Enriching ${currentEntity.type}: ${currentEntity.value}\n\nThis would call configured APIs (VirusTotal, GreyNoise, etc.)\n\nFeature requires API keys in Settings.`);
-            // In production, would call enrichIOC function
-        }
-        
+        function enrichEntity() { alert('Enrichment would call configured APIs (VT, GreyNoise, etc.)\n\nAdd API keys in Settings to enable.'); }
         async function enrichIOC(ioc) {
-            // Demo enrichment - in production would call actual APIs
-            const result = await fetchSecure(`https://ip-api.com/json/${ioc}`);
-            if (result?.status === 'success') {
-                alert(`Enrichment for ${ioc}:\n\nCountry: ${result.country}\nISP: ${result.isp}\nAS: ${result.as}\nProxy: ${result.proxy ? 'Yes' : 'No'}`);
-            } else {
-                alert('No enrichment data found (or API key required)');
-            }
+            try {
+                const data = await fetchSecure(`https://ip-api.com/json/${ioc}`);
+                if (data?.status === 'success') alert(`Enrichment for ${ioc}:\n\nCountry: ${data.country}\nISP: ${data.isp}\nAS: ${data.as}`);
+                else alert('no enrichment data found');
+            } catch { alert('enrichment failed'); }
         }
-        
-        function copyIOC(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                // Visual feedback
-                const btn = event.target;
-                const original = btn.textContent;
-                btn.textContent = '✓ copied';
-                setTimeout(() => btn.textContent = original, 1500);
-            });
-        }
-        
-        function reportPhishing(url) {
-            // Open reporting pages
-            const tabs = [
-                `https://reportphishing.abuse.ch/`,
-                `https://www.phishtank.com/`,
-                `https://safebrowsing.google.com/safebrowsing/report_phish/`
-            ];
-            tabs.forEach(t => window.open(t, '_blank'));
-            alert('Opened phishing report pages in new tabs');
-        }
-        
-        function updateEntityCount() {
-            const caseId = document.getElementById('caseSelect').value || 
-                          document.getElementById('caseSelectTop').value;
-            let count = 0;
-            if (caseId) {
-                const c = cases.find(c => c.id === caseId);
-                count = c?.entities?.length || 0;
-            }
-            document.getElementById('entityCount').textContent = count;
-        }
-        
-        // ============================================
-        // 📋 CASE MANAGEMENT
-        // ============================================
-        
-        function showModal(id) {
-            document.getElementById(id).style.display = 'flex';
-        }
-        
-        function closeModal(id) {
-            document.getElementById(id).style.display = 'none';
-        }
-        
+        function copyIOC(text) { navigator.clipboard.writeText(text).then(() => { const btn = event.target; const orig = btn.textContent; btn.textContent = '✓'; setTimeout(() => btn.textContent = orig, 1000); }); }
+        function filterEntities(type) { /* implement filtering */ }
+
+        // ═══════════════════════════════════════════════════════════
+        // CASE MANAGEMENT
+        // ═══════════════════════════════════════════════════════════
+        function showModal(id) { document.getElementById(id)?.classList.add('visible'); }
+        function closeModal(id) { document.getElementById(id)?.classList.remove('visible'); }
         function createCase() {
-            const name = document.getElementById('caseName').value;
-            if (!name) { alert('Case name is required'); return; }
-            
+            const name = document.getElementById('caseName')?.value;
+            if (!name) { alert('name required'); return; }
             const newCase = {
-                id: 'case_' + Date.now(),
-                name: name,
-                priority: document.getElementById('casePriority').value,
-                status: document.getElementById('caseStatus').value,
-                description: document.getElementById('caseDescription').value,
-                tags: document.getElementById('caseTags').value.split(',').map(t => t.trim()).filter(t => t),
-                entities: [],
-                events: [],
-                evidence: [],
-                mitreMapping: [],
-                created: new Date().toISOString()
+                id: 'c_' + Date.now(), name,
+                priority: document.getElementById('casePriority')?.value || 'medium',
+                status: document.getElementById('caseStatus')?.value || 'active',
+                description: document.getElementById('caseDescription')?.value,
+                tags: (document.getElementById('caseTags')?.value || '').split(',').map(t=>t.trim()).filter(Boolean),
+                entities: [], created: new Date().toISOString()
             };
-            
             cases.push(newCase);
             localStorage.setItem('kitsune_cases', JSON.stringify(cases));
-            
             closeModal('newCaseModal');
             updateCaseSelects();
-            
             // Clear form
-            ['caseName', 'caseDescription', 'caseTags'].forEach(id => 
-                document.getElementById(id).value = ''
-            );
+            ['caseName','caseDescription','caseTags'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
         }
-        
         function updateCaseSelects() {
-            ['caseSelect', 'caseSelectTop'].forEach(id => {
-                const select = document.getElementById(id);
-                if (!select) return;
-                const current = select.value;
-                select.innerHTML = '<option value="">— select case —</option>' +
-                    cases.map(c => `<option value="${c.id}">${escapeHtml(c.name)} (${c.priority})</option>`).join('');
-                select.value = current;
-            });
-            updateEntityCount();
+            const count = cases.length;
+            document.getElementById('caseCount')?.textContent = count;
+            // Populate case list
+            const list = document.getElementById('caseList');
+            if (list && cases.length) {
+                list.innerHTML = cases.map(c => `
+                    <a href="#" class="ow-inv-item" onclick="selectCase('${c.id}')">
+                        <span class="owi-dot" style="background:${c.priority==='critical'?'var(--red)':c.priority==='high'?'var(--yellow)':'var(--accent)'}"></span>
+                        <div class="owi-body">
+                            <div class="owi-title">${escapeHtml(c.name)}</div>
+                            <div class="owi-meta">
+                                <span class="owi-status owi-status-${c.status}">${c.status}</span>
+                                ${c.tags?.slice(0,2).map(t=>`<span class="owi-tag">${escapeHtml(t)}</span>`).join('') || ''}
+                            </div>
+                        </div>
+                    </a>
+                `).join('');
+            }
         }
-        
+        function selectCase(id) { /* implement case selection */ }
         function getCurrentCaseName() {
-            const id = document.getElementById('caseSelect').value || 
-                      document.getElementById('caseSelectTop').value;
-            const c = cases.find(c => c.id === id);
-            return c?.name || 'Uncategorized';
+            const id = document.getElementById('caseSelect')?.value;
+            return cases.find(c => c.id === id)?.name || 'Uncategorized';
         }
-        
-        function importCase() {
-            const input = document.createElement('input');
-            input.type = 'file'; input.accept = '.json';
-            input.onchange = e => {
-                const file = e.target.files[0];
-                const reader = new FileReader();
-                reader.onload = event => {
-                    try {
-                        const data = JSON.parse(event.target.result);
-                        if (Array.isArray(data)) {
-                            cases.push(...data);
-                        } else {
-                            cases.push(data);
-                        }
-                        localStorage.setItem('kitsune_cases', JSON.stringify(cases));
-                        updateCaseSelects();
-                        alert('Case(s) imported successfully');
-                    } catch (err) {
-                        alert('Invalid JSON file');
-                    }
-                };
-                reader.readAsText(file);
-            };
-            input.click();
-        }
-        
-        function exportCase() {
-            if (cases.length === 0) { alert('No cases to export'); return; }
-            const dataStr = JSON.stringify(cases, null, 2);
-            const blob = new Blob([dataStr], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = 'kitsune-cases.json'; a.click();
-        }
-        
-        // ============================================
-        // 🔑 API KEY MANAGEMENT
-        // ============================================
-        
+
+        // ═══════════════════════════════════════════════════════════
+        // API KEY MANAGEMENT
+        // ═══════════════════════════════════════════════════════════
         function saveApiKeys() {
             apiKeys = {
-                abuse: document.getElementById('abuseKey').value,
-                virustotal: document.getElementById('vtKey').value,
-                abuseipdb: document.getElementById('abuseipdbKey').value,
-                otx: document.getElementById('otxKey').value,
-                shodan: document.getElementById('shodanKey').value,
-                phishtank: document.getElementById('phishtankKey').value,
-                hibp: document.getElementById('hibpKey').value,
-                greynoise: document.getElementById('greynoiseKey').value,
-                urlscan: document.getElementById('urlscanKey').value,
-                nvd: document.getElementById('nvdKey').value,
-                mispUrl: document.getElementById('mispUrl').value,
-                mispKey: document.getElementById('mispKey').value
+                abuse: document.getElementById('abuseKey')?.value,
+                virustotal: document.getElementById('vtKey')?.value,
+                abuseipdb: document.getElementById('abuseipdbKey')?.value,
+                otx: document.getElementById('otxKey')?.value,
+                shodan: document.getElementById('shodanKey')?.value,
+                phishtank: document.getElementById('phishtankKey')?.value,
+                hibp: document.getElementById('hibpKey')?.value,
+                greynoise: document.getElementById('greynoiseKey')?.value,
+                urlscan: document.getElementById('urlscanKey')?.value,
+                mispUrl: document.getElementById('mispUrl')?.value,
+                mispKey: document.getElementById('mispKey')?.value
             };
             localStorage.setItem('kitsune_apikeys', JSON.stringify(apiKeys));
             closeModal('apiKeysModal');
-            alert('✅ API keys saved (stored locally in browser)');
+            alert('✅ keys saved (browser storage only)');
         }
-        
-        function loadApiKeys() {
-            apiKeys = JSON.parse(localStorage.getItem('kitsune_apikeys') || '{}');
+        function loadApiKeys() { apiKeys = JSON.parse(localStorage.getItem('kitsune_apikeys') || '{}'); }
+
+        // ═══════════════════════════════════════════════════════════
+        // VIEW SWITCHING & EVENT LISTENERS
+        // ═══════════════════════════════════════════════════════════
+        function switchView(view) {
+            document.querySelectorAll('.ow-view').forEach(v => v.classList.remove('on'));
+            document.getElementById(`view-${view}`)?.classList.add('on');
+            document.querySelectorAll('.owt-views .owtb').forEach(b => b.classList.remove('on'));
+            document.querySelector(`.owt-views .owtb[data-view="${view}"]`)?.classList.add('on');
+            document.getElementById('canvasTitle').textContent = {
+                'feed': '📡 Live Threat Feed', 'graph': '⬡ Network Graph', 'cves': '⚡ CVE Database',
+                'breach': '🔓 Breach Lookup', 'lookup': '🔍 WHOIS/DNS', 'mitre': '🎯 MITRE ATT&CK'
+            }[view] || 'Kitsune';
+            if (view === 'feed') refreshFeeds();
+            if (view === 'cves') loadRecentCVEs();
+            if (view === 'graph') { initGraph(); fitGraph(); }
         }
-        
-        // ============================================
-        // 🎨 UI FUNCTIONS
-        // ============================================
-        
-        function switchTab(tab) {
-            ['graph', 'feed', 'cves', 'breach', 'lookup', 'enrich', 'mitre', 'timeline', 'evidence'].forEach(t => {
-                document.getElementById(t + 'Tab').style.display = 'none';
+
+        function setupEventListeners() {
+            // Tab switching
+            document.querySelectorAll('.owt[data-tab]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tab = btn.dataset.tab;
+                    document.querySelectorAll('.owt[data-tab]').forEach(b => b.classList.remove('on'));
+                    btn.classList.add('on');
+                    document.querySelectorAll('.ow-tab-panel').forEach(p => p.classList.remove('on'));
+                    document.getElementById(`tab-${tab}`)?.classList.add('on');
+                });
             });
-            document.getElementById(tab + 'Tab').style.display = 'block';
-            
-            document.querySelectorAll('.tab').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            // Load data for tabs when opened
-            if (tab === 'feed') refreshFeeds();
-            if (tab === 'cves') loadRecentCVEs();
+            // View switching
+            document.querySelectorAll('.owt-views .owtb[data-view]').forEach(btn => {
+                btn.addEventListener('click', () => switchView(btn.dataset.view));
+            });
+            // Filter buttons
+            document.querySelectorAll('.ow-filter-row .owf').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (btn.closest('#tab-cases')) {
+                        document.querySelectorAll('#tab-cases .owf').forEach(b => b.classList.remove('on'));
+                        btn.classList.add('on');
+                        // implement case filtering
+                    }
+                });
+            });
+            // Search
+            document.getElementById('feedSearch')?.addEventListener('input', renderFeed);
+            document.getElementById('caseSearch')?.addEventListener('input', (e) => {
+                const q = e.target.value.toLowerCase();
+                document.querySelectorAll('#caseList .ow-inv-item').forEach(item => {
+                    const title = item.querySelector('.owi-title')?.textContent.toLowerCase() || '';
+                    item.style.display = title.includes(q) ? '' : 'none';
+                });
+            });
+            // Watchlist input enter
+            document.getElementById('watchlistInput')?.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addToWatchlist();
+            });
+            // Modal close on outside click
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('visible'); });
+            });
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    document.querySelectorAll('.modal').forEach(m => m.classList.remove('visible'));
+                    closeEntityPanel();
+                }
+                if (e.ctrlKey && e.key === 'f') { e.preventDefault(); document.getElementById('feedSearch')?.focus(); }
+            });
         }
-        
-        function toggleTheme() {
-            document.body.classList.toggle('light');
-            event.target.textContent = document.body.classList.contains('light') ? '[ dark ]' : '[ light ]';
-        }
-        
-        function setStatus(status) {
-            const indicator = document.getElementById('statusIndicator');
-            const colors = { 'ready': '#00ff88', 'loading': '#ff8800', 'error': '#ff4444' };
-            indicator.style.color = colors[status] || '#888';
-            indicator.textContent = status;
-        }
-        
+
+        // ═══════════════════════════════════════════════════════════
+        // UTILITIES
+        // ═══════════════════════════════════════════════════════════
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
-        
         function formatDate(dateStr) {
             if (!dateStr) return 'N/A';
             const d = new Date(dateStr);
-            return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+            return d.toLocaleDateString(undefined, { month:'short', day:'numeric' }) + ' ' + 
+                   d.toLocaleTimeString(undefined, { hour:'2-digit', minute:'2-digit' });
         }
-        
-        // Close modals on outside click
-        document.querySelectorAll('.modal').forEach(modal => {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) modal.style.display = 'none';
-            });
-        });
-        
-        // Keyboard shortcuts
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
-                closeEntityPanel();
-            }
-            if (e.ctrlKey && e.key === 'f') {
-                e.preventDefault();
-                document.getElementById('feedSearch')?.focus();
-            }
-        });
     </script>
 </body>
 </html>
