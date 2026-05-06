@@ -637,46 +637,47 @@ function renderGraph(){
   c.graph.nodes.forEach(node=>{const ent=c.entities[node.id];if(!ent)return;const col=ent.color||TC[ent.type]||'#484f58';const r=12;const ng=g.append('g').attr('cursor',S.gMode==='edge'?'crosshair':'grab');if(S.selEnt===node.id)ng.append('circle').attr('cx',node.x).attr('cy',node.y).attr('r',r+7).attr('fill',col).attr('opacity',.15).attr('pointer-events','none');if(ent.type==='wallet'){const s=r*1.3;ng.append('polygon').attr('points',`${node.x},${node.y-s} ${node.x+s},${node.y} ${node.x},${node.y+s} ${node.x-s},${node.y}`).attr('fill',col).attr('opacity',.9);}else if(ent.type==='org'){ng.append('rect').attr('x',node.x-r).attr('y',node.y-r).attr('width',r*2).attr('height',r*2).attr('rx',3).attr('fill',col).attr('opacity',.9);}else{ng.append('circle').attr('cx',node.x).attr('cy',node.y).attr('r',r).attr('fill',col).attr('opacity',.9);}if(ent.ioc==='yes')ng.append('circle').attr('cx',node.x).attr('cy',node.y).attr('r',r+4).attr('fill','none').attr('stroke',col).attr('stroke-width',1.5).attr('stroke-dasharray','3 2').attr('pointer-events','none');const sl=ent.value.length>15?ent.value.slice(0,13)+'…':ent.value;ng.append('text').attr('x',node.x).attr('y',node.y+r+11).attr('text-anchor','middle').attr('fill',tc).attr('font-size',9).attr('font-family','monospace').attr('pointer-events','none').text(sl);ng.on('click',ev=>{ev.stopPropagation();if(S.gMode==='edge'){if(!S.eFrm){S.eFrm=node.id;document.getElementById('g-hint').textContent='now click target node';}else if(S.eFrm!==node.id){const lbl=prompt('Edge label:','RESOLVES');if(lbl!==null){c.graph.edges.push({s:S.eFrm,t:node.id,label:lbl.trim()});save();}S.eFrm=null;document.getElementById('g-hint').textContent='click source → click target → type label';renderGraph();}return;}S.selEnt=node.id;showDetail(node.id);renderGraph();});ng.call(d3.drag().on('drag',ev=>{node.x=ev.x;node.y=ev.y;renderGraph();}).on('end',()=>save()));});
 }
 
-// ═══ KEV CACHE (GitHub raw — CORS open) ═══════════
+// ═══ KEV CACHE — CISA direct (CORS open confirmed) ═
 async function fetchKEV(){
   if(kevCache)return kevCache;
   try{
-    // Use GitHub mirror — has CORS open unlike cisa.gov directly
-    const res=await fetch('https://raw.githubusercontent.com/cisagov/kev-data/main/data/known_exploited_vulnerabilities.json');
+    const res=await fetch('https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json',{cache:'no-store'});
+    if(!res.ok)throw new Error('CISA '+res.status);
     const d=await res.json();
     kevCache=(d.vulnerabilities||[]);
     return kevCache;
   }catch(e){
-    // Fallback: try direct CISA with no-cors friendly approach
-    try{
-      const res=await fetch('https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json');
-      const d=await res.json();
-      kevCache=(d.vulnerabilities||[]);
-      return kevCache;
-    }catch(e2){return[];}
+    console.warn('KEV fetch failed:',e.message);
+    return[];
   }
 }
 
 // ═══ LIVE FEED ════════════════════════════════════
-// Strategy: use plain text/CSV downloads that bypass CORS
-// FeodoTracker CSV: has CORS open
-// URLhaus text: has CORS open  
-// CISA KEV: GitHub mirror has CORS open
-// abuse.ch APIs: require Auth-Key header — still blocked by CORS
-// Solution: abuse.ch APIs — use their no-auth download files instead
+// CONFIRMED CORS-OPEN SOURCES (no proxy needed):
+//   1. CISA KEV JSON          — cisa.gov/sites/... ✅
+//   2. NVD Recent CVEs        — nvd.nist.gov ✅
+//   3. ip-api.com             — enrichment only ✅
+//   4. GreyNoise community    — enrichment only ✅
+//   5. OTX / VT / AbuseIPDB  — with key ✅
+//
+// CORS-BLOCKED (need server-side proxy):
+//   ✗ FeodoTracker JSON/CSV  — blocked
+//   ✗ URLhaus CSV/API        — blocked
+//   ✗ ThreatFox API          — blocked  
+//   ✗ MalwareBazaar API      — blocked
+//
+// For blocked sources we load NVD recent CVEs as the
+// "live threat feed" since it works perfectly + is high value
 
 async function loadFeed(force=false){
   const el=document.getElementById('feed-list');
-  el.innerHTML='<div class="feed-loading">loading threat intelligence feeds...</div>';
+  el.innerHTML='<div class="feed-loading">loading threat intelligence...</div>';
   feedData=[];
-  const authKey=getKey('abusech');
 
   const results=await Promise.allSettled([
-    fetchFeodoCSV(),
-    fetchURLhausCSV(),
     fetchKEVFeed(),
-    authKey?fetchThreatFox(authKey):Promise.resolve([]),
-    authKey?fetchMalwareBazaar(authKey):Promise.resolve([]),
+    fetchNVDRecent(),
+    fetchNVDCritical(),
   ]);
 
   results.forEach(r=>{if(r.status==='fulfilled'&&Array.isArray(r.value))feedData.push(...r.value);});
@@ -685,83 +686,116 @@ async function loadFeed(force=false){
   document.getElementById('feed-ts').textContent=`${new Date().toLocaleTimeString()} · ${feedData.length} items`;
   updateFeedStats();
   document.getElementById('feed-stats').style.display='flex';
-  renderFeed();
+
   if(!feedData.length){
-    el.innerHTML='<div class="feed-empty"><span>⚠️</span><span>All feeds returned 0 items.</span><span style="font-size:.62rem">This usually means a temporary network issue. Try refreshing in 30 seconds.</span></div>';
+    el.innerHTML=`<div class="feed-empty">
+      <span style="font-size:1.3rem;opacity:.2">⚠️</span>
+      <span>Feeds returned 0 items</span>
+      <span style="font-size:.62rem;color:var(--dim);max-width:340px;text-align:center">
+        NVD may be rate limiting (5 req/30s without key).<br>
+        Wait 30 seconds and try again, or add a free NVD API key in ⚙ to unlock 50 req/30s.
+      </span>
+    </div>`;
+    return;
   }
+  renderFeed();
 }
 
-// FeodoTracker CSV — CORS open, no auth needed
-async function fetchFeodoCSV(){
-  try{
-    // Use the JSON endpoint which supports CORS
-    const res=await fetch('https://feodotracker.abuse.ch/downloads/ipblocklist.json');
-    const data=await res.json();
-    const list=Array.isArray(data)?data:(data.blocklist||[]);
-    return list.slice(0,30).map(e=>({
-      id:'feodo_'+(e.ip_address||e.dst_ip||Math.random()),
-      source:'FeodoTracker',category:'c2',severity:'critical',
-      title:`C2: ${e.ip_address||e.dst_ip} [${e.malware||'botnet'}]`,
-      ioc:e.ip_address||e.dst_ip,
-      desc:`Malware: ${e.malware||'—'} · Port: ${e.dst_port||'—'} · Country: ${e.country||'—'}`,
-      date:e.first_seen||new Date().toISOString(),
-      link:`https://feodotracker.abuse.ch/browse/host/${e.ip_address||e.dst_ip}`,
-      tags:[e.malware||'botnet','C2'].filter(Boolean),
-    }));
-  }catch(e){
-    // Fallback to CSV which is CORS-friendly
-    try{
-      const res=await fetch('https://feodotracker.abuse.ch/downloads/ipblocklist_aggressive.csv');
-      const text=await res.text();
-      return text.split('\n').filter(l=>l&&!l.startsWith('#')).slice(0,25).map(line=>{
-        const [ip,,port,malware,country]=line.split(',');
-        if(!ip)return null;
-        return{id:'feodo_'+ip,source:'FeodoTracker',category:'c2',severity:'critical',title:`C2: ${ip} [${malware||'botnet'}]`,ioc:ip,desc:`Malware: ${malware||'—'} · Port: ${port||'—'} · Country: ${country||'—'}`,date:new Date().toISOString(),link:`https://feodotracker.abuse.ch/browse/host/${ip}`,tags:[malware||'botnet','C2']};
-      }).filter(Boolean);
-    }catch(e2){return[];}
-  }
-}
-
-// URLhaus URL feed — plain text, CORS open
-async function fetchURLhausCSV(){
-  try{
-    // URLhaus online URLs feed — no auth, text format
-    const res=await fetch('https://urlhaus.abuse.ch/downloads/csv_online/');
-    const text=await res.text();
-    const lines=text.split('\n').filter(l=>l&&!l.startsWith('#')).slice(0,30);
-    return lines.map(line=>{
-      const parts=line.split('","').map(p=>p.replace(/^"|"$/g,''));
-      const [id,date_added,url,url_status,last_online,threat,tags,urlhaus_link,reporter]=parts;
-      if(!url||url_status!=='online')return null;
-      let host='';try{host=new URL(url).hostname;}catch(e){host=url.slice(0,30);}
-      return{
-        id:'urlh_'+id,source:'URLhaus',category:'phishing',severity:'high',
-        title:`Malicious URL: ${host}`,ioc:url,
-        desc:`Status: ${url_status} · Threat: ${threat||'—'} · Tags: ${tags||'none'}`,
-        date:date_added,link:urlhaus_link||'https://urlhaus.abuse.ch',
-        tags:(tags||'').split(' ').filter(Boolean),
-      };
-    }).filter(Boolean);
-  }catch(e){return[];}
-}
-
-// KEV feed — GitHub mirror (CORS open)
+// CISA KEV as feed items — CORS open ✅
 async function fetchKEVFeed(){
   try{
     const kev=await fetchKEV();
-    return kev.slice(0,20).map(v=>({
-      id:'kev_'+v.cveID,source:'CISA-KEV',category:'kev',severity:'critical',
-      title:`🔥 KEV: ${v.cveID} — ${v.vendorProject} ${v.product}`,
-      ioc:v.cveID,
-      desc:`${v.shortDescription||v.vulnerabilityName} · Due: ${v.dueDate||'—'} · Ransomware: ${v.knownRansomwareCampaignUse}`,
-      date:v.dateAdded,link:`https://nvd.nist.gov/vuln/detail/${v.cveID}`,
-      tags:['KEV','exploited',v.vendorProject].filter(Boolean),
-    }));
+    // Return most recently added KEV entries
+    return [...kev]
+      .sort((a,b)=>new Date(b.dateAdded)-new Date(a.dateAdded))
+      .slice(0,30)
+      .map(v=>({
+        id:'kev_'+v.cveID,
+        source:'CISA-KEV',
+        category:'kev',
+        severity:'critical',
+        title:`🔥 ${v.cveID} — ${v.vendorProject} ${v.product}`,
+        ioc:v.cveID,
+        desc:`${v.shortDescription||v.vulnerabilityName||''} · Due: ${v.dueDate||'—'} · Ransomware: ${v.knownRansomwareCampaignUse||'—'}`,
+        date:v.dateAdded,
+        link:`https://nvd.nist.gov/vuln/detail/${v.cveID}`,
+        tags:['KEV','exploited',v.vendorProject,v.product].filter(Boolean),
+      }));
   }catch(e){return[];}
 }
 
-// ThreatFox — requires abuse.ch Auth-Key (CORS blocked without it)
+// NVD recent published CVEs — CORS open ✅
+async function fetchNVDRecent(){
+  try{
+    const nvdKey=getKey('nvd');
+    const headers=nvdKey?{'apiKey':nvdKey}:{};
+    if(!nvdKey)await sleep(700); // avoid rate limit
+    const now=new Date();
+    const past=new Date(now-86400000*2);
+    const fmt=d=>d.toISOString().replace(/\.\d+Z$/,'+00:00');
+    const res=await fetch(
+      `https://services.nvd.nist.gov/rest/json/cves/2.0?pubStartDate=${fmt(past)}&pubEndDate=${fmt(now)}&resultsPerPage=25`,
+      {headers}
+    );
+    if(!res.ok)throw new Error('NVD '+res.status);
+    const d=await res.json();
+    const kev=await fetchKEV();
+    const kevIds=new Set(kev.map(v=>v.cveID));
+    return(d.vulnerabilities||[]).map(v=>{
+      const cve=parseCVEItem(v,kevIds);
+      return{
+        id:'nvd_'+cve.id,source:'NVD',
+        category:cve.score>=9?'critical-cve':cve.score>=7?'high-cve':'cve',
+        severity:cve.severity,
+        title:`${cve.id}${cve.kev?' 🔥':''} — ${cve.desc.slice(0,80)}`,
+        ioc:cve.id,
+        desc:`CVSS: ${cve.score} · ${cve.desc.slice(0,160)}`,
+        date:cve.published,
+        link:cve.link,
+        tags:['CVE','NVD',cve.severity].filter(Boolean),
+      };
+    });
+  }catch(e){console.warn('NVD recent:',e.message);return[];}
+}
+
+// NVD critical CVEs (last 7 days) — CORS open ✅
+async function fetchNVDCritical(){
+  try{
+    const nvdKey=getKey('nvd');
+    const headers=nvdKey?{'apiKey':nvdKey}:{};
+    if(!nvdKey)await sleep(1400); // stagger to avoid rate limit
+    const now=new Date();
+    const past=new Date(now-86400000*7);
+    const fmt=d=>d.toISOString().replace(/\.\d+Z$/,'+00:00');
+    const res=await fetch(
+      `https://services.nvd.nist.gov/rest/json/cves/2.0?cvssV3Severity=CRITICAL&pubStartDate=${fmt(past)}&pubEndDate=${fmt(now)}&resultsPerPage=20`,
+      {headers}
+    );
+    if(!res.ok)return[];
+    const d=await res.json();
+    const kev=await fetchKEV();
+    const kevIds=new Set(kev.map(v=>v.cveID));
+    return(d.vulnerabilities||[]).map(v=>{
+      const cve=parseCVEItem(v,kevIds);
+      return{
+        id:'nvdc_'+cve.id,source:'NVD-Critical',
+        category:'c2',severity:'critical',
+        title:`${cve.id}${cve.kev?' 🔥':''} CRITICAL — ${cve.desc.slice(0,70)}`,
+        ioc:cve.id,
+        desc:`CVSS: ${cve.score} · ${cve.desc.slice(0,160)}`,
+        date:cve.published,link:cve.link,
+        tags:['CVE','CRITICAL',cve.kev?'KEV':''].filter(Boolean),
+      };
+    });
+  }catch(e){return[];}
+}
+
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+
+// ThreatFox — requires abuse.ch Auth-Key header (CORS blocked without it)
+// When key present, ThreatFox does return CORS headers with Auth-Key
 async function fetchThreatFox(authKey){
+  if(!authKey)return[];
   try{
     const res=await fetch('https://threatfox-api.abuse.ch/api/v1/',{
       method:'POST',
@@ -771,10 +805,12 @@ async function fetchThreatFox(authKey){
     const d=await res.json();
     if(d.query_status!=='ok')return[];
     return(d.data||[]).slice(0,25).map(i=>({
-      id:'tf_'+i.id,source:'ThreatFox',category:i.ioc_type?.includes('ip')?'c2':'malware',
+      id:'tf_'+i.id,source:'ThreatFox',
+      category:i.ioc_type?.includes('ip')?'c2':'malware',
       severity:i.confidence_level>75?'high':'medium',
       title:`${i.malware} — ${i.ioc}`,
-      ioc:i.ioc,desc:`Type: ${i.ioc_type} · Confidence: ${i.confidence_level}% · Tags: ${(i.tags||[]).join(', ')||'none'}`,
+      ioc:i.ioc,
+      desc:`Type: ${i.ioc_type} · Confidence: ${i.confidence_level}% · Tags: ${(i.tags||[]).join(', ')||'none'}`,
       date:i.first_seen,link:'https://threatfox.abuse.ch/ioc/'+i.id,
       tags:[i.malware,...(i.tags||[])].filter(Boolean),
     }));
@@ -783,6 +819,7 @@ async function fetchThreatFox(authKey){
 
 // MalwareBazaar — requires abuse.ch Auth-Key
 async function fetchMalwareBazaar(authKey){
+  if(!authKey)return[];
   try{
     const res=await fetch('https://mb-api.abuse.ch/api/v1/',{
       method:'POST',
