@@ -124,7 +124,7 @@ onclick="selectActor('{{ .File.BaseFileName }}')">
 </div>
 </div>
 <style>
-/* ── CSS Variables (Your Theme) ────────────────────────────── */
+/* ── CSS Variables ────────────────────────────────────────── */
 :root {
   --bg:        #090909;
   --bg2:       #0f0f0f;
@@ -148,6 +148,26 @@ onclick="selectActor('{{ .File.BaseFileName }}')">
   --header-h:  52px;
 }
 
+body.light-mode {
+  --bg:        #f0f0eb;
+  --bg2:       #ffffff;
+  --bg3:       #e8e8e2;
+  --bg4:       #ddddd6;
+  --border:    #d0d0c8;
+  --border2:   #c0c0b8;
+  --text:      #1a1a1a;
+  --text2:     #555550;
+  --dim:       #999990;
+  --accent:    #007a1e;
+  --accent-dim:#d4edda;
+  --accent2:   #0066cc;
+  --red:       #cc2200;
+  --yellow:    #8a6f00;
+  --blue:      #0055cc;
+  --purple:    #6633cc;
+  --orange:    #b85c00;
+}
+
 #ti-root {
 position: fixed;
 inset: 0;
@@ -159,6 +179,7 @@ background: var(--bg);
 font-family: var(--font);
 overflow: hidden;
 color: var(--text2);
+transition: background 0.3s, color 0.3s;
 }
 #ti-bar {
 display: flex;
@@ -190,6 +211,27 @@ flex-shrink: 0;
 .vi-btn { background:none; border:1px solid var(--border); color:var(--text2); font-family:inherit; font-size:.55rem; padding:3px 9px; border-radius:var(--radius); cursor:pointer; transition:all .15s; letter-spacing:.06em; text-decoration:none; }
 .vi-btn:hover { border-color:var(--accent); color:var(--accent); background:rgba(0,255,65,.07); }
 
+/* THEME TOGGLE */
+#theme-toggle {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text2);
+  font-family: inherit;
+  font-size: .55rem;
+  padding: 3px 8px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: 8px;
+}
+#theme-toggle:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 /* MAIN */
 #ti-main {
 flex: 1;
@@ -206,8 +248,8 @@ overflow: hidden;
 #map {
 width: 100%;
 height: 100%;
-background: var(--bg) !important;
-cursor: crosshair !important;
+background: var(--bg);
+cursor: crosshair;
 }
 .leaflet-container { background: var(--bg) !important; cursor: crosshair !important; }
 .leaflet-control-zoom { border: 1px solid var(--border) !important; }
@@ -419,7 +461,7 @@ opacity: 1;
 }
 </style>
 <script>
-// ══════════════════════════════════════════════════
+// ═════════════════════════════════════════════════
 //  COORDINATES
 // ══════════════════════════════════════════════════
 const COORDS = {
@@ -504,6 +546,12 @@ calcStats();
 actorSlugs = window.ACTOR_DATA.map(a => a.slug);
 document.getElementById('actor-count').textContent = '(' + window.ACTOR_DATA.length + ')';
 
+// Check for saved theme preference
+const savedTheme = localStorage.getItem('ti-theme');
+if (savedTheme === 'light') {
+  document.body.classList.add('light-mode');
+}
+
 function updateClock() {
 const t = new Date().toLocaleTimeString('en-US', { timeZone: 'Asia/Kolkata', hour12: false });
 document.getElementById('ti-clock').textContent = t + ' IST';
@@ -511,6 +559,7 @@ document.getElementById('ti-clock').textContent = t + ' IST';
 updateClock();
 setInterval(updateClock, 1000);
 
+// Wait for layout to stabilize
 setTimeout(function() {
 setTimeout(function() {
 initMap();
@@ -520,156 +569,211 @@ initKeyboard();
 });
 
 // ══════════════════════════════════════════════════
-//  MAP INIT
+//  THEME TOGGLE
+// ══════════════════════════════════════════════════
+function toggleTheme() {
+  document.body.classList.toggle('light-mode');
+  const isLight = document.body.classList.contains('light-mode');
+  localStorage.setItem('ti-theme', isLight ? 'light' : 'dark');
+  
+  // Update map tiles based on theme
+  if (map) {
+    updateMapTiles();
+  }
+}
+
+function updateMapTiles() {
+  if (!map) return;
+  
+  // Remove existing tile layers
+  map.eachLayer(function(layer) {
+    if (layer instanceof L.TileLayer) {
+      map.removeLayer(layer);
+    }
+  });
+  
+  // Add appropriate tiles based on theme
+  const isLight = document.body.classList.contains('light-mode');
+  const tileUrl = isLight 
+    ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+    : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+    
+  L.tileLayer(tileUrl, {
+    subdomains: 'abcd',
+    maxZoom: 19
+  }).addTo(map);
+}
+
+// ══════════════════════════════════════════════════
+//  MAP INIT - FIXED FOR RELIABLE RENDERING
 // ══════════════════════════════════════════════════
 function initMap() {
 const mapEl = document.getElementById('map');
 const panel = document.getElementById('map-panel');
-const width = panel.clientWidth;
-const height = panel.clientHeight;
 
-if (width < 100 || height < 100) {
-setTimeout(initMap, 200);
-return;
-}
+// Force layout recalculation
+panel.style.display = 'flex';
+mapEl.style.width = '100%';
+mapEl.style.height = '100%';
 
-mapEl.style.width = width + 'px';
-mapEl.style.height = height + 'px';
-
-map = L.map('map', {
-center: [25, 50],
-zoom: 2,
-minZoom: 2,
-maxZoom: 6,
-zoomControl: true,
-attributionControl: false,
-dragging: false,
-touchZoom: true,
-scrollWheelZoom: true,
-doubleClickZoom: false,
-boxZoom: false,
-keyboard: false,
-worldCopyJump: true
-});
-
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-subdomains: 'abcd',
-maxZoom: 19
-}).addTo(map);
-
-const targetCounts = {};
-window.ACTOR_DATA.forEach(function(actor) {
-(actor.targets || []).forEach(function(target) {
-const tc = getTCoords(target);
-if (!tc) return;
-const key = tc[0].toFixed(0) + ',' + tc[1].toFixed(0);
-targetCounts[key] = (targetCounts[key] || 0) + 1;
-});
-});
-
-Object.entries(targetCounts).forEach(function([key, count]) {
-if (count < 2) return;
-const [lat, lng] = key.split(',').map(Number);
-const radius = 200000 + (count * 150000);
-const opacity = Math.min(0.15 + count * 0.05, 0.4);
-const hotspot = L.circle([lat, lng], {
-radius: radius,
-color: '#ff4444',
-fillColor: '#ff4444',
-fillOpacity: opacity,
-weight: 0,
-className: 'hotspot',
-interactive: false
-}).addTo(map);
-hotspot.options._baseOpacity = opacity;
-hotspotLayers.push(hotspot);
-});
-
-window.ACTOR_DATA.forEach(function(actor) {
-const coords = getCoords(actor.origin);
-const lat = coords[0];
-const lng = coords[1];
-const t = (actor.threat || 'medium').toLowerCase();
-const col = TCOL[t] || TCOL.medium;
-
-const icon = L.divIcon({
-className: 'threat-marker marker-' + t,
-html: '<div class="marker-glow"></div><div class="marker-core"></div><div class="marker-ring"></div><div class="marker-ring-2"></div>',
-iconSize: [14, 14],
-iconAnchor: [7, 7]
-});
-
-const marker = L.marker([lat, lng], { icon: icon }).addTo(map);
-const tooltipContent = '<div class="tt-name" style="color:' + col + '">' + actor.title + '</div>' +
-'<div class="tt-row"><span class="tt-k">origin</span><span class="tt-v">' + (actor.origin || '?') + '</span></div>' +
-'<div class="tt-row"><span class="tt-k">threat</span><span class="tt-v" style="color:' + col + '">' + (actor.threat || '').toUpperCase() + '</span></div>' +
-'<div class="tt-row"><span class="tt-k">status</span><span class="tt-v">' + (actor.status || '?') + '</span></div>' +
-(actor.targets?.length ? '<div class="tt-row"><span class="tt-k">targets</span><span class="tt-v">' + actor.targets.length + ' sectors</span></div>' : '') +
-(actor.tldr ? '<div style="font-size:10px;color:var(--text2);opacity:0.3;margin-top:6px;line-height:1.4">' + actor.tldr.substring(0, 70) + (actor.tldr.length > 70 ? '…' : '') + '</div>' : '') +
-'<div class="tt-hint">click for profile →</div>';
-
-marker.bindTooltip(tooltipContent, {
-className: 'threat-tooltip',
-direction: 'right',
-offset: [12, 0],
-opacity: 1
-});
-
-marker.on('click', function(e) {
-L.DomEvent.stopPropagation(e);
-selectActor(actor.slug);
-});
-
-markersMap[actor.slug] = { marker, actor, threat: t, color: col, arcs: [] };
-});
-
-window.ACTOR_DATA.forEach(function(actor) {
-const src = getCoords(actor.origin);
-if (!actor.targets || !actor.targets.length) return;
-actor.targets.slice(0, 4).forEach(function(target) {
-const tc = getTCoords(target);
-if (!tc) return;
-const t = (actor.threat || 'medium').toLowerCase();
-const col = TCOL[t] || TCOL.medium;
-const points = [];
-const steps = 30;
-for (let i = 0; i <= steps; i++) {
-const frac = i / steps;
-const lat = src[0] + (tc[0] - src[0]) * frac;
-const lng = src[1] + (tc[1] - src[1]) * frac;
-const bulge = Math.sin(frac * Math.PI) * 12;
-points.push([lat + bulge * 0.4, lng]);
-}
-const arc = L.polyline(points, {
-color: col,
-weight: 1,
-opacity: 0.25,
-className: 'threat-arc',
-interactive: false
-}).addTo(map);
-arcLayers.push(arc);
-if (markersMap[actor.slug]) {
-markersMap[actor.slug].arcs.push(arc);
-}
-});
-});
-
-map.on('click', function() {
-if (selectedSlug) closeDetail();
-});
-
-map.on('mousemove', function(e) {
-document.getElementById('go-coords').textContent = 'LAT ' + e.latlng.lat.toFixed(2) + ' · LNG ' + e.latlng.lng.toFixed(2);
-});
-
-setTimeout(function() { map.invalidateSize(); }, 200);
-
-window.addEventListener('resize', function() {
-const w = panel.clientWidth;
-const h = panel.clientHeight;
-mapEl.style.width = w + 'px';
-mapEl.style.height = h + 'px';
-setTimeout(function() { map.invalidateSize(); }, 100);
+// Use requestAnimationFrame to ensure layout is complete
+requestAnimationFrame(() => {
+  requestAnimationFrame(() => {
+    const width = panel.clientWidth;
+    const height = panel.clientHeight;
+    
+    console.log('Map init - width:', width, 'height:', height);
+    
+    if (width < 100 || height < 100) {
+      console.error('Map container too small, retrying...');
+      setTimeout(initMap, 300);
+      return;
+    }
+    
+    // Initialize map
+    map = L.map('map', {
+      center: [25, 50],
+      zoom: 2,
+      minZoom: 2,
+      maxZoom: 6,
+      zoomControl: true,
+      attributionControl: false,
+      dragging: true,  // Enable dragging
+      touchZoom: true,
+      scrollWheelZoom: true,
+      doubleClickZoom: false,
+      boxZoom: false,
+      keyboard: false,
+      worldCopyJump: true
+    });
+    
+    // Add initial tile layer
+    updateMapTiles();
+    
+    // Build hotspots from target data
+    const targetCounts = {};
+    window.ACTOR_DATA.forEach(function(actor) {
+      (actor.targets || []).forEach(function(target) {
+        const tc = getTCoords(target);
+        if (!tc) return;
+        const key = tc[0].toFixed(0) + ',' + tc[1].toFixed(0);
+        targetCounts[key] = (targetCounts[key] || 0) + 1;
+      });
+    });
+    
+    Object.entries(targetCounts).forEach(function([key, count]) {
+      if (count < 2) return;
+      const [lat, lng] = key.split(',').map(Number);
+      const radius = 200000 + (count * 150000);
+      const opacity = Math.min(0.15 + count * 0.05, 0.4);
+      const hotspot = L.circle([lat, lng], {
+        radius: radius,
+        color: '#ff4444',
+        fillColor: '#ff4444',
+        fillOpacity: opacity,
+        weight: 0,
+        className: 'hotspot',
+        interactive: false
+      }).addTo(map);
+      hotspot.options._baseOpacity = opacity;
+      hotspotLayers.push(hotspot);
+    });
+    
+    // ADD ACTOR MARKERS - Now guaranteed to work
+    window.ACTOR_DATA.forEach(function(actor) {
+      const coords = getCoords(actor.origin);
+      const lat = coords[0];
+      const lng = coords[1];
+      const t = (actor.threat || 'medium').toLowerCase();
+      const col = TCOL[t] || TCOL.medium;
+      
+      console.log('Adding marker:', actor.title, '->', actor.origin, '-> [', lat, ',', lng, ']');
+      
+      const icon = L.divIcon({
+        className: 'threat-marker marker-' + t,
+        html: '<div class="marker-glow"></div><div class="marker-core"></div><div class="marker-ring"></div><div class="marker-ring-2"></div>',
+        iconSize: [14, 14],
+        iconAnchor: [7, 7]
+      });
+      
+      const marker = L.marker([lat, lng], { icon: icon }).addTo(map);
+      
+      const tooltipContent = '<div class="tt-name" style="color:' + col + '">' + actor.title + '</div>' +
+        '<div class="tt-row"><span class="tt-k">origin</span><span class="tt-v">' + (actor.origin || '?') + '</span></div>' +
+        '<div class="tt-row"><span class="tt-k">threat</span><span class="tt-v" style="color:' + col + '">' + (actor.threat || '').toUpperCase() + '</span></div>' +
+        '<div class="tt-row"><span class="tt-k">status</span><span class="tt-v">' + (actor.status || '?') + '</span></div>' +
+        (actor.targets?.length ? '<div class="tt-row"><span class="tt-k">targets</span><span class="tt-v">' + actor.targets.length + ' sectors</span></div>' : '') +
+        (actor.tldr ? '<div style="font-size:10px;color:var(--text2);opacity:0.3;margin-top:6px;line-height:1.4">' + actor.tldr.substring(0, 70) + (actor.tldr.length > 70 ? '…' : '') + '</div>' : '') +
+        '<div class="tt-hint">click for profile →</div>';
+      
+      marker.bindTooltip(tooltipContent, {
+        className: 'threat-tooltip',
+        direction: 'right',
+        offset: [12, 0],
+        opacity: 1
+      });
+      
+      marker.on('click', function(e) {
+        L.DomEvent.stopPropagation(e);
+        selectActor(actor.slug);
+      });
+      
+      markersMap[actor.slug] = { marker, actor, threat: t, color: col, arcs: [] };
+    });
+    
+    // ADD ARCS
+    window.ACTOR_DATA.forEach(function(actor) {
+      const src = getCoords(actor.origin);
+      if (!actor.targets || !actor.targets.length) return;
+      actor.targets.slice(0, 4).forEach(function(target) {
+        const tc = getTCoords(target);
+        if (!tc) return;
+        const t = (actor.threat || 'medium').toLowerCase();
+        const col = TCOL[t] || TCOL.medium;
+        const points = [];
+        const steps = 30;
+        for (let i = 0; i <= steps; i++) {
+          const frac = i / steps;
+          const lat = src[0] + (tc[0] - src[0]) * frac;
+          const lng = src[1] + (tc[1] - src[1]) * frac;
+          const bulge = Math.sin(frac * Math.PI) * 12;
+          points.push([lat + bulge * 0.4, lng]);
+        }
+        const arc = L.polyline(points, {
+          color: col,
+          weight: 1,
+          opacity: 0.25,
+          className: 'threat-arc',
+          interactive: false
+        }).addTo(map);
+        arcLayers.push(arc);
+        if (markersMap[actor.slug]) {
+          markersMap[actor.slug].arcs.push(arc);
+        }
+      });
+    });
+    
+    // Click map to deselect
+    map.on('click', function() {
+      if (selectedSlug) closeDetail();
+    });
+    
+    // Mouse coords
+    map.on('mousemove', function(e) {
+      document.getElementById('go-coords').textContent = 'LAT ' + e.latlng.lat.toFixed(2) + ' · LNG ' + e.latlng.lng.toFixed(2);
+    });
+    
+    // Force invalidate size
+    setTimeout(function() { 
+      map.invalidateSize(); 
+      console.log('Map invalidated, markers should be visible now');
+    }, 100);
+    
+    // Handle resize
+    window.addEventListener('resize', function() {
+      setTimeout(function() { map.invalidateSize(); }, 100);
+    });
+  });
 });
 }
 
@@ -694,7 +798,7 @@ if (idx >= actorSlugs.length) idx = 0;
 selectActor(actorSlugs[idx]);
 }
 
-// ══════════════════════════════════════════════════
+// ═════════════════════════════════════════════════
 //  FILTER
 // ══════════════════════════════════════════════════
 function filterActors(filter, btn) {
@@ -816,7 +920,7 @@ setVisualFocus(null);
 map.flyTo([25, 50], 2, { duration: 1 });
 }
 
-// ══════════════════════════════════════════════════
+// ═════════════════════════════════════════════════
 //  EXPORT/SHARE FUNCTIONS
 // ══════════════════════════════════════════════════
 function exportJSON() {
@@ -921,7 +1025,7 @@ toast.classList.remove('show');
 
 // ══════════════════════════════════════════════════
 //  STATS
-// ══════════════════════════════════════════════════
+// ═════════════════════════════════════════════════
 function calcStats() {
 const c = { critical: 0, high: 0, medium: 0, low: 0 };
 window.ACTOR_DATA.forEach(a => {
