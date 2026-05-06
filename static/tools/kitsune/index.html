@@ -363,7 +363,7 @@
     <header class="site-header">
         <div class="container">
             <a href="/" class="site-logo">
-                <span class="prompt">0xprit3sh</span><span class="cursor-blink">_</span>
+                <img src="/tools/kitsune/kitsune-logo.png" alt="Kitsune" style="height:28px;">
             </a>
             <nav class="main-nav desktop-nav">
                 <a href="/">home</a>
@@ -410,11 +410,6 @@
 
     <main class="site-main">
         <div class="container">
-            <!-- Page Header -->
-            <header class="page-header">
-                <h1 class="page-title">Kitsune <span class="dim">— CTI Investigation Platform</span></h1>
-                <div class="page-count">v2.1</div>
-            </header>
 
             <!-- OSINT Workspace - Your existing structure -->
             <div class="osint-workspace">
@@ -1633,6 +1628,27 @@
             return d.toLocaleDateString(undefined, { month:'short', day:'numeric' }) + ' ' + 
                    d.toLocaleTimeString(undefined, { hour:'2-digit', minute:'2-digit' });
         }
+
+        // Theme Toggle Functionality
+         function toggleTheme() {
+             document.body.classList.toggle('light-mode');
+         const isLight = document.body.classList.contains('light-mode');
+         localStorage.setItem('kitsune-theme', isLight ? 'light' : 'dark');
+         document.querySelectorAll('.theme-btn').forEach(btn => {
+        btn.textContent = isLight ? '[ dark ]' : '[ light ]';
+    });
+}
+
+// Load saved theme on page load
+        document.addEventListener('DOMContentLoaded', () => {
+       const savedTheme = localStorage.getItem('kitsune-theme');
+       if (savedTheme === 'light') {
+        document.body.classList.add('light-mode');
+        document.querySelectorAll('.theme-btn').forEach(btn => {
+            btn.textContent = '[ dark ]';
+        });
+    }
+});
     </script>
 </body>
 </html>
