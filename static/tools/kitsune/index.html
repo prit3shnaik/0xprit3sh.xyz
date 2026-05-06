@@ -1633,6 +1633,28 @@
             return d.toLocaleDateString(undefined, { month:'short', day:'numeric' }) + ' ' + 
                    d.toLocaleTimeString(undefined, { hour:'2-digit', minute:'2-digit' });
         }
+
+        // Light/Dark Theme Toggle
+function toggleTheme() {
+    document.body.classList.toggle('light-mode');
+    localStorage.setItem('kitsune-theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
+    
+    // Update button text
+    const btns = document.querySelectorAll('.theme-btn, .mobile-theme-btn');
+    btns.forEach(btn => {
+        btn.textContent = document.body.classList.contains('light-mode') ? '[ dark ]' : '[ light ]';
+    });
+}
+
+// Load saved theme on page load
+document.addEventListener('DOMContentLoaded', () => {
+    const savedTheme = localStorage.getItem('kitsune-theme');
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-mode');
+        const btns = document.querySelectorAll('.theme-btn, .mobile-theme-btn');
+        btns.forEach(btn => btn.textContent = '[ dark ]');
+    }
+});
     </script>
 </body>
 </html>
