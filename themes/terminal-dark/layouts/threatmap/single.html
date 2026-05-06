@@ -163,7 +163,6 @@ width: 100%;
 height: 100%;
 background: #04060e !important;
 cursor: crosshair !important;
-z-index: 1;
 }
 .leaflet-container { background: #04060e !important; cursor: crosshair !important; }
 .leaflet-control-zoom { border: 1px solid rgba(0,220,90,.15) !important; }
@@ -227,21 +226,27 @@ background: linear-gradient(180deg, rgba(0,220,90,0.06) 0%, transparent 100%);
 .hotspot { pointer-events: none; animation: hotspotPulse 3s ease-in-out infinite; }
 @keyframes hotspotPulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.6; } }
 .threat-tooltip {
-background: rgba(4,6,14,.95) !important;
+background: rgba(4,6,14,.98) !important;
 border: 1px solid #00dc5a !important;
 border-radius: 3px !important;
 color: #c0cce0 !important;
 font-family: 'JetBrains Mono', monospace !important;
 font-size: 11px !important;
 padding: 10px 12px !important;
-box-shadow: 0 0 30px rgba(0,220,90,.2) !important;
-min-width: 180px;
+box-shadow: 0 0 30px rgba(0,220,90,.3) !important;
+min-width: 200px;
+pointer-events: auto !important;
+cursor: pointer;
+}
+.threat-tooltip:hover {
+border-color: #00ff6a !important;
+box-shadow: 0 0 40px rgba(0,220,90,.4) !important;
 }
 .tt-name { font-weight: 700; font-size: 12px; margin-bottom: 6px; letter-spacing: .02em; }
 .tt-row { display: flex; gap: 6px; margin-bottom: 3px; }
 .tt-k { color: rgba(0,220,90,.45); width: 48px; flex-shrink: 0; font-size: 10px; }
 .tt-v { color: rgba(255,255,255,.6); font-size: 10px; }
-.tt-hint { color: #00dc5a; font-size: 9px; margin-top: 8px; letter-spacing: .06em; border-top: 1px solid rgba(0,220,90,.1); padding-top: 6px; }
+.tt-hint { color: #00dc5a; font-size: 9px; margin-top: 8px; letter-spacing: .06em; border-top: 1px solid rgba(0,220,90,.2); padding-top: 6px; font-weight: 600; }
 #ti-side {
 width: 280px;
 height: 100%;
@@ -446,15 +451,30 @@ document.getElementById('ti-clock').textContent = t + ' IST';
 updateClock();
 setInterval(updateClock, 1000);
 
-// Wait for layout to be fully rendered
+setTimeout(function() {
 setTimeout(function() {
 initMap();
 initKeyboard();
-}, 500);
+}, 100);
+}, 300);
 });
 
 function initMap() {
-console.log('Initializing map...');
+const mapEl = document.getElementById('map');
+const panel = document.getElementById('map-panel');
+const width = panel.clientWidth;
+const height = panel.clientHeight;
+
+console.log('Map init - width:', width, 'height:', height);
+
+if (width < 100 || height < 100) {
+console.error('Map container too small, retrying...');
+setTimeout(initMap, 200);
+return;
+}
+
+mapEl.style.width = width + 'px';
+mapEl.style.height = height + 'px';
 
 map = L.map('map', {
 center: [25, 50],
@@ -463,7 +483,7 @@ minZoom: 2,
 maxZoom: 6,
 zoomControl: true,
 attributionControl: false,
-dragging: true,
+dragging: false,
 touchZoom: true,
 scrollWheelZoom: true,
 doubleClickZoom: false,
@@ -477,34 +497,43 @@ subdomains: 'abcd',
 maxZoom: 19
 }).addTo(map);
 
-// Wait for tiles to load, then add markers
-map.whenReady(function() {
-console.log('Map ready, adding markers...');
-addMarkers();
-addArcs();
-addHotspots();
-map.invalidateSize();
+const targetCounts = {};
+window.ACTOR_DATA.forEach(function(actor) {
+const targets = Array.isArray(actor.targets) ? actor.targets : [];
+targets.forEach(function(target) {
+const tc = getTCoords(target);
+if (!tc) return;
+const key = tc[0].toFixed(0) + ',' + tc[1].toFixed(0);
+targetCounts[key] = (targetCounts[key] || 0) + 1;
+});
 });
 
-map.on('click', function() { if (selectedSlug) closeDetail(); });
-map.on('mousemove', function(e) {
-document.getElementById('go-coords').textContent = 'LAT ' + e.latlng.lat.toFixed(2) + ' · LNG ' + e.latlng.lng.toFixed(2);
+Object.entries(targetCounts).forEach(function([key, count]) {
+if (count < 2) return;
+const [lat, lng] = key.split(',').map(Number);
+const radius = 200000 + (count * 150000);
+const opacity = Math.min(0.15 + count * 0.05, 0.4);
+const hotspot = L.circle([lat, lng], {
+radius: radius,
+color: '#ff2244',
+fillColor: '#ff2244',
+fillOpacity: opacity,
+weight: 0,
+className: 'hotspot',
+interactive: false
+}).addTo(map);
+hotspot.options._baseOpacity = opacity;
+hotspotLayers.push(hotspot);
 });
-
-window.addEventListener('resize', function() {
-setTimeout(function() { map.invalidateSize(); }, 100);
-});
-}
-
-function addMarkers() {
-console.log('Adding', window.ACTOR_DATA.length, 'markers');
 
 window.ACTOR_DATA.forEach(function(actor) {
 const coords = getCoords(actor.origin);
+const lat = coords[0];
+const lng = coords[1];
 const t = (actor.threat || 'medium').toLowerCase();
 const col = TCOL[t] || TCOL.medium;
 
-console.log('Marker:', actor.title, 'at', coords[0], coords[1]);
+console.log('Adding marker:', actor.title, '->', actor.origin, '-> [', lat, ',', lng, ']');
 
 const icon = L.divIcon({
 className: 'threat-marker marker-' + t,
@@ -513,19 +542,25 @@ iconSize: [14, 14],
 iconAnchor: [7, 7]
 });
 
-const marker = L.marker([coords[0], coords[1]], { icon: icon }).addTo(map);
+const marker = L.marker([lat, lng], { icon: icon }).addTo(map);
 
+const targets = Array.isArray(actor.targets) ? actor.targets : [];
 const tooltipContent = '<div class="tt-name" style="color:' + col + '">' + actor.title + '</div>' +
 '<div class="tt-row"><span class="tt-k">origin</span><span class="tt-v">' + (actor.origin || '?') + '</span></div>' +
 '<div class="tt-row"><span class="tt-k">threat</span><span class="tt-v" style="color:' + col + '">' + (actor.threat || '').toUpperCase() + '</span></div>' +
 '<div class="tt-row"><span class="tt-k">status</span><span class="tt-v">' + (actor.status || '?') + '</span></div>' +
-'<div class="tt-hint">click for profile →</div>';
+(targets.length ? '<div class="tt-row"><span class="tt-k">targets</span><span class="tt-v">' + targets.length + ' sectors</span></div>' : '') +
+(actor.tldr ? '<div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:6px;line-height:1.4">' + actor.tldr.substring(0, 70) + (actor.tldr.length > 70 ? '…' : '') + '</div>' : '') +
+'<div class="tt-hint">► CLICK FOR PROFILE</div>';
 
 marker.bindTooltip(tooltipContent, {
 className: 'threat-tooltip',
 direction: 'right',
 offset: [12, 0],
-opacity: 1
+opacity: 1,
+permanent: false,
+sticky: true,
+interactive: true
 });
 
 marker.on('click', function(e) {
@@ -536,14 +571,11 @@ selectActor(actor.slug);
 markersMap[actor.slug] = { marker, actor, threat: t, color: col, arcs: [] };
 });
 
-console.log('Markers added:', Object.keys(markersMap).length);
-}
-
-function addArcs() {
 window.ACTOR_DATA.forEach(function(actor) {
 const src = getCoords(actor.origin);
-if (!actor.targets || !actor.targets.length) return;
-actor.targets.slice(0, 4).forEach(function(target) {
+const targets = Array.isArray(actor.targets) ? actor.targets : [];
+if (!targets.length) return;
+targets.slice(0, 4).forEach(function(target) {
 const tc = getTCoords(target);
 if (!tc) return;
 const t = (actor.threat || 'medium').toLowerCase();
@@ -570,35 +602,23 @@ markersMap[actor.slug].arcs.push(arc);
 }
 });
 });
-}
 
-function addHotspots() {
-const targetCounts = {};
-window.ACTOR_DATA.forEach(function(actor) {
-(actor.targets || []).forEach(function(target) {
-const tc = getTCoords(target);
-if (!tc) return;
-const key = tc[0].toFixed(0) + ',' + tc[1].toFixed(0);
-targetCounts[key] = (targetCounts[key] || 0) + 1;
-});
+map.on('click', function() {
+if (selectedSlug) closeDetail();
 });
 
-Object.entries(targetCounts).forEach(function([key, count]) {
-if (count < 2) return;
-const [lat, lng] = key.split(',').map(Number);
-const radius = 200000 + (count * 150000);
-const opacity = Math.min(0.15 + count * 0.05, 0.4);
-const hotspot = L.circle([lat, lng], {
-radius: radius,
-color: '#ff2244',
-fillColor: '#ff2244',
-fillOpacity: opacity,
-weight: 0,
-className: 'hotspot',
-interactive: false
-}).addTo(map);
-hotspot.options._baseOpacity = opacity;
-hotspotLayers.push(hotspot);
+map.on('mousemove', function(e) {
+document.getElementById('go-coords').textContent = 'LAT ' + e.latlng.lat.toFixed(2) + ' · LNG ' + e.latlng.lng.toFixed(2);
+});
+
+setTimeout(function() { map.invalidateSize(); }, 200);
+
+window.addEventListener('resize', function() {
+const w = panel.clientWidth;
+const h = panel.clientHeight;
+mapEl.style.width = w + 'px';
+mapEl.style.height = h + 'px';
+setTimeout(function() { map.invalidateSize(); }, 100);
 });
 }
 
@@ -650,7 +670,9 @@ if (!focusSlug) {
 Object.values(markersMap).forEach(function(m) {
 const el = m.marker.getElement();
 if (el) el.classList.remove('marker-selected', 'marker-dimmed');
-m.arcs.forEach(function(arc) { arc.setStyle({ opacity: 0.25, weight: 1 }); });
+m.arcs.forEach(function(arc) {
+arc.setStyle({ opacity: 0.25, weight: 1 });
+});
 });
 document.querySelectorAll('.a-row:not(.hidden)').forEach(function(r) { r.classList.remove('dimmed'); });
 hotspotLayers.forEach(function(h) { h.setStyle({ fillOpacity: h.options._baseOpacity || 0.15 }); });
@@ -710,10 +732,15 @@ if (actor.motivation) h += '<div class="d-val" style="font-size:.58rem">💰 ' +
 if (actor.first_seen) h += '<div class="d-val" style="font-size:.58rem">📅 ' + actor.first_seen + ' → ' + (actor.last_seen || 'present') + '</div>';
 h += '</div>';
 }
-if (actor.aliases?.length) h += '<div class="d-sec"><div class="d-lbl">// aliases</div><div class="d-tags">' + actor.aliases.map(a => '<span class="d-tag">' + a + '</span>').join('') + '</div></div>';
-if (actor.ttps?.length) h += '<div class="d-sec"><div class="d-lbl">// ttps</div>' + actor.ttps.slice(0, 5).map(t => '<div class="d-ttp">• ' + t + '</div>').join('') + (actor.ttps.length > 5 ? '<div style="font-size:.52rem;color:rgba(255,255,255,.2);padding:.1rem .42rem">+' + (actor.ttps.length - 5) + ' more</div>' : '') + '</div>';
-if (actor.targets?.length) h += '<div class="d-sec"><div class="d-lbl">// targets</div><div class="d-tags">' + actor.targets.map(t => '<span class="d-tag">' + t + '</span>').join('') + '</div></div>';
-if (actor.tools?.length) h += '<div class="d-sec"><div class="d-lbl">// tools</div><div class="d-tags">' + actor.tools.map(t => '<span class="d-tag d-tag-o">' + t + '</span>').join('') + '</div></div>';
+const aliases = Array.isArray(actor.aliases) ? actor.aliases : [];
+const ttps = Array.isArray(actor.ttps) ? actor.ttps : [];
+const targets = Array.isArray(actor.targets) ? actor.targets : [];
+const tools = Array.isArray(actor.tools) ? actor.tools : [];
+
+if (aliases.length) h += '<div class="d-sec"><div class="d-lbl">// aliases</div><div class="d-tags">' + aliases.map(a => '<span class="d-tag">' + a + '</span>').join('') + '</div></div>';
+if (ttps.length) h += '<div class="d-sec"><div class="d-lbl">// ttps</div>' + ttps.slice(0, 5).map(t => '<div class="d-ttp">• ' + t + '</div>').join('') + (ttps.length > 5 ? '<div style="font-size:.52rem;color:rgba(255,255,255,.2);padding:.1rem .42rem">+' + (ttps.length - 5) + ' more</div>' : '') + '</div>';
+if (targets.length) h += '<div class="d-sec"><div class="d-lbl">// targets</div><div class="d-tags">' + targets.map(t => '<span class="d-tag">' + t + '</span>').join('') + '</div></div>';
+if (tools.length) h += '<div class="d-sec"><div class="d-lbl">// tools</div><div class="d-tags">' + tools.map(t => '<span class="d-tag d-tag-o">' + t + '</span>').join('') + '</div></div>';
 h += '<a href="' + actor.url + '" class="d-link">→ full intelligence profile</a>';
 
 document.getElementById('detail-body').innerHTML = h;
