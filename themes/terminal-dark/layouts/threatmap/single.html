@@ -88,22 +88,6 @@ onclick="selectActor('{{ .File.BaseFileName }}')">
 // profile
 </div>
 <div id="detail-body"></div>
-<!-- EXPORT/SHARE ACTIONS -->
-<div class="export-actions">
-<button class="exp-btn" onclick="exportJSON()" title="Export as JSON">
-<span>⬇</span> JSON
-</button>
-<button class="exp-btn" onclick="exportMarkdown()" title="Export as Markdown">
-<span>📄</span> MD
-</button>
-<button class="exp-btn" onclick="copyLink()" title="Copy Link">
-<span>🔗</span> LINK
-</button>
-<button class="exp-btn" onclick="shareActor()" title="Share">
-<span>📤</span> SHARE
-</button>
-</div>
-<div id="export-toast"></div>
 </div>
 </div>
 </div>
@@ -126,46 +110,46 @@ onclick="selectActor('{{ .File.BaseFileName }}')">
 <style>
 /* ── CSS Variables ────────────────────────────────────────── */
 :root {
-  --bg:        #090909;
-  --bg2:       #0f0f0f;
-  --bg3:       #161616;
-  --bg4:       #1c1c1c;
-  --border:    #1e1e1e;
-  --border2:   #2a2a2a;
-  --text:      #e6edf3;
-  --text2:     #b0bac5;
-  --dim:       #484f58;
-  --accent:    #00ff41;
-  --accent-dim:#00441a;
-  --accent2:   #00d4ff;
-  --red:       #ff4444;
-  --yellow:    #e8c547;
-  --blue:      #58a6ff;
-  --purple:    #bc8cff;
-  --orange:    #f0883e;
-  --font:      'JetBrains Mono', 'Courier New', monospace;
-  --radius:    4px;
-  --header-h:  52px;
+--bg:        #090909;
+--bg2:       #0f0f0f;
+--bg3:       #161616;
+--bg4:       #1c1c1c;
+--border:    #1e1e1e;
+--border2:   #2a2a2a;
+--text:      #e6edf3;
+--text2:     #b0bac5;
+--dim:       #484f58;
+--accent:    #00ff41;
+--accent-dim:#00441a;
+--accent2:   #00d4ff;
+--red:       #ff4444;
+--yellow:    #e8c547;
+--blue:      #58a6ff;
+--purple:    #bc8cff;
+--orange:    #f0883e;
+--font:      'JetBrains Mono', 'Courier New', monospace;
+--radius:    4px;
+--header-h:  52px;
 }
 
 body.light-mode {
-  --bg:        #f0f0eb;
-  --bg2:       #ffffff;
-  --bg3:       #e8e8e2;
-  --bg4:       #ddddd6;
-  --border:    #d0d0c8;
-  --border2:   #c0c0b8;
-  --text:      #1a1a1a;
-  --text2:     #555550;
-  --dim:       #999990;
-  --accent:    #007a1e;
-  --accent-dim:#d4edda;
-  --accent2:   #0066cc;
-  --red:       #cc2200;
-  --yellow:    #8a6f00;
-  --blue:      #0055cc;
-  --purple:    #6633cc;
-  --orange:    #b85c00;
+--bg:        #f0f0eb;
+--bg2:       #ffffff;
+--bg3:       #e8e8e2;
+--bg4:       #ddddd6;
+--border:    #d0d0c8;
+--border2:   #c0c0b8;
+--text:      #1a1a1a;
+--text2:     #555550;
+--dim:       #999990;
+--accent:    #007a1e;
+--accent-dim:#d4edda;
+--accent2:   #0066cc;
+--red:       #cc2200;
+--yellow:    #8a6f00;
+--blue:      #0055cc;
+--purple:    #6633cc;
+--orange:    #b85c00;
 }
 
 #ti-root {
@@ -211,27 +195,6 @@ flex-shrink: 0;
 .vi-btn { background:none; border:1px solid var(--border); color:var(--text2); font-family:inherit; font-size:.55rem; padding:3px 9px; border-radius:var(--radius); cursor:pointer; transition:all .15s; letter-spacing:.06em; text-decoration:none; }
 .vi-btn:hover { border-color:var(--accent); color:var(--accent); background:rgba(0,255,65,.07); }
 
-/* THEME TOGGLE */
-#theme-toggle {
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--text2);
-  font-family: inherit;
-  font-size: .55rem;
-  padding: 3px 8px;
-  border-radius: var(--radius);
-  cursor: pointer;
-  transition: all 0.15s;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin-right: 8px;
-}
-#theme-toggle:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
 /* MAIN */
 #ti-main {
 flex: 1;
@@ -250,9 +213,10 @@ width: 100%;
 height: 100%;
 background: var(--bg);
 cursor: crosshair;
+z-index: 1;
 }
 .leaflet-container { background: var(--bg) !important; cursor: crosshair !important; }
-.leaflet-control-zoom { border: 1px solid var(--border) !important; }
+.leaflet-control-zoom { border: 1px solid var(--border) !important; border-radius: var(--radius) !important; overflow: hidden; }
 .leaflet-control-zoom a { background: var(--bg2) !important; color: var(--accent) !important; border-color: var(--border) !important; font-size: 14px !important; width: 28px !important; height: 28px !important; line-height: 28px !important; }
 .leaflet-control-zoom a:hover { background: var(--bg3) !important; }
 .leaflet-control-attribution { display: none !important; }
@@ -393,63 +357,6 @@ overflow: hidden;
 .d-link { display: block; margin-top: .6rem; text-align: center; font-size: .6rem; color: var(--accent); border: 1px solid var(--accent); opacity:0.2; padding: .32rem; border-radius: 2px; text-decoration: none; transition: background .15s; letter-spacing: .04em; }
 .d-link:hover { background: rgba(0,255,65,.08); opacity:1; }
 
-/* EXPORT/SHARE ACTIONS */
-.export-actions {
-display: flex;
-gap: 6px;
-padding: 8px;
-border-top: 1px solid var(--border);
-background: var(--bg3);
-flex-shrink: 0;
-}
-.exp-btn {
-flex: 1;
-background: var(--bg4);
-border: 1px solid var(--border);
-color: var(--text2);
-font-family: var(--font);
-font-size: 0.5rem;
-padding: 6px 4px;
-border-radius: var(--radius);
-cursor: pointer;
-transition: all 0.15s;
-letter-spacing: 0.04em;
-display: flex;
-flex-direction: column;
-align-items: center;
-gap: 3px;
-}
-.exp-btn span { font-size: 0.7rem; }
-.exp-btn:hover {
-border-color: var(--accent);
-color: var(--accent);
-background: rgba(0,255,65,0.05);
-}
-.exp-btn:active { transform: scale(0.98); }
-
-/* TOAST NOTIFICATION */
-#export-toast {
-position: fixed;
-bottom: 40px;
-left: 50%;
-transform: translateX(-50%) translateY(100px);
-background: var(--bg4);
-border: 1px solid var(--accent);
-color: var(--accent);
-padding: 10px 20px;
-border-radius: var(--radius);
-font-size: 0.6rem;
-letter-spacing: 0.06em;
-opacity: 0;
-transition: all 0.3s ease;
-z-index: 1000;
-box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-}
-#export-toast.show {
-transform: translateX(-50%) translateY(0);
-opacity: 1;
-}
-
 #ti-status { display: flex; align-items: center; gap: 8px; padding: .28rem 14px; background: var(--bg2); border-top: 1px solid var(--border); flex-shrink: 0; font-size: .5rem; color: var(--dim); height: 24px; }
 .sb-sep { color: var(--border); }
 .sb-item { letter-spacing: .04em; }
@@ -461,7 +368,7 @@ opacity: 1;
 }
 </style>
 <script>
-// ═════════════════════════════════════════════════
+// ══════════════════════════════════════════════════
 //  COORDINATES
 // ══════════════════════════════════════════════════
 const COORDS = {
@@ -534,8 +441,9 @@ let markersMap = {};
 let arcLayers = [];
 let hotspotLayers = [];
 let actorSlugs = [];
+let initAttempts = 0;
 
-// ══════════════════════════════════════════════════
+// ═════════════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', function() {
@@ -546,12 +454,6 @@ calcStats();
 actorSlugs = window.ACTOR_DATA.map(a => a.slug);
 document.getElementById('actor-count').textContent = '(' + window.ACTOR_DATA.length + ')';
 
-// Check for saved theme preference
-const savedTheme = localStorage.getItem('ti-theme');
-if (savedTheme === 'light') {
-  document.body.classList.add('light-mode');
-}
-
 function updateClock() {
 const t = new Date().toLocaleTimeString('en-US', { timeZone: 'Asia/Kolkata', hour12: false });
 document.getElementById('ti-clock').textContent = t + ' IST';
@@ -559,222 +461,184 @@ document.getElementById('ti-clock').textContent = t + ' IST';
 updateClock();
 setInterval(updateClock, 1000);
 
-// Wait for layout to stabilize
-setTimeout(function() {
-setTimeout(function() {
+// Retry mechanism for map init
+function tryInit() {
+initAttempts++;
+console.log(`Map init attempt ${initAttempts}`);
+const mapEl = document.getElementById('map');
+const panel = document.getElementById('map-panel');
+if (!mapEl || !panel || panel.clientWidth < 100 || panel.clientHeight < 100) {
+  if (initAttempts < 10) {
+    setTimeout(tryInit, 300);
+  } else {
+    console.error('Map init failed after 10 attempts');
+  }
+  return;
+}
 initMap();
 initKeyboard();
-}, 100);
-}, 300);
+}
+
+setTimeout(tryInit, 500);
 });
 
 // ══════════════════════════════════════════════════
-//  THEME TOGGLE
-// ══════════════════════════════════════════════════
-function toggleTheme() {
-  document.body.classList.toggle('light-mode');
-  const isLight = document.body.classList.contains('light-mode');
-  localStorage.setItem('ti-theme', isLight ? 'light' : 'dark');
-  
-  // Update map tiles based on theme
-  if (map) {
-    updateMapTiles();
-  }
-}
-
-function updateMapTiles() {
-  if (!map) return;
-  
-  // Remove existing tile layers
-  map.eachLayer(function(layer) {
-    if (layer instanceof L.TileLayer) {
-      map.removeLayer(layer);
-    }
-  });
-  
-  // Add appropriate tiles based on theme
-  const isLight = document.body.classList.contains('light-mode');
-  const tileUrl = isLight 
-    ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
-    : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
-    
-  L.tileLayer(tileUrl, {
-    subdomains: 'abcd',
-    maxZoom: 19
-  }).addTo(map);
-}
-
-// ══════════════════════════════════════════════════
-//  MAP INIT - FIXED FOR RELIABLE RENDERING
+//  MAP INIT - FIXED
 // ══════════════════════════════════════════════════
 function initMap() {
+console.log('Initializing map...');
 const mapEl = document.getElementById('map');
-const panel = document.getElementById('map-panel');
 
-// Force layout recalculation
-panel.style.display = 'flex';
+// Ensure map has proper dimensions via CSS
 mapEl.style.width = '100%';
 mapEl.style.height = '100%';
 
-// Use requestAnimationFrame to ensure layout is complete
-requestAnimationFrame(() => {
-  requestAnimationFrame(() => {
-    const width = panel.clientWidth;
-    const height = panel.clientHeight;
-    
-    console.log('Map init - width:', width, 'height:', height);
-    
-    if (width < 100 || height < 100) {
-      console.error('Map container too small, retrying...');
-      setTimeout(initMap, 300);
-      return;
-    }
-    
-    // Initialize map
-    map = L.map('map', {
-      center: [25, 50],
-      zoom: 2,
-      minZoom: 2,
-      maxZoom: 6,
-      zoomControl: true,
-      attributionControl: false,
-      dragging: true,  // Enable dragging
-      touchZoom: true,
-      scrollWheelZoom: true,
-      doubleClickZoom: false,
-      boxZoom: false,
-      keyboard: false,
-      worldCopyJump: true
-    });
-    
-    // Add initial tile layer
-    updateMapTiles();
-    
-    // Build hotspots from target data
-    const targetCounts = {};
-    window.ACTOR_DATA.forEach(function(actor) {
-      (actor.targets || []).forEach(function(target) {
-        const tc = getTCoords(target);
-        if (!tc) return;
-        const key = tc[0].toFixed(0) + ',' + tc[1].toFixed(0);
-        targetCounts[key] = (targetCounts[key] || 0) + 1;
-      });
-    });
-    
-    Object.entries(targetCounts).forEach(function([key, count]) {
-      if (count < 2) return;
-      const [lat, lng] = key.split(',').map(Number);
-      const radius = 200000 + (count * 150000);
-      const opacity = Math.min(0.15 + count * 0.05, 0.4);
-      const hotspot = L.circle([lat, lng], {
-        radius: radius,
-        color: '#ff4444',
-        fillColor: '#ff4444',
-        fillOpacity: opacity,
-        weight: 0,
-        className: 'hotspot',
-        interactive: false
-      }).addTo(map);
-      hotspot.options._baseOpacity = opacity;
-      hotspotLayers.push(hotspot);
-    });
-    
-    // ADD ACTOR MARKERS - Now guaranteed to work
-    window.ACTOR_DATA.forEach(function(actor) {
-      const coords = getCoords(actor.origin);
-      const lat = coords[0];
-      const lng = coords[1];
-      const t = (actor.threat || 'medium').toLowerCase();
-      const col = TCOL[t] || TCOL.medium;
-      
-      console.log('Adding marker:', actor.title, '->', actor.origin, '-> [', lat, ',', lng, ']');
-      
-      const icon = L.divIcon({
-        className: 'threat-marker marker-' + t,
-        html: '<div class="marker-glow"></div><div class="marker-core"></div><div class="marker-ring"></div><div class="marker-ring-2"></div>',
-        iconSize: [14, 14],
-        iconAnchor: [7, 7]
-      });
-      
-      const marker = L.marker([lat, lng], { icon: icon }).addTo(map);
-      
-      const tooltipContent = '<div class="tt-name" style="color:' + col + '">' + actor.title + '</div>' +
-        '<div class="tt-row"><span class="tt-k">origin</span><span class="tt-v">' + (actor.origin || '?') + '</span></div>' +
-        '<div class="tt-row"><span class="tt-k">threat</span><span class="tt-v" style="color:' + col + '">' + (actor.threat || '').toUpperCase() + '</span></div>' +
-        '<div class="tt-row"><span class="tt-k">status</span><span class="tt-v">' + (actor.status || '?') + '</span></div>' +
-        (actor.targets?.length ? '<div class="tt-row"><span class="tt-k">targets</span><span class="tt-v">' + actor.targets.length + ' sectors</span></div>' : '') +
-        (actor.tldr ? '<div style="font-size:10px;color:var(--text2);opacity:0.3;margin-top:6px;line-height:1.4">' + actor.tldr.substring(0, 70) + (actor.tldr.length > 70 ? '…' : '') + '</div>' : '') +
-        '<div class="tt-hint">click for profile →</div>';
-      
-      marker.bindTooltip(tooltipContent, {
-        className: 'threat-tooltip',
-        direction: 'right',
-        offset: [12, 0],
-        opacity: 1
-      });
-      
-      marker.on('click', function(e) {
-        L.DomEvent.stopPropagation(e);
-        selectActor(actor.slug);
-      });
-      
-      markersMap[actor.slug] = { marker, actor, threat: t, color: col, arcs: [] };
-    });
-    
-    // ADD ARCS
-    window.ACTOR_DATA.forEach(function(actor) {
-      const src = getCoords(actor.origin);
-      if (!actor.targets || !actor.targets.length) return;
-      actor.targets.slice(0, 4).forEach(function(target) {
-        const tc = getTCoords(target);
-        if (!tc) return;
-        const t = (actor.threat || 'medium').toLowerCase();
-        const col = TCOL[t] || TCOL.medium;
-        const points = [];
-        const steps = 30;
-        for (let i = 0; i <= steps; i++) {
-          const frac = i / steps;
-          const lat = src[0] + (tc[0] - src[0]) * frac;
-          const lng = src[1] + (tc[1] - src[1]) * frac;
-          const bulge = Math.sin(frac * Math.PI) * 12;
-          points.push([lat + bulge * 0.4, lng]);
-        }
-        const arc = L.polyline(points, {
-          color: col,
-          weight: 1,
-          opacity: 0.25,
-          className: 'threat-arc',
-          interactive: false
-        }).addTo(map);
-        arcLayers.push(arc);
-        if (markersMap[actor.slug]) {
-          markersMap[actor.slug].arcs.push(arc);
-        }
-      });
-    });
-    
-    // Click map to deselect
-    map.on('click', function() {
-      if (selectedSlug) closeDetail();
-    });
-    
-    // Mouse coords
-    map.on('mousemove', function(e) {
-      document.getElementById('go-coords').textContent = 'LAT ' + e.latlng.lat.toFixed(2) + ' · LNG ' + e.latlng.lng.toFixed(2);
-    });
-    
-    // Force invalidate size
-    setTimeout(function() { 
-      map.invalidateSize(); 
-      console.log('Map invalidated, markers should be visible now');
-    }, 100);
-    
-    // Handle resize
-    window.addEventListener('resize', function() {
-      setTimeout(function() { map.invalidateSize(); }, 100);
-    });
+// Initialize Leaflet
+map = L.map('map', {
+  center: [25, 50],
+  zoom: 2,
+  minZoom: 2,
+  maxZoom: 6,
+  zoomControl: true,
+  attributionControl: false,
+  dragging: true,
+  touchZoom: true,
+  scrollWheelZoom: true,
+  doubleClickZoom: false,
+  boxZoom: false,
+  keyboard: false,
+  worldCopyJump: true
+});
+
+// Add dark tiles
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  subdomains: 'abcd',
+  maxZoom: 19
+}).addTo(map);
+
+// Force map to update size
+map.invalidateSize();
+
+// Build hotspots
+const targetCounts = {};
+window.ACTOR_DATA.forEach(function(actor) {
+  (actor.targets || []).forEach(function(target) {
+    const tc = getTCoords(target);
+    if (!tc) return;
+    const key = tc[0].toFixed(0) + ',' + tc[1].toFixed(0);
+    targetCounts[key] = (targetCounts[key] || 0) + 1;
   });
 });
+
+Object.entries(targetCounts).forEach(function([key, count]) {
+  if (count < 2) return;
+  const [lat, lng] = key.split(',').map(Number);
+  const radius = 200000 + (count * 150000);
+  const opacity = Math.min(0.15 + count * 0.05, 0.4);
+  const hotspot = L.circle([lat, lng], {
+    radius: radius,
+    color: '#ff4444',
+    fillColor: '#ff4444',
+    fillOpacity: opacity,
+    weight: 0,
+    className: 'hotspot',
+    interactive: false
+  }).addTo(map);
+  hotspot.options._baseOpacity = opacity;
+  hotspotLayers.push(hotspot);
+});
+
+// ADD ACTOR MARKERS
+console.log('Adding actor markers...');
+window.ACTOR_DATA.forEach(function(actor) {
+  const coords = getCoords(actor.origin);
+  const lat = coords[0];
+  const lng = coords[1];
+  const t = (actor.threat || 'medium').toLowerCase();
+  const col = TCOL[t] || TCOL.medium;
+  
+  console.log(`Marker: ${actor.title} -> ${actor.origin} -> [${lat}, ${lng}]`);
+  
+  const icon = L.divIcon({
+    className: 'threat-marker marker-' + t,
+    html: '<div class="marker-glow"></div><div class="marker-core"></div><div class="marker-ring"></div><div class="marker-ring-2"></div>',
+    iconSize: [14, 14],
+    iconAnchor: [7, 7]
+  });
+  
+  const marker = L.marker([lat, lng], { icon: icon }).addTo(map);
+  
+  const tooltipContent = '<div class="tt-name" style="color:' + col + '">' + actor.title + '</div>' +
+    '<div class="tt-row"><span class="tt-k">origin</span><span class="tt-v">' + (actor.origin || '?') + '</span></div>' +
+    '<div class="tt-row"><span class="tt-k">threat</span><span class="tt-v" style="color:' + col + '">' + (actor.threat || '').toUpperCase() + '</span></div>' +
+    '<div class="tt-row"><span class="tt-k">status</span><span class="tt-v">' + (actor.status || '?') + '</span></div>' +
+    (actor.targets?.length ? '<div class="tt-row"><span class="tt-k">targets</span><span class="tt-v">' + actor.targets.length + ' sectors</span></div>' : '') +
+    (actor.tldr ? '<div style="font-size:10px;color:var(--text2);opacity:0.3;margin-top:6px;line-height:1.4">' + actor.tldr.substring(0, 70) + (actor.tldr.length > 70 ? '…' : '') + '</div>' : '') +
+    '<div class="tt-hint">click for profile →</div>';
+  
+  marker.bindTooltip(tooltipContent, {
+    className: 'threat-tooltip',
+    direction: 'right',
+    offset: [12, 0],
+    opacity: 1
+  });
+  
+  marker.on('click', function(e) {
+    L.DomEvent.stopPropagation(e);
+    selectActor(actor.slug);
+  });
+  
+  markersMap[actor.slug] = { marker, actor, threat: t, color: col, arcs: [] };
+});
+
+// ADD ARCS
+window.ACTOR_DATA.forEach(function(actor) {
+  const src = getCoords(actor.origin);
+  if (!actor.targets || !actor.targets.length) return;
+  actor.targets.slice(0, 4).forEach(function(target) {
+    const tc = getTCoords(target);
+    if (!tc) return;
+    const t = (actor.threat || 'medium').toLowerCase();
+    const col = TCOL[t] || TCOL.medium;
+    const points = [];
+    const steps = 30;
+    for (let i = 0; i <= steps; i++) {
+      const frac = i / steps;
+      const lat = src[0] + (tc[0] - src[0]) * frac;
+      const lng = src[1] + (tc[1] - src[1]) * frac;
+      const bulge = Math.sin(frac * Math.PI) * 12;
+      points.push([lat + bulge * 0.4, lng]);
+    }
+    const arc = L.polyline(points, {
+      color: col,
+      weight: 1,
+      opacity: 0.25,
+      className: 'threat-arc',
+      interactive: false
+    }).addTo(map);
+    arcLayers.push(arc);
+    if (markersMap[actor.slug]) {
+      markersMap[actor.slug].arcs.push(arc);
+    }
+  });
+});
+
+// Click map to deselect
+map.on('click', function() {
+  if (selectedSlug) closeDetail();
+});
+
+// Mouse coords
+map.on('mousemove', function(e) {
+  document.getElementById('go-coords').textContent = 'LAT ' + e.latlng.lat.toFixed(2) + ' · LNG ' + e.latlng.lng.toFixed(2);
+});
+
+// Handle resize
+window.addEventListener('resize', function() {
+  setTimeout(function() { map.invalidateSize(); }, 100);
+});
+
+console.log('Map initialized successfully');
 }
 
 // ══════════════════════════════════════════════════
@@ -798,7 +662,7 @@ if (idx >= actorSlugs.length) idx = 0;
 selectActor(actorSlugs[idx]);
 }
 
-// ═════════════════════════════════════════════════
+// ══════════════════════════════════════════════════
 //  FILTER
 // ══════════════════════════════════════════════════
 function filterActors(filter, btn) {
@@ -921,111 +785,8 @@ map.flyTo([25, 50], 2, { duration: 1 });
 }
 
 // ═════════════════════════════════════════════════
-//  EXPORT/SHARE FUNCTIONS
-// ══════════════════════════════════════════════════
-function exportJSON() {
-if (!selectedSlug) return;
-const actor = window.ACTOR_DATA.find(a => a.slug === selectedSlug);
-if (!actor) return;
-
-const dataStr = JSON.stringify(actor, null, 2);
-const blob = new Blob([dataStr], { type: 'application/json' });
-const url = URL.createObjectURL(blob);
-const a = document.createElement('a');
-a.href = url;
-a.download = actor.slug + '-profile.json';
-document.body.appendChild(a);
-a.click();
-document.body.removeChild(a);
-URL.revokeObjectURL(url);
-
-showToast('✓ Exported as JSON');
-}
-
-function exportMarkdown() {
-if (!selectedSlug) return;
-const actor = window.ACTOR_DATA.find(a => a.slug === selectedSlug);
-if (!actor) return;
-
-let md = '# ' + actor.title + '\n\n';
-md += '**Threat Level:** ' + (actor.threat || 'Unknown').toUpperCase() + '  \n';
-md += '**Category:** ' + (actor.category || 'Unknown') + '  \n';
-md += '**Status:** ' + (actor.status || 'Unknown') + '  \n\n';
-
-if (actor.tldr) md += '## Summary\n\n' + actor.tldr + '\n\n';
-
-if (actor.origin || actor.motivation) {
-md += '## Profile\n\n';
-if (actor.origin) md += '- **Origin:** ' + actor.origin + '\n';
-if (actor.motivation) md += '- **Motivation:** ' + actor.motivation + '\n';
-if (actor.first_seen) md += '- **Active:** ' + actor.first_seen + ' → ' + (actor.last_seen || 'Present') + '\n';
-md += '\n';
-}
-
-if (actor.aliases?.length) md += '## Aliases\n\n' + actor.aliases.map(a => '- ' + a).join('\n') + '\n\n';
-if (actor.ttps?.length) md += '## TTPs\n\n' + actor.ttps.map(t => '- ' + t).join('\n') + '\n\n';
-if (actor.targets?.length) md += '## Targets\n\n' + actor.targets.map(t => '- ' + t).join('\n') + '\n\n';
-if (actor.tools?.length) md += '## Tools/Malware\n\n' + actor.tools.map(t => '- ' + t).join('\n') + '\n\n';
-
-md += '---\n*Full report: ' + actor.url + '*\n';
-
-const blob = new Blob([md], { type: 'text/markdown' });
-const url = URL.createObjectURL(blob);
-const a = document.createElement('a');
-a.href = url;
-a.download = actor.slug + '-profile.md';
-document.body.appendChild(a);
-a.click();
-document.body.removeChild(a);
-URL.revokeObjectURL(url);
-
-showToast('✓ Exported as Markdown');
-}
-
-function copyLink() {
-if (!selectedSlug) return;
-const actor = window.ACTOR_DATA.find(a => a.slug === selectedSlug);
-if (!actor) return;
-
-navigator.clipboard.writeText(actor.url).then(function() {
-showToast('✓ Link copied to clipboard');
-}).catch(function() {
-showToast('✗ Failed to copy link');
-});
-}
-
-function shareActor() {
-if (!selectedSlug) return;
-const actor = window.ACTOR_DATA.find(a => a.slug === selectedSlug);
-if (!actor) return;
-
-if (navigator.share) {
-navigator.share({
-title: actor.title + ' - Threat Actor Profile',
-text: actor.tldr || 'Threat intelligence profile for ' + actor.title,
-url: actor.url
-}).catch(function() {});
-} else {
-navigator.clipboard.writeText(actor.url).then(function() {
-showToast('✓ Link copied to clipboard');
-}).catch(function() {
-showToast('✗ Share failed');
-});
-}
-}
-
-function showToast(msg) {
-const toast = document.getElementById('export-toast');
-toast.textContent = msg;
-toast.classList.add('show');
-setTimeout(function() {
-toast.classList.remove('show');
-}, 2500);
-}
-
-// ══════════════════════════════════════════════════
 //  STATS
-// ═════════════════════════════════════════════════
+// ══════════════════════════════════════════════════
 function calcStats() {
 const c = { critical: 0, high: 0, medium: 0, low: 0 };
 window.ACTOR_DATA.forEach(a => {
