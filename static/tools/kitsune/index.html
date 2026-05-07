@@ -266,6 +266,49 @@ a{color:var(--accent2);text-decoration:none}
 .ak-note a{color:var(--accent2)}
 .proxy-banner{font-size:.6rem;color:var(--yellow);background:rgba(232,197,71,.08);border:1px solid rgba(232,197,71,.2);border-radius:3px;padding:.4rem .65rem;margin-bottom:.65rem;line-height:1.7}
 .proxy-banner code{color:var(--accent);background:var(--bg3);padding:1px 4px;border-radius:2px;font-size:.64rem}
+
+/* ACTOR DB */
+.actor-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px;padding:.5rem}
+.actor-card{background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:.6rem .75rem;cursor:pointer;transition:border-color .15s;position:relative}
+.actor-card:hover{border-color:var(--accent2)}
+.actor-card.sel{border-color:var(--accent);background:rgba(0,255,65,.03)}
+.actor-flag{font-size:1.1rem;margin-right:4px}
+.actor-name{font-size:.76rem;font-weight:700;color:var(--text);margin-bottom:2px}
+.actor-aliases{font-size:.58rem;color:var(--dim);margin-bottom:4px;line-height:1.4}
+.actor-tags{display:flex;flex-wrap:wrap;gap:2px;margin-bottom:4px}
+.actor-tag{font-size:.5rem;padding:1px 4px;border-radius:2px;background:var(--bg3);border:1px solid var(--border2);color:var(--dim)}
+.actor-tag.nation{color:var(--red);border-color:rgba(255,68,68,.25);background:rgba(255,68,68,.07)}
+.actor-tag.apt{color:var(--yellow);border-color:rgba(232,197,71,.25);background:rgba(232,197,71,.07)}
+.actor-tag.ransomware{color:var(--purple);border-color:rgba(188,140,255,.25);background:rgba(188,140,255,.07)}
+.actor-tag.espionage{color:var(--accent2);border-color:rgba(0,212,255,.25);background:rgba(0,212,255,.07)}
+.actor-detail{flex:1;overflow-y:auto;padding:.75rem;border-left:1px solid var(--border)}
+.actor-detail-name{font-size:.92rem;font-weight:700;color:var(--accent);margin-bottom:.3rem}
+.actor-detail-section{font-size:.6rem;color:var(--accent2);font-weight:700;margin:.55rem 0 .2rem;letter-spacing:.05em;text-transform:uppercase}
+.actor-ttp{display:inline-block;font-size:.56rem;background:rgba(255,68,68,.1);border:1px solid rgba(255,68,68,.2);color:var(--red);padding:1px 5px;border-radius:2px;margin:1px;font-family:monospace}
+.actor-ioc-pill{display:inline-block;font-size:.58rem;background:var(--bg3);border:1px solid var(--border2);color:var(--orange);padding:1px 6px;border-radius:2px;margin:1px;font-family:monospace;cursor:pointer}
+.actor-ioc-pill:hover{border-color:var(--accent);color:var(--accent)}
+.actor-search-bar{padding:6px 8px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;gap:5px;align-items:center;flex-shrink:0}
+
+/* PHISHSTATS */
+.phish-item{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:.5rem .75rem;margin-bottom:4px}
+.phish-score{font-size:.56rem;font-weight:700;padding:1px 5px;border-radius:2px}
+.phish-score.s-high{background:rgba(255,68,68,.15);color:var(--red);border:1px solid rgba(255,68,68,.3)}
+.phish-score.s-med{background:rgba(232,197,71,.12);color:var(--yellow);border:1px solid rgba(232,197,71,.3)}
+.phish-score.s-low{background:rgba(88,166,255,.1);color:var(--blue);border:1px solid rgba(88,166,255,.25)}
+
+/* THREATFOX HUNT */
+.tfhunt-result{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:.5rem .75rem;margin-bottom:4px}
+.tfhunt-conf{font-size:.54rem;font-weight:700;padding:1px 4px;border-radius:2px}
+
+/* MISP FEEDS */
+.mfeed-item{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:.5rem .75rem;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.mfeed-name{flex:1;font-size:.72rem;font-weight:700;color:var(--text)}
+.mfeed-cat{font-size:.52rem;color:var(--dim);background:var(--bg3);border:1px solid var(--border2);padding:1px 5px;border-radius:2px}
+.mfeed-toggle{font-size:.58rem;padding:2px 8px;border-radius:3px;border:1px solid var(--border2);color:var(--dim);background:none;transition:all .15s}
+.mfeed-toggle.on{border-color:var(--accent);color:var(--accent);background:rgba(0,255,65,.06)}
+.mfeed-ioc-row{background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:.35rem .55rem;margin-bottom:3px;font-size:.64rem;display:flex;gap:6px;align-items:center}
+.mfeed-type{color:var(--accent2);font-size:.52rem;background:rgba(0,212,255,.07);border:1px solid rgba(0,212,255,.15);padding:1px 4px;border-radius:2px;flex-shrink:0}
+
 </style>
 </head>
 <body>
@@ -342,6 +385,10 @@ a{color:var(--accent2);text-decoration:none}
     <button class="cvt" onclick="switchTab('watchlist',this)">👁 Watchlist</button>
     <button class="cvt" onclick="switchTab('timeline',this)">⏱ Timeline</button>
     <button class="cvt" onclick="switchTab('evidence',this)">📋 Evidence</button>
+    <button class="cvt" onclick="switchTab('actors',this);renderActors()">🕵 Actors</button>
+    <button class="cvt" onclick="switchTab('phishstats',this)">🎣 PhishStats</button>
+    <button class="cvt" onclick="switchTab('threatfox',this)">🦊 ThreatFox</button>
+    <button class="cvt" onclick="switchTab('mispfeeds',this)">🌐 MISP Feeds</button>
     <button class="cvt" onclick="switchTab('report',this)">📄 Report</button>
   </div>
 
@@ -525,6 +572,128 @@ a{color:var(--accent2);text-decoration:none}
         <textarea class="fta" style="width:100%" id="ev-content" placeholder="paste raw data, IOCs, notes, WHOIS, Telegram posts..."></textarea>
       </div>
       <div id="ev-items"><div style="color:var(--dim);font-size:.7rem;text-align:center;padding:1.5rem">no evidence yet</div></div>
+    </div>
+  </div>
+
+  <!-- THREAT ACTORS -->
+  <div class="cv-panel" id="panel-actors">
+    <div class="actor-search-bar">
+      <span style="font-size:.62rem;color:var(--accent2);font-weight:700">🕵 Threat Actor Database</span>
+      <input style="flex:1;padding:3px 7px;font-size:.68rem;border-radius:3px" id="actor-q" placeholder="search actors, aliases, TTPs..." oninput="filterActors(this.value)">
+      <select class="hbtn" id="actor-filter-nation" style="padding:3px 6px" onchange="filterActors(document.getElementById('actor-q').value)">
+        <option value="">all nations</option>
+        <option value="Russia">🇷🇺 Russia</option>
+        <option value="China">🇨🇳 China</option>
+        <option value="North Korea">🇰🇵 North Korea</option>
+        <option value="Iran">🇮🇷 Iran</option>
+        <option value="Unknown">Unknown</option>
+      </select>
+      <select class="hbtn" id="actor-filter-type" style="padding:3px 6px" onchange="filterActors(document.getElementById('actor-q').value)">
+        <option value="">all types</option>
+        <option value="espionage">espionage</option>
+        <option value="ransomware">ransomware</option>
+        <option value="financial">financial</option>
+        <option value="hacktivism">hacktivism</option>
+      </select>
+    </div>
+    <div style="display:flex;flex:1;overflow:hidden">
+      <div style="width:65%;overflow-y:auto;border-right:1px solid var(--border)">
+        <div class="actor-grid" id="actor-grid"></div>
+      </div>
+      <div class="actor-detail" id="actor-detail">
+        <div style="color:var(--dim);font-size:.68rem;line-height:1.8;padding-top:.5rem">
+          Select a threat actor to view full profile<br><br>
+          <span style="color:var(--text2)">Database covers:</span><br>
+          · Major APT groups (APT1–APT45+)<br>
+          · Russian GRU/FSB/SVR units<br>
+          · North Korean Lazarus group<br>
+          · Iranian MuddyWater, APT33<br>
+          · Ransomware gangs (LockBit, ALPHV, etc.)
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHISHSTATS -->
+  <div class="cv-panel" id="panel-phishstats">
+    <div class="gtb">
+      <span style="font-size:.62rem;color:var(--accent2);font-weight:700">🎣 PhishStats — Live Phishing Intelligence</span>
+      <select class="hbtn" id="phish-score-min" style="padding:3px 6px">
+        <option value="0">all scores</option>
+        <option value="4">score ≥ 4</option>
+        <option value="6" selected>score ≥ 6</option>
+        <option value="8">score ≥ 8 (critical)</option>
+      </select>
+      <input style="padding:3px 7px;font-size:.66rem;border-radius:3px;width:130px" id="phish-q" placeholder="filter domain/URL..." oninput="renderPhishStats()">
+      <button class="hbtn p" onclick="loadPhishStats()">↻ refresh</button>
+      <span id="phish-count" style="font-size:.56rem;color:var(--dim)"></span>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:.3rem" id="phish-list">
+      <div class="feed-empty"><span style="font-size:1.5rem;opacity:.12">🎣</span><span>click ↻ refresh to load PhishStats feed</span><span style="font-size:.62rem;color:var(--dim)">Real-time phishing URLs with confidence scores · No API key required</span></div>
+    </div>
+    <div style="padding:3px 8px;background:var(--bg2);border-top:1px solid var(--border);font-size:.54rem;color:var(--dim);display:flex;gap:8px;flex-shrink:0" id="phish-stats-bar" style="display:none">
+      <span>total: <span style="color:var(--text2);font-weight:700" id="phish-total">0</span></span>
+      <span>critical (8+): <span style="color:var(--red);font-weight:700" id="phish-crit">0</span></span>
+      <span>high (6+): <span style="color:var(--yellow);font-weight:700" id="phish-high">0</span></span>
+    </div>
+  </div>
+
+  <!-- THREATFOX HUNT -->
+  <div class="cv-panel" id="panel-threatfox">
+    <div class="gtb">
+      <span style="font-size:.62rem;color:var(--accent2);font-weight:700">🦊 ThreatFox — IOC Hunt & Intelligence</span>
+      <div class="vsep"></div>
+      <input style="padding:3px 7px;font-size:.66rem;border-radius:3px;width:180px" id="tf-search-q" placeholder="IP, domain, hash, malware name..." onkeydown="if(event.key==='Enter')tfSearch()">
+      <select class="hbtn" id="tf-ioc-type" style="padding:3px 6px">
+        <option value="">any type</option>
+        <option value="ip:port">ip:port</option>
+        <option value="domain">domain</option>
+        <option value="url">url</option>
+        <option value="md5_hash">md5</option>
+        <option value="sha256_hash">sha256</option>
+      </select>
+      <button class="hbtn p" onclick="tfSearch()">hunt →</button>
+      <div class="vsep"></div>
+      <button class="hbtn" onclick="tfLoadRecent()">recent IOCs</button>
+      <button class="hbtn" style="border-color:var(--purple);color:var(--purple)" onclick="tfLoadByTag()">by malware tag</button>
+      <input style="padding:3px 7px;font-size:.66rem;border-radius:3px;width:120px" id="tf-tag-q" placeholder="malware name..." onkeydown="if(event.key==='Enter')tfLoadByTag()">
+      <span id="tf-count" style="font-size:.56rem;color:var(--dim)"></span>
+    </div>
+    <div style="font-size:.6rem;color:var(--yellow);background:rgba(232,197,71,.06);border-bottom:1px solid rgba(232,197,71,.15);padding:.35rem .75rem;flex-shrink:0" id="tf-key-warn">
+      ⚠ ThreatFox requires an abuse.ch key for full access. Add it in ⚙ API Keys. Some queries work without a key.
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:.3rem" id="tf-list">
+      <div class="feed-empty"><span style="font-size:1.5rem;opacity:.12">🦊</span><span>search IOCs or load recent ThreatFox intelligence</span></div>
+    </div>
+  </div>
+
+  <!-- MISP FEEDS -->
+  <div class="cv-panel" id="panel-mispfeeds">
+    <div class="gtb">
+      <span style="font-size:.62rem;color:var(--accent2);font-weight:700">🌐 MISP Community Feeds</span>
+      <div class="vsep"></div>
+      <button class="hbtn p" onclick="loadMISPFeeds()">↻ pull selected feeds</button>
+      <button class="hbtn" onclick="clearMISPData()">clear</button>
+      <select class="hbtn" id="misp-ioc-filter" style="padding:3px 6px" onchange="renderMISPIOCs()">
+        <option value="">all types</option>
+        <option value="ip-dst">IPs</option>
+        <option value="domain">domains</option>
+        <option value="url">URLs</option>
+        <option value="md5">hashes</option>
+      </select>
+      <input style="padding:3px 7px;font-size:.66rem;border-radius:3px;width:140px" id="misp-ioc-q" placeholder="filter IOCs..." oninput="renderMISPIOCs()">
+      <span id="misp-ioc-count" style="font-size:.56rem;color:var(--dim)"></span>
+    </div>
+    <div style="display:flex;flex:1;overflow:hidden">
+      <!-- Feed list -->
+      <div style="width:260px;border-right:1px solid var(--border);overflow-y:auto;padding:.4rem;flex-shrink:0">
+        <div style="font-size:.58rem;color:var(--dim);margin-bottom:.4rem;padding:.2rem .4rem">SELECT FEEDS TO PULL</div>
+        <div id="misp-feed-list"></div>
+      </div>
+      <!-- IOC results -->
+      <div style="flex:1;overflow-y:auto;padding:.4rem" id="misp-ioc-list">
+        <div class="feed-empty" style="flex:1"><span style="font-size:1.3rem;opacity:.12">🌐</span><span>Select feeds on the left and click ↻ pull</span><span style="font-size:.62rem;color:var(--dim)">Public MISP community feeds — no authentication required<br>IOCs are fetched via your proxy and parsed locally</span></div>
+      </div>
     </div>
   </div>
 
@@ -1627,7 +1796,7 @@ function importData(){const input=document.createElement('input');input.type='fi
 // ═══════════════════════════════════════════════════════
 // TABS + RENDER ALL
 // ═══════════════════════════════════════════════════════
-function switchTab(id,btn){document.querySelectorAll('.cvt').forEach(b=>b.classList.remove('on'));document.querySelectorAll('.cv-panel').forEach(p=>p.classList.remove('on'));if(btn)btn.classList.add('on');document.getElementById('panel-'+id).classList.add('on');if(id==='report')renderReport();if(id==='mitre')renderMitre();}
+function switchTab(id,btn){document.querySelectorAll('.cvt').forEach(b=>b.classList.remove('on'));document.querySelectorAll('.cv-panel').forEach(p=>p.classList.remove('on'));if(btn)btn.classList.add('on');document.getElementById('panel-'+id).classList.add('on');if(id==='report')renderReport();if(id==='mitre')renderMitre();if(id==='actors')renderActors();}
 function renderAll(){renderCases();renderEnts();renderGraph();renderTimeline();renderEvidence();renderWatchlist();updateStats();}
 function renderCases(){const el=document.getElementById('cases-list');const sel=document.getElementById('case-sel');const cases=Object.values(S.cases).sort((a,b)=>b.created.localeCompare(a.created));const pc={critical:'#ff4444',high:'#e8c547',medium:'#00d4ff',low:'#484f58'};el.innerHTML=cases.map(c=>`<div class="si ${S.cur===c.id?'on':''}" onclick="switchCase('${c.id}')"><div class="si-dot" style="background:${pc[c.priority]||'#484f58'}"></div><span class="si-name">${c.name}</span><span class="si-badge">${c.status}</span><button class="si-del" onclick="delCase('${c.id}',event)">×</button></div>`).join('')||'<div style="padding:6px 8px;font-size:.68rem;color:var(--dim)">no cases yet</div>';sel.innerHTML='<option value="">— select case —</option>'+cases.map(c=>`<option value="${c.id}" ${S.cur===c.id?'selected':''}>${c.name}</option>`).join('');}
 function renderEnts(){const c=getC();const el=document.getElementById('ents-list');if(!c){el.innerHTML='<div style="padding:6px 8px;font-size:.68rem;color:var(--dim)">select a case</div>';return;}const ents=Object.values(c.entities).sort((a,b)=>b.created.localeCompare(a.created));document.getElementById('ent-count').textContent=ents.length;el.innerHTML=ents.map(e=>`<div class="si ${S.selEnt===e.id?'on':''}" onclick="showDetail('${e.id}')" data-v="${e.value.toLowerCase()}"><div class="si-dot" style="background:${e.color||TC[e.type]||'#484f58'}"></div><span class="si-name">${e.value}</span><span class="si-badge">${e.type}</span><button class="si-del" onclick="event.stopPropagation();S.selEnt='${e.id}';deleteDetail()">×</button></div>`).join('')||'<div style="padding:6px 8px;font-size:.68rem;color:var(--dim)">no entities — add above</div>';}
@@ -1635,10 +1804,625 @@ function updateStats(){const c=getC();document.getElementById('st-case').textCon
 function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function showToast(msg){const t=document.createElement('div');t.style.cssText='position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--accent);color:#000;font-family:monospace;font-size:11px;font-weight:700;padding:6px 15px;border-radius:4px;z-index:9999;pointer-events:none;white-space:nowrap';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove&&t.remove(),2200);}
 
-// INIT
+
+// ═══════════════════════════════════════════════════════
+// THREAT ACTOR DATABASE
+// ═══════════════════════════════════════════════════════
+const ACTOR_DB = [
+  // ── RUSSIA ──────────────────────────────────────────
+  {id:'apt28',name:'APT28',aliases:['Fancy Bear','Sofacy','STRONTIUM','Pawn Storm','Sednit'],nation:'Russia',flag:'🇷🇺',sponsor:'GRU Unit 26165',motivation:'espionage',type:['espionage','nation-state'],
+    ttps:['T1566','T1059','T1078','T1003','T1027','T1105'],
+    tools:['X-Agent','Sofacy','LoJax','Zebrocy','CHOPSTICK'],
+    targets:['NATO','governments','defense','media','elections'],
+    iocs:['sofacy.org','dealerschoices.com','sednesdv.com'],
+    desc:'Russian military intelligence (GRU) unit responsible for election interference, NATO targeting, and widespread espionage campaigns since 2004.',
+    refs:['https://attack.mitre.org/groups/G0007/','https://www.cisa.gov/news-events/cybersecurity-advisories/aa20-296a']},
+
+  {id:'apt29',name:'APT29',aliases:['Cozy Bear','The Dukes','NOBELIUM','Midnight Blizzard','Dark Halo'],nation:'Russia',flag:'🇷🇺',sponsor:'SVR (Foreign Intelligence Service)',motivation:'espionage',type:['espionage','nation-state'],
+    ttps:['T1195','T1566','T1078','T1027','T1090','T1573'],
+    tools:['SUNBURST','TEARDROP','MiniDuke','CozyDuke','WellMail','Sliver'],
+    targets:['US government','think tanks','healthcare','tech companies','SolarWinds supply chain'],
+    iocs:['avsvmcloud.com','databasegalore.com','freescanonline.com'],
+    desc:'Russian SVR unit behind the SolarWinds SUNBURST supply chain attack (2020), DNC breach (2016), and persistent targeting of Western governments.',
+    refs:['https://attack.mitre.org/groups/G0016/','https://www.cisa.gov/news-events/cybersecurity-advisories/aa21-008a']},
+
+  {id:'sandworm',name:'Sandworm',aliases:['Voodoo Bear','IRIDIUM','Seashell Blizzard','TeleBots'],nation:'Russia',flag:'🇷🇺',sponsor:'GRU Unit 74455',motivation:'destruction',type:['espionage','destructive','nation-state'],
+    ttps:['T1486','T1561','T1490','T1059','T1027','T1195'],
+    tools:['NotPetya','BlackEnergy','Industroyer','Cyclops Blink','WhisperGate'],
+    targets:['Ukraine power grid','elections','Olympics','global shipping (NotPetya)'],
+    iocs:['msupdate.co','windowsupdate.co.uk'],
+    desc:'GRU Unit 74455 behind NotPetya ($10B damages), Ukraine power grid attacks (2015–2016), and Olympic Destroyer malware.',
+    refs:['https://attack.mitre.org/groups/G0034/','https://www.justice.gov/opa/pr/six-russian-gru-officers-charged-connection-worldwide-deployment-destructive-malware-and']},
+
+  {id:'turla',name:'Turla',aliases:['Snake','Uroburos','Venomous Bear','Waterbug','KRYPTON'],nation:'Russia',flag:'🇷🇺',sponsor:'FSB',motivation:'espionage',type:['espionage','nation-state'],
+    ttps:['T1071','T1102','T1090','T1027','T1056','T1573'],
+    tools:['Carbon','Snake','Kazuar','HyperStack','TinyTurla'],
+    targets:['embassies','military','research','governments'],
+    iocs:['news-bbc.net','satcom7.com'],
+    desc:'FSB-linked group known for sophisticated rootkits, satellite-based C2 (hijacking), and targeting diplomatic/military entities for 20+ years.',
+    refs:['https://attack.mitre.org/groups/G0010/']},
+
+  // ── CHINA ────────────────────────────────────────────
+  {id:'apt1',name:'APT1',aliases:['Comment Crew','Comment Panda','PLA Unit 61398','Shanghai Group'],nation:'China',flag:'🇨🇳',sponsor:'PLA Unit 61398',motivation:'espionage',type:['espionage','nation-state'],
+    ttps:['T1566','T1059','T1003','T1071','T1078','T1083'],
+    tools:['WEBC2','BISCUIT','MANITSME','GlooxMail','Seasalt'],
+    targets:['aerospace','energy','telecom','IT','defense'],
+    iocs:['comment-crew.com'],
+    desc:'PLA Unit 61398, exposed by Mandiant in 2013. Engaged in large-scale, sustained intellectual property theft from 141+ organizations across 20 industries.',
+    refs:['https://attack.mitre.org/groups/G0006/','https://www.mandiant.com/resources/apt1-exposing-one-of-chinas-cyber-espionage-units']},
+
+  {id:'apt41',name:'APT41',aliases:['Double Dragon','Winnti','Barium','Wicked Panda','HOODOO'],nation:'China',flag:'🇨🇳',sponsor:'Chinese MSS',motivation:'espionage+financial',type:['espionage','financial','nation-state'],
+    ttps:['T1195','T1059','T1078','T1027','T1055','T1486'],
+    tools:['ShadowPad','Winnti','MESSAGETAP','KEYPLUG','StealthVector'],
+    targets:['healthcare','telecom','video games','supply chain','governments'],
+    iocs:['update.facebookdocs.com','api.onedriverservice.com'],
+    desc:'Unique group conducting state-sponsored espionage AND financially motivated attacks (game companies, crypto). Indicted by US DOJ in 2020.',
+    refs:['https://attack.mitre.org/groups/G0096/']},
+
+  {id:'apt10',name:'APT10',aliases:['MenuPass','Stone Panda','POTASSIUM','Red Apollo','Cicada'],nation:'China',flag:'🇨🇳',sponsor:'Tianjin Bureau, Chinese MSS',motivation:'espionage',type:['espionage','nation-state'],
+    ttps:['T1566','T1078','T1059','T1105','T1071','T1027'],
+    tools:['QuasarRAT','UPPERCUT','ANEL','RedLeaves','HAYMAKER'],
+    targets:['MSPs','healthcare','government','defense industrial base'],
+    iocs:['datazr.com','microsoftdefende.com'],
+    desc:'Responsible for Operation Cloud Hopper — mass targeting of managed service providers to pivot into client networks worldwide.',
+    refs:['https://attack.mitre.org/groups/G0045/']},
+
+  {id:'volt-typhoon',name:'Volt Typhoon',aliases:['Bronze Silhouette','Vanguard Panda','DEV-0391'],nation:'China',flag:'🇨🇳',sponsor:'Chinese MSS/PLA',motivation:'pre-positioning',type:['espionage','nation-state'],
+    ttps:['T1133','T1078','T1036','T1070','T1090','T1571'],
+    tools:['living-off-the-land binaries (LOLBins)','Impacket','Fast Reverse Proxy'],
+    targets:['US critical infrastructure','Guam','power grid','water','comms'],
+    iocs:[],
+    desc:'Pre-positioning in US critical infrastructure for potential disruption in a conflict scenario. Known for extreme stealth using only native Windows tools.',
+    refs:['https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-144a']},
+
+  // ── NORTH KOREA ──────────────────────────────────────
+  {id:'lazarus',name:'Lazarus Group',aliases:['HIDDEN COBRA','Guardians of Peace','APT38','Whois Hacking Team'],nation:'North Korea',flag:'🇰🇵',sponsor:'Reconnaissance General Bureau (RGB)',motivation:'financial+espionage',type:['financial','espionage','destructive','nation-state'],
+    ttps:['T1566','T1059','T1078','T1027','T1105','T1486'],
+    tools:['ELECTRICFISH','HOPLIGHT','FASTCash','AppleJeus','MagicRAT','MATA'],
+    targets:['banks','crypto exchanges','defense','media','Sony'],
+    iocs:['securityupdates.live','helpdesk.cloudns.cl'],
+    desc:'North Korean state-sponsored group behind Sony hack (2014), Bangladesh Bank SWIFT heist ($81M), WannaCry ransomware (2017), and $3B+ in crypto theft.',
+    refs:['https://attack.mitre.org/groups/G0032/','https://www.cisa.gov/northkorea']},
+
+  {id:'kimsuky',name:'Kimsuky',aliases:['Thallium','Velvet Chollima','Black Banshee','ARCHIPELAGO'],nation:'North Korea',flag:'🇰🇵',sponsor:'RGB',motivation:'espionage',type:['espionage','nation-state'],
+    ttps:['T1566','T1056','T1059','T1027','T1071','T1078'],
+    tools:['BabyShark','AppleSeed','FlowerPower','GoldDragon'],
+    targets:['think tanks','government','nuclear/defense','South Korea'],
+    iocs:['smtper.net','nidoqueen.kr'],
+    desc:'North Korean intelligence unit conducting spear-phishing and social engineering against nuclear/foreign policy experts, academics, and government officials.',
+    refs:['https://attack.mitre.org/groups/G0094/']},
+
+  // ── IRAN ─────────────────────────────────────────────
+  {id:'apt33',name:'APT33',aliases:['Elfin','Holmium','Peach Sandstorm','Refined Kitten'],nation:'Iran',flag:'🇮🇷',sponsor:'IRGC',motivation:'espionage',type:['espionage','destructive','nation-state'],
+    ttps:['T1566','T1059','T1078','T1486','T1027','T1071'],
+    tools:['SHAPESHIFT','DROPSHOT','TURNEDUP','Shamoon'],
+    targets:['aviation','petrochemical','Saudi Arabia','US defense'],
+    iocs:['hr-wipro.com','mail.yahoo-support.ga'],
+    desc:'Iranian group targeting aerospace and energy sectors. Linked to Shamoon disk-wiping attacks. Known for clever spearphishing of recruitment-related content.',
+    refs:['https://attack.mitre.org/groups/G0064/']},
+
+  {id:'muddywater',name:'MuddyWater',aliases:['MERCURY','Static Kitten','Seedworm','TEMP.Zagros'],nation:'Iran',flag:'🇮🇷',sponsor:'MOIS (Ministry of Intelligence)',motivation:'espionage',type:['espionage','nation-state'],
+    ttps:['T1566','T1059','T1027','T1071','T1078','T1090'],
+    tools:['PowGoop','Mori','POWERSTATS','Small Sieve','PhonyC2'],
+    targets:['Middle East governments','telecom','defense','Turkey','Pakistan'],
+    iocs:[],
+    desc:'Iranian MOIS-linked group conducting cyber espionage across the Middle East, Europe and North America. Heavy use of PowerShell and living-off-the-land.',
+    refs:['https://attack.mitre.org/groups/G0069/','https://www.cisa.gov/news-events/cybersecurity-advisories/aa22-055a']},
+
+  // ── RANSOMWARE GROUPS ────────────────────────────────
+  {id:'lockbit',name:'LockBit',aliases:['LockBit 3.0','LockBit Black','ABCD'],nation:'Unknown',flag:'🌐',sponsor:'Criminal',motivation:'financial',type:['ransomware'],
+    ttps:['T1486','T1489','T1490','T1078','T1133','T1059'],
+    tools:['LockBit 3.0','StealBit (exfil)'],
+    targets:['healthcare','manufacturing','government','legal','financial'],
+    iocs:['lockbit3753ekbvfd.onion'],
+    desc:'World\'s most prolific ransomware group 2022–2024. RaaS model. Disrupted by Operation Cronos (Feb 2024, FBI/NCA) but resumed activity. $1B+ in ransoms.',
+    refs:['https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-325a']},
+
+  {id:'alphv',name:'ALPHV / BlackCat',aliases:['BlackCat','Noberus','UNC4466'],nation:'Unknown',flag:'🌐',sponsor:'Criminal',motivation:'financial',type:['ransomware'],
+    ttps:['T1486','T1059','T1078','T1027','T1485','T1490'],
+    tools:['BlackCat ransomware (Rust)','ExMatter','Eamfo'],
+    targets:['healthcare','MGM Resorts','Change Healthcare','casinos'],
+    iocs:['alphvmmm6y6fdumyl.onion'],
+    desc:'Sophisticated Rust-based ransomware group. Behind Change Healthcare attack ($22M ransom, 2024). FBI seized infrastructure February 2024.',
+    refs:['https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-353a']},
+
+  {id:'clop',name:'Cl0p',aliases:['TA505','FIN11','Lace Tempest'],nation:'Unknown',flag:'🌐',sponsor:'Criminal',motivation:'financial',type:['ransomware'],
+    ttps:['T1486','T1059','T1071','T1105','T1190','T1078'],
+    tools:['Cl0p ransomware','SDBot','Get2'],
+    targets:['MOVEit customers (900+ orgs)','Accellion FTA customers','universities'],
+    iocs:[],
+    desc:'Pioneered mass exploitation of zero-days in file-transfer software. MOVEit campaign (2023) affected 2,000+ organizations including US government agencies.',
+    refs:['https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-158a']},
+
+  {id:'scattered-spider',name:'Scattered Spider',aliases:['UNC3944','Starfraud','Octo Tempest','0ktapus'],nation:'Unknown',flag:'🌐',sponsor:'Criminal (English-speaking)',motivation:'financial',type:['ransomware','financial'],
+    ttps:['T1621','T1566','T1078','T1556','T1059','T1486'],
+    tools:['ALPHV/BlackCat','ScreenConnect','Ngrok','AnyDesk'],
+    targets:['MGM Resorts','Caesars Entertainment','telecom','cloud environments'],
+    iocs:[],
+    desc:'English-speaking group (likely US/UK teens) using social engineering, SIM swapping, and MFA fatigue attacks. Partnered with ALPHV for ransomware deployment.',
+    refs:['https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-320a']},
+];
+
+let actorDataFiltered = [...ACTOR_DB];
+let selActor = null;
+
+function renderActors(q='') {
+  filterActors(q);
+}
+
+function filterActors(q='') {
+  const nation = document.getElementById('actor-filter-nation')?.value || '';
+  const type = document.getElementById('actor-filter-type')?.value || '';
+  q = (q || document.getElementById('actor-q')?.value || '').toLowerCase();
+
+  actorDataFiltered = ACTOR_DB.filter(a => {
+    const matchQ = !q || a.name.toLowerCase().includes(q)
+      || (a.aliases || []).some(al => al.toLowerCase().includes(q))
+      || (a.tools || []).some(t => t.toLowerCase().includes(q))
+      || (a.targets || []).some(t => t.toLowerCase().includes(q))
+      || (a.ttps || []).some(t => t.toLowerCase().includes(q))
+      || (a.desc || '').toLowerCase().includes(q);
+    const matchNation = !nation || a.nation === nation;
+    const matchType = !type || (a.type || []).includes(type);
+    return matchQ && matchNation && matchType;
+  });
+
+  const grid = document.getElementById('actor-grid');
+  grid.innerHTML = actorDataFiltered.map(a => `
+    <div class="actor-card ${selActor?.id === a.id ? 'sel' : ''}" onclick="showActorDetail('${a.id}')">
+      <div class="actor-name">${a.flag} ${a.name}</div>
+      <div class="actor-aliases">${(a.aliases || []).slice(0, 3).join(' · ')}</div>
+      <div class="actor-tags">
+        <span class="actor-tag nation">${a.nation}</span>
+        ${(a.type || []).map(t => `<span class="actor-tag ${t}">${t}</span>`).join('')}
+        ${a.sponsor ? `<span class="actor-tag">${a.sponsor.slice(0, 22)}</span>` : ''}
+      </div>
+      <div style="font-size:.58rem;color:var(--dim);line-height:1.4">${(a.desc || '').slice(0, 80)}…</div>
+    </div>`).join('') || '<div style="color:var(--dim);font-size:.72rem;padding:1rem;text-align:center">no actors match filters</div>';
+}
+
+function showActorDetail(id) {
+  selActor = ACTOR_DB.find(a => a.id === id);
+  if (!selActor) return;
+  filterActors(); // re-render grid to update selection
+
+  const a = selActor;
+  document.getElementById('actor-detail').innerHTML = `
+    <div class="actor-detail-name">${a.flag} ${a.name}</div>
+    <div style="font-size:.62rem;color:var(--dim);margin-bottom:.4rem">${(a.aliases || []).join(' · ')}</div>
+    <div class="actor-tags" style="margin-bottom:.5rem">
+      <span class="actor-tag nation">${a.nation}</span>
+      ${(a.type || []).map(t => `<span class="actor-tag ${t}">${t}</span>`).join('')}
+    </div>
+
+    <div class="actor-detail-section">// identity</div>
+    <div class="ec-row"><span class="ec-k">Sponsor</span><span class="ec-v">${a.sponsor || '—'}</span></div>
+    <div class="ec-row"><span class="ec-k">Motivation</span><span class="ec-v">${a.motivation || '—'}</span></div>
+    <div class="ec-row"><span class="ec-k">Active Since</span><span class="ec-v">${a.since || 'unknown'}</span></div>
+
+    <div class="actor-detail-section">// description</div>
+    <div style="font-size:.66rem;color:var(--text2);line-height:1.7;margin-bottom:.4rem">${a.desc || ''}</div>
+
+    <div class="actor-detail-section">// targets</div>
+    <div style="font-size:.66rem;color:var(--text2);margin-bottom:.4rem">${(a.targets || []).join(', ')}</div>
+
+    <div class="actor-detail-section">// tools & malware</div>
+    <div style="margin-bottom:.4rem">${(a.tools || []).map(t => `<span style="display:inline-block;font-size:.58rem;background:rgba(188,140,255,.08);border:1px solid rgba(188,140,255,.2);color:var(--purple);padding:1px 5px;border-radius:2px;margin:1px">${t}</span>`).join('')}</div>
+
+    <div class="actor-detail-section">// mitre att&ck techniques</div>
+    <div style="margin-bottom:.5rem">${(a.ttps || []).map(t => `<span class="actor-ttp" onclick="quickMitreLookup('${t}')">${t}</span>`).join('')}</div>
+
+    <div class="actor-detail-section">// known iocs</div>
+    <div style="margin-bottom:.5rem">${(a.iocs || []).length ? (a.iocs || []).map(ioc => `<span class="actor-ioc-pill" onclick="quickEnrich('${ioc}')">${ioc}</span>`).join('') : '<span style="font-size:.62rem;color:var(--dim)">none recorded in this database</span>'}</div>
+
+    <div class="actor-detail-section">// actions</div>
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:.5rem">
+      <button class="hbtn p" onclick="importActorToCase('${a.id}')">+ import to case</button>
+      <button class="hbtn" onclick="tagActorMITRE('${a.id}')">tag MITRE techniques</button>
+      <button class="hbtn" onclick="searchThreatFoxActor('${a.name}')">hunt in ThreatFox</button>
+    </div>
+
+    ${(a.refs || []).length ? `<div class="actor-detail-section">// references</div>${a.refs.map(r => `<div style="font-size:.58rem;margin-bottom:2px"><a href="${r}" target="_blank" style="color:var(--accent2)">${r.slice(0, 60)}…</a></div>`).join('')}` : ''}
+  `;
+}
+
+function importActorToCase(id) {
+  const c = getC(); if (!c) { alert('Select a case first'); return; }
+  const a = ACTOR_DB.find(x => x.id === id); if (!a) return;
+  // Add actor as entity
+  const actorEnt = {id: 'e' + Date.now(), type: 'actor', value: a.name, color: '#e8c547',
+    tlp: 'WHITE', ioc: 'yes', confidence: 90,
+    notes: `Nation: ${a.nation}\nSponsor: ${a.sponsor || '—'}\nAliases: ${(a.aliases||[]).join(', ')}\nMotivation: ${a.motivation}\n${a.desc}`,
+    created: new Date().toISOString(), aliases: (a.aliases || []).join(', '), origin: a.nation, motivation: a.motivation, apt: a.name};
+  c.entities[actorEnt.id] = actorEnt;
+  // Add known IOCs
+  (a.iocs || []).forEach((ioc, i) => {
+    const type = /^\d+\.\d+\.\d+\.\d+/.test(ioc) ? 'ip' : /^https?:\/\//.test(ioc) ? 'url' : 'domain';
+    c.entities['e' + (Date.now() + i + 1)] = {id: 'e' + (Date.now() + i + 1), type, value: ioc, color: '#ff4444', tlp: 'WHITE', ioc: 'yes', confidence: 75, notes: `Known IOC of ${a.name}`, created: new Date().toISOString()};
+  });
+  // Add timeline event
+  c.timeline.push({id: 't' + Date.now(), date: new Date().toISOString().split('T')[0], type: 'Actor Activity', desc: `Threat actor imported: ${a.name} (${a.nation} · ${a.motivation})`, created: new Date().toISOString()});
+  save(); renderAll(); showToast(`Imported ${a.name} + ${(a.iocs||[]).length} IOCs to case`);
+}
+
+function tagActorMITRE(id) {
+  const c = getC(); if (!c) { alert('Select a case first'); return; }
+  const a = ACTOR_DB.find(x => x.id === id); if (!a) return;
+  if (!c.mitreTags) c.mitreTags = [];
+  (a.ttps || []).forEach(t => { if (!c.mitreTags.includes(t)) c.mitreTags.push(t); });
+  save(); showToast(`Tagged ${(a.ttps||[]).length} MITRE techniques for ${a.name}`);
+}
+
+function searchThreatFoxActor(name) {
+  document.getElementById('tf-tag-q').value = name;
+  switchTab('threatfox', document.querySelectorAll('.cvt')[6]);
+  tfLoadByTag();
+}
+
+function quickMitreLookup(tid) {
+  window.open(`https://attack.mitre.org/techniques/${tid}/`, '_blank');
+}
+
+// ═══════════════════════════════════════════════════════
+// PHISHSTATS
+// ═══════════════════════════════════════════════════════
+let phishData = [];
+
+async function loadPhishStats() {
+  const el = document.getElementById('phish-list');
+  el.innerHTML = '<div class="feed-loading">fetching PhishStats feed...</div>';
+  phishData = [];
+  try {
+    // PhishStats CSV API — returns recent phishing URLs with score
+    const res = await proxyFetch('https://phishtank.org/phish_search.php?valid=y&active=y&format=json&page=1');
+    // PhishStats.org alternative
+    const res2 = await proxyFetch('https://phishstats.info:2096/api/phishing?_sort=-id&_size=100&_where=(score,gte,4)');
+    const data = await res2.json();
+    phishData = (Array.isArray(data) ? data : []).map(p => ({
+      id: p.id || Math.random(),
+      url: p.url || '',
+      host: (() => { try { return new URL(p.url || '').hostname; } catch(e) { return p.url || ''; }})(),
+      score: parseFloat(p.score) || 0,
+      ip: p.ip || '',
+      country: p.countrycode || '',
+      asn: p.asn || '',
+      title: p.title || '',
+      date: p.date || new Date().toISOString(),
+    }));
+    document.getElementById('phish-count').textContent = phishData.length + ' phishing URLs';
+    document.getElementById('phish-stats-bar').style.display = 'flex';
+    document.getElementById('phish-total').textContent = phishData.length;
+    document.getElementById('phish-crit').textContent = phishData.filter(p => p.score >= 8).length;
+    document.getElementById('phish-high').textContent = phishData.filter(p => p.score >= 6).length;
+    renderPhishStats();
+  } catch(e) {
+    el.innerHTML = `<div style="color:var(--red);font-size:.7rem;padding:.75rem;background:rgba(255,68,68,.06);border:1px solid rgba(255,68,68,.15);border-radius:4px;margin:.3rem">
+      <strong>PhishStats fetch failed.</strong> Error: ${e.message}<br><br>
+      Make sure your proxy is configured (⚡ proxy). PhishStats API:<br>
+      <code style="font-size:.64rem;color:var(--accent)">phishstats.info:2096/api/phishing</code><br><br>
+      <strong>Proxy must whitelist:</strong> phishstats.info
+    </div>`;
+  }
+}
+
+function renderPhishStats() {
+  const el = document.getElementById('phish-list');
+  const minScore = parseFloat(document.getElementById('phish-score-min')?.value || 0);
+  const q = (document.getElementById('phish-q')?.value || '').toLowerCase();
+  const items = phishData.filter(p => p.score >= minScore && (!q || (p.url + p.host + p.title).toLowerCase().includes(q)));
+  if (!items.length) { el.innerHTML = '<div class="feed-empty"><span>no items match filters</span></div>'; return; }
+  const scoreClass = s => s >= 8 ? 's-high' : s >= 5 ? 's-med' : 's-low';
+  el.innerHTML = items.map(p => `
+    <div class="phish-item">
+      <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;flex-wrap:wrap">
+        <span class="phish-score ${scoreClass(p.score)}">score ${p.score.toFixed(1)}</span>
+        <span style="font-size:.52rem;color:var(--dim);background:var(--bg3);border:1px solid var(--border2);padding:1px 4px;border-radius:2px">PhishStats</span>
+        ${p.country ? `<span style="font-size:.52rem;color:var(--dim)">${p.country}</span>` : ''}
+        <span style="font-size:.52rem;color:var(--dim);margin-left:auto">${(p.date || '').slice(0, 10)}</span>
+      </div>
+      <div style="font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:2px;word-break:break-all">${escH(p.host)}</div>
+      <div class="fi-ioc" onclick="quickEnrich('${escH(p.url)}')" style="font-size:.6rem">${escH((p.url || '').slice(0, 90))}</div>
+      ${p.ip ? `<div style="font-size:.6rem;color:var(--dim)">IP: <span style="color:var(--orange)">${p.ip}</span> · ASN: ${p.asn || '—'}</div>` : ''}
+      <div style="display:flex;gap:3px;margin-top:4px">
+        <button class="fi-btn" onclick="addPhishToCase(${JSON.stringify(p.url).replace(/'/g,'')})">+ case</button>
+        <button class="fi-btn" onclick="quickEnrich('${escH(p.url)}')">enrich URL</button>
+        ${p.ip ? `<button class="fi-btn" onclick="quickEnrich('${p.ip}')">enrich IP</button>` : ''}
+        <a class="fi-btn" href="${escH(p.url)}" target="_blank" rel="noopener" style="text-decoration:none;color:var(--red)" onclick="return confirm('Opening live phishing URL. Are you sure?')">open ⚠</a>
+      </div>
+    </div>`).join('');
+}
+
+function addPhishToCase(url) {
+  const c = getC(); if (!c) { alert('Select a case first'); return; }
+  let host = ''; try { host = new URL(url).hostname; } catch(e) { host = url; }
+  const ent = {id: 'e' + Date.now(), type: 'url', value: url, color: '#ff4444', tlp: 'WHITE', ioc: 'yes', confidence: 85, notes: `PhishStats phishing URL · Host: ${host}`, created: new Date().toISOString()};
+  c.entities[ent.id] = ent;
+  c.timeline.push({id: 't' + Date.now(), date: new Date().toISOString().split('T')[0], type: 'IOC Detected', desc: `PhishStats phishing URL: ${host}`, created: new Date().toISOString()});
+  save(); renderAll(); showToast('Added to case');
+}
+
+// ═══════════════════════════════════════════════════════
+// THREATFOX HUNT
+// ═══════════════════════════════════════════════════════
+let tfData = [];
+
+async function tfSearch() {
+  const q = document.getElementById('tf-search-q').value.trim();
+  const iocType = document.getElementById('tf-ioc-type').value;
+  const el = document.getElementById('tf-list');
+  const authKey = getKey('abusech');
+
+  if (!q) { tfLoadRecent(); return; }
+  el.innerHTML = '<div class="feed-loading">hunting in ThreatFox...</div>';
+  document.getElementById('tf-key-warn').style.display = authKey ? 'none' : '';
+
+  try {
+    const body = {query: 'search_ioc', search_term: q};
+    if (iocType) body.ioc_type = iocType;
+    const headers = {'Content-Type': 'application/json'};
+    const fetchOpts = {method: 'POST', headers, body: JSON.stringify(body)};
+    if (authKey) fetchOpts._authKey = authKey;
+
+    const res = await proxyFetch('https://threatfox-api.abuse.ch/api/v1/', fetchOpts);
+    const d = await res.json();
+
+    if (d.query_status === 'no_result') {
+      el.innerHTML = '<div class="feed-empty"><span style="font-size:1rem;opacity:.2">🦊</span><span style="color:var(--accent)">Clean — not found in ThreatFox</span></div>';
+      document.getElementById('tf-count').textContent = '0 results';
+      return;
+    }
+    tfData = d.data || [];
+    document.getElementById('tf-count').textContent = tfData.length + ' IOCs';
+    renderTFResults();
+  } catch(e) {
+    el.innerHTML = `<div style="color:var(--red);font-size:.7rem;padding:.75rem">ThreatFox error: ${e.message}<br>Add abuse.ch key for full access.</div>`;
+  }
+}
+
+async function tfLoadRecent() {
+  const el = document.getElementById('tf-list');
+  const authKey = getKey('abusech');
+  el.innerHTML = '<div class="feed-loading">fetching recent ThreatFox IOCs...</div>';
+  document.getElementById('tf-key-warn').style.display = authKey ? 'none' : '';
+
+  try {
+    const body = {query: 'get_iocs', days: 1};
+    const fetchOpts = {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)};
+    if (authKey) fetchOpts._authKey = authKey;
+    const res = await proxyFetch('https://threatfox-api.abuse.ch/api/v1/', fetchOpts);
+    const d = await res.json();
+    if (d.query_status !== 'ok' && d.query_status !== 'no_result') throw new Error(d.query_status);
+    tfData = d.data || [];
+    document.getElementById('tf-count').textContent = tfData.length + ' IOCs (last 24h)';
+    renderTFResults();
+  } catch(e) {
+    el.innerHTML = `<div style="color:var(--yellow);font-size:.7rem;padding:.75rem;background:rgba(232,197,71,.06);border:1px solid rgba(232,197,71,.2);border-radius:3px;margin:.3rem">ThreatFox: ${e.message}<br>Add your abuse.ch key in ⚙ API Keys for full access.</div>`;
+  }
+}
+
+async function tfLoadByTag() {
+  const tag = document.getElementById('tf-tag-q').value.trim();
+  if (!tag) return;
+  const el = document.getElementById('tf-list');
+  const authKey = getKey('abusech');
+  el.innerHTML = `<div class="feed-loading">searching ThreatFox for "${escH(tag)}"...</div>`;
+
+  try {
+    const body = {query: 'taginfo', tag};
+    const fetchOpts = {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)};
+    if (authKey) fetchOpts._authKey = authKey;
+    const res = await proxyFetch('https://threatfox-api.abuse.ch/api/v1/', fetchOpts);
+    const d = await res.json();
+    tfData = d.data || [];
+    document.getElementById('tf-count').textContent = tfData.length + ` IOCs tagged "${tag}"`;
+    renderTFResults();
+  } catch(e) {
+    el.innerHTML = `<div style="color:var(--red);font-size:.7rem;padding:.75rem">Error: ${e.message}</div>`;
+  }
+}
+
+function renderTFResults() {
+  const el = document.getElementById('tf-list');
+  if (!tfData.length) { el.innerHTML = '<div class="feed-empty"><span>no IOCs found</span></div>'; return; }
+  const confColor = c => c >= 75 ? 'var(--red)' : c >= 50 ? 'var(--yellow)' : 'var(--dim)';
+  el.innerHTML = tfData.map(i => `
+    <div class="tfhunt-result">
+      <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px;flex-wrap:wrap">
+        <span class="tfhunt-conf" style="background:rgba(255,68,68,.1);color:var(--red);border:1px solid rgba(255,68,68,.25)">${i.malware || 'unknown'}</span>
+        <span style="font-size:.52rem;color:var(--dim);background:var(--bg3);border:1px solid var(--border2);padding:1px 4px;border-radius:2px">${i.ioc_type || '—'}</span>
+        <span style="font-size:.52rem;font-weight:700;color:${confColor(i.confidence_level || 0)}">conf: ${i.confidence_level || 0}%</span>
+        <span style="font-size:.52rem;color:var(--dim);margin-left:auto">${(i.first_seen || '').slice(0, 10)}</span>
+      </div>
+      <div class="fi-ioc" onclick="quickEnrich('${escH(i.ioc || '')}')">${escH((i.ioc || '').slice(0, 90))}</div>
+      ${(i.tags || []).length ? `<div style="margin-top:3px">${(i.tags || []).map(t => `<span style="font-size:.5rem;background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.15);color:var(--accent2);padding:1px 4px;border-radius:2px;margin:1px;display:inline-block">${t}</span>`).join('')}</div>` : ''}
+      <div style="font-size:.62rem;color:var(--text2);margin-top:2px">${escH((i.malware_printable || i.malware || '') + (i.threat_type ? ' · ' + i.threat_type : ''))}</div>
+      <div style="display:flex;gap:3px;margin-top:4px">
+        <button class="fi-btn" onclick="addTFToCase(${JSON.stringify({ioc: i.ioc, type: i.ioc_type, malware: i.malware, conf: i.confidence_level}).replace(/</g,'&lt;')})">+ case</button>
+        <button class="fi-btn" onclick="quickEnrich('${escH(i.ioc || '')}')">enrich</button>
+        <a class="fi-btn" href="https://threatfox.abuse.ch/ioc/${i.id || ''}" target="_blank" rel="noopener" style="text-decoration:none">ThreatFox ↗</a>
+      </div>
+    </div>`).join('');
+}
+
+function addTFToCase(data) {
+  const c = getC(); if (!c) { alert('Select a case first'); return; }
+  if (typeof data === 'string') try { data = JSON.parse(data); } catch(e) { return; }
+  const iocVal = data.ioc || '';
+  const type = (data.type || '').includes('ip') ? 'ip' : (data.type || '').includes('domain') ? 'domain' : (data.type || '').includes('hash') ? 'hash' : (data.type || '').includes('url') ? 'url' : 'ip';
+  const ent = {id: 'e' + Date.now(), type, value: iocVal, color: '#ff4444', tlp: 'WHITE', ioc: 'yes', confidence: data.conf || 80, notes: `ThreatFox · Malware: ${data.malware || '—'} · Confidence: ${data.conf || 0}%`, created: new Date().toISOString()};
+  c.entities[ent.id] = ent;
+  save(); renderAll(); showToast('ThreatFox IOC added to case');
+}
+
+// ═══════════════════════════════════════════════════════
+// MISP FEEDS
+// ═══════════════════════════════════════════════════════
+const MISP_FEEDS = [
+  {id:'misp-circl',name:'CIRCL OSINT Feed',url:'https://www.circl.lu/doc/misp/feed-osint/',manifest:'https://www.circl.lu/doc/misp/feed-osint/manifest.json',cat:'OSINT',desc:'CIRCL Luxembourg — General threat intelligence'},
+  {id:'misp-botvrij',name:'Botvrij.eu IOC Feed',url:'https://www.botvrij.eu/data/feed-osint/',manifest:'https://www.botvrij.eu/data/feed-osint/manifest.json',cat:'OSINT',desc:'Botvrij.eu — IOCs and threat indicators'},
+  {id:'abuse-feodo',name:'Feodo Tracker C2',url:'https://feodotracker.abuse.ch/downloads/ipblocklist.json',cat:'C2',desc:'Abuse.ch — C2 botnet infrastructure',direct:true,directFn:'fetchFeodoForMISP'},
+  {id:'abuse-urlhaus',name:'URLhaus Malware URLs',url:'https://urlhaus.abuse.ch/downloads/csv_online/',cat:'malware',desc:'Abuse.ch — Active malware distribution URLs',direct:true,directFn:'fetchURLhausForMISP'},
+  {id:'cisa-kev',name:'CISA KEV Catalog',url:'https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json',cat:'KEV',desc:'CISA — Known Exploited Vulnerabilities',direct:true,directFn:'fetchKEVForMISP'},
+  {id:'openphish-feed',name:'OpenPhish Phishing Feed',url:'https://openphish.com/feed.txt',cat:'phishing',desc:'OpenPhish — Community phishing URL feed',direct:true,directFn:'fetchOpenPhishForMISP'},
+  {id:'oisd-big',name:'OISD Blocklist (Big)',url:'https://big.oisd.nl/domainswild',cat:'domains',desc:'Unified domain blocklist — ads, malware, tracking',direct:true,directFn:'fetchOISDForMISP'},
+];
+
+let mispFeedEnabled = new Set(['abuse-feodo','abuse-urlhaus','cisa-kev','openphish-feed']);
+let mispIOCs = [];
+
+function renderMISPFeedList() {
+  const el = document.getElementById('misp-feed-list');
+  el.innerHTML = MISP_FEEDS.map(f => `
+    <div class="mfeed-item" style="flex-direction:column;align-items:flex-start;gap:3px;padding:.5rem .6rem">
+      <div style="display:flex;align-items:center;gap:5px;width:100%">
+        <span class="mfeed-name">${f.name}</span>
+        <button class="mfeed-toggle ${mispFeedEnabled.has(f.id) ? 'on' : ''}" onclick="toggleMISPFeed('${f.id}',this)">${mispFeedEnabled.has(f.id) ? '✓ on' : 'off'}</button>
+      </div>
+      <div style="display:flex;gap:4px;align-items:center">
+        <span class="mfeed-cat">${f.cat}</span>
+        <span style="font-size:.56rem;color:var(--dim)">${f.desc}</span>
+      </div>
+    </div>`).join('');
+}
+
+function toggleMISPFeed(id, btn) {
+  if (mispFeedEnabled.has(id)) { mispFeedEnabled.delete(id); btn.textContent = 'off'; btn.classList.remove('on'); }
+  else { mispFeedEnabled.add(id); btn.textContent = '✓ on'; btn.classList.add('on'); }
+}
+
+async function loadMISPFeeds() {
+  const el = document.getElementById('misp-ioc-list');
+  el.innerHTML = '<div class="feed-loading">pulling selected MISP feeds...</div>';
+  mispIOCs = [];
+  const enabled = MISP_FEEDS.filter(f => mispFeedEnabled.has(f.id));
+  if (!enabled.length) { el.innerHTML = '<div class="feed-empty"><span>no feeds selected</span></div>'; return; }
+
+  const results = await Promise.allSettled(enabled.map(f => fetchMISPFeed(f)));
+  results.forEach(r => { if (r.status === 'fulfilled' && Array.isArray(r.value)) mispIOCs.push(...r.value); });
+  document.getElementById('misp-ioc-count').textContent = mispIOCs.length + ' IOCs loaded';
+  renderMISPIOCs();
+}
+
+async function fetchMISPFeed(feed) {
+  try {
+    if (feed.id === 'abuse-feodo') return fetchFeodoForMISP();
+    if (feed.id === 'abuse-urlhaus') return fetchURLhausForMISP();
+    if (feed.id === 'cisa-kev') return fetchKEVForMISP();
+    if (feed.id === 'openphish-feed') return fetchOpenPhishForMISP();
+    if (feed.id === 'oisd-big') return fetchOISDForMISP();
+    // For MISP manifest-based feeds
+    const res = await proxyFetch(feed.manifest || feed.url);
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); } catch(e) { return parseMISPText(text, feed); }
+    // manifest is {uuid: {filename, ...}}
+    const files = Object.values(data || {}).slice(0, 10);
+    const allIOCs = [];
+    for (const f of files.slice(0, 5)) {
+      try {
+        const fRes = await proxyFetch((feed.url || '').replace(/\/?$/, '/') + f.filename);
+        const ev = await fRes.json();
+        const iocs = extractMISPEventIOCs(ev, feed.name);
+        allIOCs.push(...iocs);
+      } catch(e) {}
+    }
+    return allIOCs;
+  } catch(e) { return []; }
+}
+
+function parseMISPText(text, feed) {
+  return text.split('\n').filter(l => l.trim() && !l.startsWith('#')).slice(0, 100).map(l => ({
+    value: l.trim(), type: detectMISPType(l.trim()), source: feed.name, cat: feed.cat, date: new Date().toISOString(),
+  }));
+}
+
+function extractMISPEventIOCs(ev, source) {
+  const event = ev.Event || ev;
+  const attrs = event.Attribute || [];
+  return attrs.filter(a => ['ip-dst','ip-src','domain','url','md5','sha256','email-src'].includes(a.type))
+    .slice(0, 50).map(a => ({value: a.value, type: a.type, source, cat: a.category || 'network', date: a.timestamp ? new Date(parseInt(a.timestamp) * 1000).toISOString() : new Date().toISOString(), comment: a.comment || ''}));
+}
+
+async function fetchFeodoForMISP() {
+  const res = await proxyFetch('https://feodotracker.abuse.ch/downloads/ipblocklist.json');
+  const data = await res.json();
+  const list = Array.isArray(data) ? data : (data.blocklist || []);
+  return list.slice(0, 80).map(e => ({value: e.ip_address || e.dst_ip, type: 'ip-dst', source: 'FeodoTracker', cat: 'C2', date: e.first_seen || new Date().toISOString(), comment: e.malware || ''}));
+}
+
+async function fetchURLhausForMISP() {
+  const res = await proxyFetch('https://urlhaus.abuse.ch/downloads/csv_online/');
+  const text = await res.text();
+  return text.split('\n').filter(l => l && !l.startsWith('#')).slice(0, 60).map(line => {
+    const parts = line.split('","').map(p => p.replace(/^"|"$/g, ''));
+    const url = parts[2] || ''; if (!url) return null;
+    return {value: url, type: 'url', source: 'URLhaus', cat: 'malware', date: parts[1] || new Date().toISOString(), comment: parts[5] || ''};
+  }).filter(Boolean);
+}
+
+async function fetchKEVForMISP() {
+  const kev = await fetchKEV();
+  return kev.slice(0, 80).map(v => ({value: v.cveID, type: 'vulnerability', source: 'CISA KEV', cat: 'KEV', date: v.dateAdded, comment: `${v.vendorProject} ${v.product}`}));
+}
+
+async function fetchOpenPhishForMISP() {
+  const res = await proxyFetch('https://openphish.com/feed.txt');
+  const text = await res.text();
+  return text.split('\n').filter(l => l.trim() && l.startsWith('http')).slice(0, 60).map(url => ({value: url.trim(), type: 'url', source: 'OpenPhish', cat: 'phishing', date: new Date().toISOString(), comment: 'Active phishing URL'}));
+}
+
+async function fetchOISDForMISP() {
+  const res = await proxyFetch('https://big.oisd.nl/domainswild');
+  const text = await res.text();
+  return text.split('\n').filter(l => l.trim() && !l.startsWith('#') && !l.startsWith('!')).slice(0, 100).map(d => ({value: d.trim().replace(/^\*\./,''), type: 'domain', source: 'OISD Blocklist', cat: 'domains', date: new Date().toISOString(), comment: 'Blocklist entry'}));
+}
+
+function detectMISPType(val) {
+  if (/^\d+\.\d+\.\d+\.\d+/.test(val)) return 'ip-dst';
+  if (/^[0-9a-f]{32}$/i.test(val)) return 'md5';
+  if (/^[0-9a-f]{64}$/i.test(val)) return 'sha256';
+  if (/^https?:\/\//.test(val)) return 'url';
+  if (/@/.test(val)) return 'email-src';
+  return 'domain';
+}
+
+function renderMISPIOCs() {
+  const el = document.getElementById('misp-ioc-list');
+  if (!mispIOCs.length) return;
+  const typeFilter = document.getElementById('misp-ioc-filter')?.value || '';
+  const q = (document.getElementById('misp-ioc-q')?.value || '').toLowerCase();
+  const items = mispIOCs.filter(i => (!typeFilter || i.type === typeFilter) && (!q || (i.value + i.source + i.comment).toLowerCase().includes(q)));
+  document.getElementById('misp-ioc-count').textContent = items.length + ' / ' + mispIOCs.length + ' IOCs';
+  if (!items.length) { el.innerHTML = '<div class="feed-empty"><span>no IOCs match filter</span></div>'; return; }
+  const typeColor = t => ({'ip-dst':'var(--red)','ip-src':'var(--red)','domain':'var(--blue)','url':'var(--orange)','md5':'var(--accent2)','sha256':'var(--accent2)','vulnerability':'var(--yellow)','email-src':'var(--purple)'}[t] || 'var(--dim)');
+  el.innerHTML = items.slice(0, 200).map(i => `
+    <div class="mfeed-ioc-row">
+      <span class="mfeed-type" style="color:${typeColor(i.type)};border-color:${typeColor(i.type)}44">${i.type}</span>
+      <span style="flex:1;font-family:monospace;color:var(--text);font-size:.64rem;word-break:break-all;cursor:pointer" onclick="quickEnrich('${escH(i.value)}')">${escH((i.value || '').slice(0, 80))}</span>
+      <span style="font-size:.52rem;color:var(--dim);flex-shrink:0">${i.source}</span>
+      <button class="fi-btn" style="flex-shrink:0" onclick="addMISPIOCToCase('${escH(i.value)}','${i.type}','${i.source}')">+</button>
+    </div>`).join('') + (items.length > 200 ? `<div style="font-size:.62rem;color:var(--dim);text-align:center;padding:.5rem">showing 200 of ${items.length} — use filters to narrow</div>` : '');
+}
+
+function addMISPIOCToCase(value, mispType, source) {
+  const c = getC(); if (!c) { alert('Select a case first'); return; }
+  const type = mispType.includes('ip') ? 'ip' : mispType.includes('domain') ? 'domain' : mispType.includes('url') ? 'url' : mispType.includes('hash') || mispType === 'md5' || mispType === 'sha256' ? 'hash' : 'url';
+  const ent = {id: 'e' + Date.now(), type, value, color: '#ff4444', tlp: 'WHITE', ioc: 'yes', confidence: 80, notes: `MISP Feed: ${source} · Type: ${mispType}`, created: new Date().toISOString()};
+  c.entities[ent.id] = ent;
+  save(); renderAll(); showToast('MISP IOC added to case');
+}
+
+function clearMISPData() { mispIOCs = []; document.getElementById('misp-ioc-list').innerHTML = '<div class="feed-empty"><span>cleared</span></div>'; document.getElementById('misp-ioc-count').textContent = ''; }
+
+// ═══════════════════════════════════════════════════════
+
 load();loadKeys();renderAll();setMode('select');
 document.getElementById('tl-date').value=new Date().toISOString().split('T')[0];
 window.addEventListener('resize',renderGraph);
+renderMISPFeedList();
+renderActors();
+// Hide ThreatFox key warning if key exists
+if(getKey('abusech'))document.getElementById('tf-key-warn').style.display='none';
 </script>
 </body>
 </html>
