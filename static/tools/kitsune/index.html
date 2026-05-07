@@ -851,23 +851,23 @@ let PROXY_URL=''; // set via proxy modal
 // PROXY ROUTING — core fetch wrapper
 // ═══════════════════════════════════════════════════════
 function proxyFetch(url, opts={}) {
+  // Always route through proxy when set; direct only as fallback for CORS-open endpoints
   if (!PROXY_URL) {
-    // No proxy: try direct (works for CORS-open endpoints)
-    return fetch(url, opts);
+    const {_authKey,_apiKey,_hibpKey,_gnKey,_urlscanKey,_extraHeaders,...nativeOpts} = opts;
+    return fetch(url, nativeOpts);
   }
-  const headers = {
-    'Content-Type': opts.body ? (opts.headers?.['Content-Type'] || 'application/json') : 'application/json',
-    'X-Target-URL': url,
-  };
-  // Forward API keys as special headers the proxy understands
-  if (opts._authKey) headers['X-Auth-Key'] = opts._authKey;
-  if (opts._apiKey) headers['X-Api-Key'] = opts._apiKey;
-  if (opts._hibpKey) headers['X-Hibp-Key'] = opts._hibpKey;
-  if (opts._gnKey) headers['X-Gn-Key'] = opts._gnKey;
-  if (opts._urlscanKey) headers['X-Urlscan-Key'] = opts._urlscanKey;
-  // Extra passthrough headers (VT, OTX etc.)
+  const headers = { 'X-Target-URL': url };
+  // Content-Type: carry forward original so proxy forwards it correctly upstream
+  if (opts.body) {
+    headers['Content-Type'] = opts.headers?.['Content-Type'] || opts.headers?.['content-type'] || 'application/json';
+  }
+  // API key forwarding
+  if (opts._authKey)    headers['X-Auth-Key']    = opts._authKey;
+  if (opts._apiKey)     headers['X-Api-Key']      = opts._apiKey;
+  if (opts._hibpKey)    headers['X-Hibp-Key']     = opts._hibpKey;
+  if (opts._gnKey)      headers['X-Gn-Key']       = opts._gnKey;
+  if (opts._urlscanKey) headers['X-Urlscan-Key']  = opts._urlscanKey;
   if (opts._extraHeaders) headers['X-Extra-Headers'] = JSON.stringify(opts._extraHeaders);
-
   return fetch(`${PROXY_URL}/api/proxy`, {
     method: opts.method || 'GET',
     headers,
@@ -2072,37 +2072,82 @@ async function loadPhishStats() {
   const el = document.getElementById('phish-list');
   el.innerHTML = '<div class="feed-loading">fetching PhishStats feed...</div>';
   phishData = [];
-  try {
-    // PhishStats CSV API — returns recent phishing URLs with score
-    const res = await proxyFetch('https://phishtank.org/phish_search.php?valid=y&active=y&format=json&page=1');
-    // PhishStats.org alternative
-    const res2 = await proxyFetch('https://phishstats.info:2096/api/phishing?_sort=-id&_size=100&_where=(score,gte,4)');
-    const data = await res2.json();
-    phishData = (Array.isArray(data) ? data : []).map(p => ({
-      id: p.id || Math.random(),
-      url: p.url || '',
-      host: (() => { try { return new URL(p.url || '').hostname; } catch(e) { return p.url || ''; }})(),
-      score: parseFloat(p.score) || 0,
-      ip: p.ip || '',
-      country: p.countrycode || '',
-      asn: p.asn || '',
-      title: p.title || '',
-      date: p.date || new Date().toISOString(),
-    }));
-    document.getElementById('phish-count').textContent = phishData.length + ' phishing URLs';
-    document.getElementById('phish-stats-bar').style.display = 'flex';
-    document.getElementById('phish-total').textContent = phishData.length;
-    document.getElementById('phish-crit').textContent = phishData.filter(p => p.score >= 8).length;
-    document.getElementById('phish-high').textContent = phishData.filter(p => p.score >= 6).length;
-    renderPhishStats();
-  } catch(e) {
-    el.innerHTML = `<div style="color:var(--red);font-size:.7rem;padding:.75rem;background:rgba(255,68,68,.06);border:1px solid rgba(255,68,68,.15);border-radius:4px;margin:.3rem">
-      <strong>PhishStats fetch failed.</strong> Error: ${e.message}<br><br>
-      Make sure your proxy is configured (⚡ proxy). PhishStats API:<br>
-      <code style="font-size:.64rem;color:var(--accent)">phishstats.info:2096/api/phishing</code><br><br>
-      <strong>Proxy must whitelist:</strong> phishstats.info
-    </div>`;
+
+  // Strategy: try multiple sources in order
+  // 1. OpenPhish (always works via proxy — plain text URL list)
+  // 2. PhishStats HTTPS API (no non-standard port, proxy-compatible)
+  // 3. URLhaus phishing-tagged URLs as fallback
+
+  const sources = [
+    () => fetchOpenPhishForPhishPanel(),
+    () => fetchPhishStatsHTTPS(),
+    () => fetchURLhausPhishFallback(),
+  ];
+
+  for (const srcFn of sources) {
+    try {
+      const items = await srcFn();
+      if (items && items.length > 0) { phishData.push(...items); }
+    } catch(e) { /* continue to next */ }
   }
+
+  if (!phishData.length) {
+    el.innerHTML = `<div style="color:var(--red);font-size:.7rem;padding:.75rem;background:rgba(255,68,68,.06);border:1px solid rgba(255,68,68,.15);border-radius:4px;margin:.3rem">
+      <strong>All phishing feeds returned 0 items.</strong><br><br>
+      Make sure your proxy URL is set via ⚡ proxy. All three sources (OpenPhish, PhishStats, URLhaus) are tried automatically.
+    </div>`;
+    return;
+  }
+
+  // Deduplicate by URL
+  const seen = new Set();
+  phishData = phishData.filter(p => { if(seen.has(p.url)) return false; seen.add(p.url); return true; });
+
+  document.getElementById('phish-count').textContent = phishData.length + ' phishing URLs';
+  document.getElementById('phish-stats-bar').style.display = 'flex';
+  document.getElementById('phish-total').textContent = phishData.length;
+  document.getElementById('phish-crit').textContent = phishData.filter(p => p.score >= 8).length;
+  document.getElementById('phish-high').textContent = phishData.filter(p => p.score >= 6).length;
+  renderPhishStats();
+}
+
+async function fetchOpenPhishForPhishPanel() {
+  const res = await proxyFetch('https://openphish.com/feed.txt');
+  if (!res.ok) throw new Error('OpenPhish ' + res.status);
+  const text = await res.text();
+  const lines = text.split('\n').filter(l => l.trim().startsWith('http')).slice(0, 80);
+  return lines.map((url, i) => {
+    let host = ''; try { host = new URL(url.trim()).hostname; } catch(e) { host = url.trim().slice(0, 50); }
+    return { id: 'oph_phish_' + i, url: url.trim(), host, score: 7, ip: '', country: '', asn: '', source: 'OpenPhish', date: new Date().toISOString() };
+  });
+}
+
+async function fetchPhishStatsHTTPS() {
+  // PhishStats HTTPS standard port — no port 2096 (blocked by Vercel)
+  // Use their GitHub-hosted dataset as a reliable alternative
+  const res = await proxyFetch('https://raw.githubusercontent.com/mitchellkrogza/Phishing.Database/master/phishing-links-ACTIVE.txt');
+  if (!res.ok) throw new Error('PhishStats GitHub ' + res.status);
+  const text = await res.text();
+  const lines = text.split('\n').filter(l => l.trim().startsWith('http')).slice(0, 60);
+  return lines.map((url, i) => {
+    let host = ''; try { host = new URL(url.trim()).hostname; } catch(e) { host = url.trim().slice(0, 50); }
+    return { id: 'psd_' + i, url: url.trim(), host, score: 6, ip: '', country: '', asn: '', source: 'PhishDB', date: new Date().toISOString() };
+  });
+}
+
+async function fetchURLhausPhishFallback() {
+  const res = await proxyFetch('https://urlhaus.abuse.ch/downloads/csv_online/');
+  if (!res.ok) throw new Error('URLhaus ' + res.status);
+  const text = await res.text();
+  return text.split('\n')
+    .filter(l => l && !l.startsWith('#') && l.toLowerCase().includes('phish'))
+    .slice(0, 30)
+    .map((line, i) => {
+      const parts = line.split('","').map(p => p.replace(/^"|"$/g, ''));
+      const url = (parts[2] || '').trim(); if (!url) return null;
+      let host = ''; try { host = new URL(url).hostname; } catch(e) { host = url.slice(0, 50); }
+      return { id: 'ulh_phish_' + i, url, host, score: 7, ip: '', country: '', asn: '', source: 'URLhaus', date: parts[1] || new Date().toISOString() };
+    }).filter(Boolean);
 }
 
 function renderPhishStats() {
