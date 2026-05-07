@@ -267,6 +267,39 @@ a{color:var(--accent2);text-decoration:none}
 .proxy-banner{font-size:.6rem;color:var(--yellow);background:rgba(232,197,71,.08);border:1px solid rgba(232,197,71,.2);border-radius:3px;padding:.4rem .65rem;margin-bottom:.65rem;line-height:1.7}
 .proxy-banner code{color:var(--accent);background:var(--bg3);padding:1px 4px;border-radius:2px;font-size:.64rem}
 
+/* DEFANG */
+.defang-badge{display:inline-flex;align-items:center;gap:3px;font-size:.5rem;background:rgba(0,255,65,.06);border:1px solid rgba(0,255,65,.2);color:var(--accent);padding:1px 5px;border-radius:2px;cursor:pointer;margin-left:4px;transition:all .15s}
+.defang-badge:hover{background:rgba(0,255,65,.15)}
+.defang-pill{font-family:monospace;font-size:.66rem;color:var(--orange);background:var(--bg3);border:1px solid var(--border2);padding:2px 7px;border-radius:2px;display:inline-flex;align-items:center;gap:5px;margin:2px;cursor:pointer;transition:all .15s}
+.defang-pill:hover{border-color:var(--accent);color:var(--accent)}
+
+/* BULK EXTRACTOR */
+.bulk-wrap{display:grid;grid-template-columns:1fr 1fr;flex:1;overflow:hidden;gap:0}
+.bulk-left{display:flex;flex-direction:column;border-right:1px solid var(--border);overflow:hidden}
+.bulk-right{display:flex;flex-direction:column;overflow:hidden}
+.bulk-toolbar{padding:6px 8px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;gap:4px;align-items:center;flex-shrink:0;flex-wrap:wrap}
+.bulk-textarea{flex:1;background:var(--bg3);border:none;color:var(--text);padding:.7rem;font-family:monospace;font-size:.68rem;resize:none;outline:none;line-height:1.6}
+.bulk-textarea::placeholder{color:var(--dim)}
+.bulk-results{flex:1;overflow-y:auto;padding:.4rem}
+.bulk-type-hdr{font-size:.56rem;color:var(--accent2);font-weight:700;letter-spacing:.06em;padding:.25rem .4rem;background:rgba(0,212,255,.05);border-radius:2px;margin-bottom:.3rem;display:flex;align-items:center;justify-content:space-between}
+.bulk-ioc{display:flex;align-items:center;gap:5px;padding:3px 6px;border:1px solid var(--border);border-radius:3px;margin-bottom:2px;background:var(--bg2);transition:border-color .12s}
+.bulk-ioc:hover{border-color:var(--border2)}
+.bulk-ioc input[type=checkbox]{accent-color:var(--accent);width:12px;height:12px;flex-shrink:0}
+.bulk-ioc-val{font-family:monospace;font-size:.64rem;color:var(--orange);flex:1;word-break:break-all}
+.bulk-ioc-type{font-size:.5rem;background:var(--bg3);border:1px solid var(--border2);color:var(--dim);padding:1px 4px;border-radius:2px;flex-shrink:0}
+.bulk-stats{font-size:.56rem;color:var(--dim);padding:3px 8px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;display:flex;gap:8px;flex-wrap:wrap}
+.bulk-sn{color:var(--text2);font-weight:700}
+
+/* GEO MAP */
+.geo-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.geo-toolbar{padding:5px 8px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;gap:5px;align-items:center;flex-shrink:0;flex-wrap:wrap}
+.geo-map-area{flex:1;position:relative;overflow:hidden;background:#090e18}
+#geo-svg{width:100%;height:100%}
+.geo-tooltip{position:absolute;background:var(--bg2);border:1px solid var(--border2);border-radius:4px;padding:.35rem .55rem;font-size:.62rem;pointer-events:none;display:none;z-index:100;max-width:200px}
+.geo-legend{position:absolute;bottom:12px;left:12px;background:rgba(9,9,9,.82);border:1px solid var(--border);border-radius:4px;padding:.4rem .6rem;font-size:.56rem;color:var(--dim)}
+.geo-stats{padding:3px 8px;background:var(--bg2);border-top:1px solid var(--border);font-size:.54rem;color:var(--dim);display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap}
+.geo-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:3px}
+
 /* ACTOR DB */
 .actor-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px;padding:.5rem}
 .actor-card{background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:.6rem .75rem;cursor:pointer;transition:border-color .15s;position:relative}
@@ -333,6 +366,7 @@ a{color:var(--accent2);text-decoration:none}
     <span class="proxy-st" id="proxy-st">proxy: unset</span>
     <span class="sst" id="save-st">ready</span>
     <a href="/" style="font-size:.58rem;color:var(--dim);border:1px solid var(--border2);padding:2px 6px;border-radius:3px">← site</a>
+    <button class="hbtn" id="defang-btn" onclick="toggleDefang()" title="Toggle defanged IOC display">[ defang: off ]</button>
     <button class="hbtn" id="theme-btn" onclick="toggleTheme()">[ light ]</button>
   </div>
 </header>
@@ -389,6 +423,8 @@ a{color:var(--accent2);text-decoration:none}
     <button class="cvt" onclick="switchTab('phishstats',this)">🎣 PhishStats</button>
     <button class="cvt" onclick="switchTab('threatfox',this)">🦊 ThreatFox</button>
     <button class="cvt" onclick="switchTab('mispfeeds',this)">🌐 MISP Feeds</button>
+    <button class="cvt" onclick="switchTab('bulk',this)">⚡ Bulk Extract</button>
+    <button class="cvt" onclick="switchTab('geomap',this);initGeoMap()">🌍 Geo Map</button>
     <button class="cvt" onclick="switchTab('report',this)">📄 Report</button>
   </div>
 
@@ -497,8 +533,8 @@ a{color:var(--accent2);text-decoration:none}
         <button class="hbtn p" onclick="enrichIOC()">enrich →</button>
       </div>
       <div class="enrich-note">
-        <strong style="color:var(--accent)">Via Proxy (no key):</strong> ip-api · GreyNoise community · URLhaus lookup · NVD CVEs · OpenPhish · Spamhaus · CISA KEV<br>
-        <strong style="color:var(--accent2)">With key:</strong> VirusTotal · AbuseIPDB · AlienVault OTX · ThreatFox · Shodan · URLScan · HIBP (email) · GreyNoise (full)
+        <strong style="color:var(--accent)">No key needed:</strong> ip-api · GreyNoise community · URLhaus · NVD CVEs · Shodan InternetDB · crt.sh (certs) · RDAP (WHOIS) · BGP Rank<br>
+        <strong style="color:var(--accent2)">With key:</strong> VirusTotal · AbuseIPDB · AlienVault OTX · ThreatFox · Shodan full · URLScan · HIBP (email) · GreyNoise full
       </div>
       <div id="enrich-results"></div>
     </div>
@@ -693,6 +729,96 @@ a{color:var(--accent2);text-decoration:none}
       <!-- IOC results -->
       <div style="flex:1;overflow-y:auto;padding:.4rem" id="misp-ioc-list">
         <div class="feed-empty" style="flex:1"><span style="font-size:1.3rem;opacity:.12">🌐</span><span>Select feeds on the left and click ↻ pull</span><span style="font-size:.62rem;color:var(--dim)">Public MISP community feeds — no authentication required<br>IOCs are fetched via your proxy and parsed locally</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BULK EXTRACTOR -->
+  <div class="cv-panel" id="panel-bulk">
+    <div class="bulk-wrap">
+      <div class="bulk-left">
+        <div class="bulk-toolbar">
+          <span style="font-size:.62rem;color:var(--accent2);font-weight:700">⚡ IOC Bulk Extractor</span>
+          <div class="vsep"></div>
+          <button class="hbtn p" onclick="runBulkExtract()">extract →</button>
+          <button class="hbtn" onclick="document.getElementById('bulk-input').value='';clearBulkResults()">clear</button>
+          <button class="hbtn" onclick="bulkPasteClipboard()">paste clipboard</button>
+          <button class="hbtn" style="border-color:var(--accent);color:var(--accent)" onclick="bulkDefangAll()">defang all</button>
+        </div>
+        <textarea class="bulk-textarea" id="bulk-input" placeholder="Paste anything here — emails, logs, Telegram dumps, pastes, OSINT reports, raw text...
+
+Kitsune will automatically extract:
+  IPs (IPv4 + IPv6)
+  Domains &amp; hostnames
+  URLs (http/https/ftp)
+  MD5 / SHA1 / SHA256 hashes
+  CVE IDs
+  Email addresses
+  Bitcoin addresses
+  Ethereum addresses
+  ASNs (AS12345)
+
+Defanged IOCs are automatically refanged:
+  evil[.]com → evil.com
+  hxxp://bad[.]site → http://bad.site
+  1.2.3[.]4 → 1.2.3.4"></textarea>
+      </div>
+      <div class="bulk-right">
+        <div class="bulk-toolbar">
+          <span style="font-size:.6rem;color:var(--dim)" id="bulk-summary">paste text and click extract</span>
+          <div style="margin-left:auto;display:flex;gap:4px">
+            <button class="hbtn" onclick="bulkSelectAll(true)">select all</button>
+            <button class="hbtn" onclick="bulkSelectAll(false)">none</button>
+            <button class="hbtn p" onclick="bulkAddToCase()">+ add selected to case</button>
+          </div>
+        </div>
+        <div class="bulk-stats" id="bulk-stats" style="display:none">
+          <span>IPs: <span class="bulk-sn" id="bst-ip">0</span></span>
+          <span>Domains: <span class="bulk-sn" id="bst-dom">0</span></span>
+          <span>URLs: <span class="bulk-sn" id="bst-url">0</span></span>
+          <span>Hashes: <span class="bulk-sn" id="bst-hash">0</span></span>
+          <span>CVEs: <span class="bulk-sn" id="bst-cve">0</span></span>
+          <span>Emails: <span class="bulk-sn" id="bst-email">0</span></span>
+          <span>Wallets: <span class="bulk-sn" id="bst-wallet">0</span></span>
+        </div>
+        <div class="bulk-results" id="bulk-results">
+          <div style="color:var(--dim);font-size:.72rem;text-align:center;padding:2rem;opacity:.5">extracted IOCs appear here</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GEO MAP -->
+  <div class="cv-panel" id="panel-geomap">
+    <div class="geo-wrap">
+      <div class="geo-toolbar">
+        <span style="font-size:.62rem;color:var(--accent2);font-weight:700">🌍 Geo IP Map</span>
+        <div class="vsep"></div>
+        <button class="hbtn p" onclick="loadGeoMap()">↻ map current case IPs</button>
+        <button class="hbtn" onclick="clearGeoMap()">clear</button>
+        <select class="hbtn" id="geo-filter-type" style="padding:3px 6px" onchange="renderGeoMap()">
+          <option value="">all entities</option>
+          <option value="ip">IPs only</option>
+          <option value="domain">domains only</option>
+        </select>
+        <span style="font-size:.56rem;color:var(--dim)" id="geo-info">select a case and click ↻ map</span>
+      </div>
+      <div class="geo-map-area">
+        <svg id="geo-svg" viewBox="0 0 960 500"></svg>
+        <div class="geo-tooltip" id="geo-tip"></div>
+        <div class="geo-legend" id="geo-legend" style="display:none">
+          <div style="margin-bottom:3px;font-weight:700;color:var(--text2)">entities</div>
+          <div><span class="geo-dot" style="background:#ff4444"></span>confirmed IOC</div>
+          <div><span class="geo-dot" style="background:#e8c547"></span>suspected</div>
+          <div><span class="geo-dot" style="background:#58a6ff"></span>not IOC</div>
+          <div style="margin-top:4px;color:var(--dim)">size = count per country</div>
+        </div>
+      </div>
+      <div class="geo-stats" id="geo-stats" style="display:none">
+        <span>mapped: <span style="color:var(--text2);font-weight:700" id="geo-st-mapped">0</span></span>
+        <span>countries: <span style="color:var(--text2);font-weight:700" id="geo-st-countries">0</span></span>
+        <span>top: <span style="color:var(--text2);font-weight:700" id="geo-st-top">—</span></span>
+        <span style="color:var(--dim);margin-left:auto">via ip-api · hover pins for details</span>
       </div>
     </div>
   </div>
@@ -1490,6 +1616,11 @@ async function enrichIOC(){
     enrichIPAPI(val,type),
     enrichGreyNoise(val,type,gnKey),
     enrichURLhausLookup(val,type),
+    // Free — no key needed
+    enrichShodanInternetDB(val,type),
+    enrichCRTsh(val,type),
+    enrichRDAP(val,type),
+    // Keyed sources
     authKey?enrichThreatFoxLookup(val,authKey):noKeyCard('ThreatFox','abuse.ch key'),
     abuseKey?enrichAbuseIPDB(val,type,abuseKey):noKeyCard('AbuseIPDB','AbuseIPDB key'),
     otxKey?enrichOTX(val,type,otxKey):noKeyCard('AlienVault OTX','OTX key'),
@@ -1796,7 +1927,7 @@ function importData(){const input=document.createElement('input');input.type='fi
 // ═══════════════════════════════════════════════════════
 // TABS + RENDER ALL
 // ═══════════════════════════════════════════════════════
-function switchTab(id,btn){document.querySelectorAll('.cvt').forEach(b=>b.classList.remove('on'));document.querySelectorAll('.cv-panel').forEach(p=>p.classList.remove('on'));if(btn)btn.classList.add('on');document.getElementById('panel-'+id).classList.add('on');if(id==='report')renderReport();if(id==='mitre')renderMitre();if(id==='actors')renderActors();}
+function switchTab(id,btn){document.querySelectorAll('.cvt').forEach(b=>b.classList.remove('on'));document.querySelectorAll('.cv-panel').forEach(p=>p.classList.remove('on'));if(btn)btn.classList.add('on');document.getElementById('panel-'+id).classList.add('on');if(id==='report')renderReport();if(id==='mitre')renderMitre();if(id==='actors')renderActors();if(id==='geomap')initGeoMap();}
 function renderAll(){renderCases();renderEnts();renderGraph();renderTimeline();renderEvidence();renderWatchlist();updateStats();}
 function renderCases(){const el=document.getElementById('cases-list');const sel=document.getElementById('case-sel');const cases=Object.values(S.cases).sort((a,b)=>b.created.localeCompare(a.created));const pc={critical:'#ff4444',high:'#e8c547',medium:'#00d4ff',low:'#484f58'};el.innerHTML=cases.map(c=>`<div class="si ${S.cur===c.id?'on':''}" onclick="switchCase('${c.id}')"><div class="si-dot" style="background:${pc[c.priority]||'#484f58'}"></div><span class="si-name">${c.name}</span><span class="si-badge">${c.status}</span><button class="si-del" onclick="delCase('${c.id}',event)">×</button></div>`).join('')||'<div style="padding:6px 8px;font-size:.68rem;color:var(--dim)">no cases yet</div>';sel.innerHTML='<option value="">— select case —</option>'+cases.map(c=>`<option value="${c.id}" ${S.cur===c.id?'selected':''}>${c.name}</option>`).join('');}
 function renderEnts(){const c=getC();const el=document.getElementById('ents-list');if(!c){el.innerHTML='<div style="padding:6px 8px;font-size:.68rem;color:var(--dim)">select a case</div>';return;}const ents=Object.values(c.entities).sort((a,b)=>b.created.localeCompare(a.created));document.getElementById('ent-count').textContent=ents.length;el.innerHTML=ents.map(e=>`<div class="si ${S.selEnt===e.id?'on':''}" onclick="showDetail('${e.id}')" data-v="${e.value.toLowerCase()}"><div class="si-dot" style="background:${e.color||TC[e.type]||'#484f58'}"></div><span class="si-name">${e.value}</span><span class="si-badge">${e.type}</span><button class="si-del" onclick="event.stopPropagation();S.selEnt='${e.id}';deleteDetail()">×</button></div>`).join('')||'<div style="padding:6px 8px;font-size:.68rem;color:var(--dim)">no entities — add above</div>';}
@@ -1804,6 +1935,558 @@ function updateStats(){const c=getC();document.getElementById('st-case').textCon
 function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function showToast(msg){const t=document.createElement('div');t.style.cssText='position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--accent);color:#000;font-family:monospace;font-size:11px;font-weight:700;padding:6px 15px;border-radius:4px;z-index:9999;pointer-events:none;white-space:nowrap';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove&&t.remove(),2200);}
 
+
+// ═══════════════════════════════════════════════════════
+// DEFANG / REFANG
+// ═══════════════════════════════════════════════════════
+let DEFANG_MODE = false;
+
+function toggleDefang() {
+  DEFANG_MODE = !DEFANG_MODE;
+  const btn = document.getElementById('defang-btn');
+  btn.textContent = DEFANG_MODE ? '[ defang: ON ]' : '[ defang: off ]';
+  btn.style.borderColor = DEFANG_MODE ? 'var(--accent)' : '';
+  btn.style.color = DEFANG_MODE ? 'var(--accent)' : '';
+  localStorage.setItem('k6_defang', DEFANG_MODE ? '1' : '0');
+  showToast(DEFANG_MODE ? 'Defang ON — IOCs displayed safely' : 'Defang OFF');
+}
+
+function defang(ioc) {
+  if (!ioc) return '';
+  return ioc
+    .replace(/\./g, '[.]')
+    .replace(/^(https?)/i, (m) => m.replace(/tt/, 'xx'))
+    .replace(/^ftp/i, 'fxp');
+}
+
+function refang(text) {
+  return text
+    .replace(/\[\.]/g, '.')
+    .replace(/\(\.\)/g, '.')
+    .replace(/hxxps?/gi, m => m.replace('xx', 'tt'))
+    .replace(/fxp/gi, 'ftp')
+    .replace(/\[at\]/gi, '@')
+    .replace(/\(at\)/gi, '@')
+    .replace(/\[@\]/gi, '@');
+}
+
+function displayIOC(ioc) {
+  return DEFANG_MODE ? defang(ioc) : ioc;
+}
+
+function bulkDefangAll() {
+  const ta = document.getElementById('bulk-input');
+  if (!ta.value.trim()) { showToast('Paste some text first'); return; }
+  ta.value = defang(ta.value);
+  showToast('Text defanged');
+}
+
+// ═══════════════════════════════════════════════════════
+// IOC BULK EXTRACTOR
+// ═══════════════════════════════════════════════════════
+const IOC_PATTERNS = {
+  ip: {
+    re: /(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)/g,
+    label: 'IP', color: '#ff4444', entType: 'ip',
+    filter: v => !v.startsWith('0.') && !v.startsWith('127.') && !v.startsWith('192.168.') && !v.startsWith('10.') && !v.match(/^172\.(1[6-9]|2\d|3[01])\./)
+  },
+  ipv6: {
+    re: /(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:/g,
+    label: 'IPv6', color: '#ff4444', entType: 'ip',
+    filter: () => true
+  },
+  url: {
+    re: /https?:\/\/[^\s<>"')\]]+/gi,
+    label: 'URL', color: '#27c93f', entType: 'url',
+    filter: () => true
+  },
+  sha256: {
+    re: /[0-9a-fA-F]{64}/g,
+    label: 'SHA256', color: '#00d4ff', entType: 'hash',
+    filter: () => true
+  },
+  sha1: {
+    re: /[0-9a-fA-F]{40}/g,
+    label: 'SHA1', color: '#00d4ff', entType: 'hash',
+    filter: () => true
+  },
+  md5: {
+    re: /[0-9a-fA-F]{32}/g,
+    label: 'MD5', color: '#00d4ff', entType: 'hash',
+    filter: () => true
+  },
+  cve: {
+    re: /CVE-\d{4}-\d{4,}/gi,
+    label: 'CVE', color: '#e8c547', entType: 'url',
+    filter: () => true
+  },
+  email: {
+    re: /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g,
+    label: 'Email', color: '#f0883e', entType: 'email',
+    filter: () => true
+  },
+  btc: {
+    re: /[13][a-km-zA-HJ-NP-Z1-9]{25,34}|bc1[a-zA-HJ-NP-Z0-9]{25,39}/g,
+    label: 'BTC', color: '#bc8cff', entType: 'wallet',
+    filter: v => v.length >= 26
+  },
+  eth: {
+    re: /0x[0-9a-fA-F]{40}/g,
+    label: 'ETH', color: '#bc8cff', entType: 'wallet',
+    filter: () => true
+  },
+  asn: {
+    re: /AS\d{1,10}/gi,
+    label: 'ASN', color: '#8b949e', entType: 'org',
+    filter: () => true
+  },
+  domain: {
+    re: /(?:[a-zA-Z0-9](?:[a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+(?:com|net|org|io|gov|edu|mil|int|biz|info|mobi|co|uk|de|fr|ru|cn|jp|kr|br|in|au|nl|ch|se|no|fi|dk|pl|cz|sk|hu|ro|bg|hr|si|ee|lv|lt|ua|by|am|ge|az|kz|tm|uz|kg|tj|af|pk|bd|lk|np|bt|mv|mn|la|kh|vn|mm|id|ph|my|sg|th|bn|tl|pg|fj|ws|to|vu|nz|cc|ac|onion|bit|xyz|top|club|site|online|shop|store|app|dev|tech|ai|cloud|media|news|blog|live|tv|radio|fm|am|pm|land|world|earth|global|int|pro|name|tel|travel|jobs|post|xxx|adult|porn|sex)/gi,
+    label: 'Domain', color: '#58a6ff', entType: 'domain',
+    filter: v => !v.match(/^(www\.|mail\.|smtp\.|pop\.|imap\.)/i) && v.split('.').length >= 2 && v.length < 100
+  },
+};
+
+// Extraction order matters — do URLs/hashes first to avoid partial matches
+const EXTRACT_ORDER = ['url','sha256','sha1','md5','cve','eth','btc','ipv6','ip','email','domain','asn'];
+
+let bulkExtracted = {};
+
+function runBulkExtract() {
+  const raw = document.getElementById('bulk-input').value;
+  if (!raw.trim()) { showToast('Paste some text first'); return; }
+
+  // Refang first
+  const text = refang(raw);
+  bulkExtracted = {};
+  const usedRanges = [];
+
+  // Track which character positions are already claimed
+  const claimed = new Uint8Array(text.length);
+
+  EXTRACT_ORDER.forEach(key => {
+    const pat = IOC_PATTERNS[key];
+    const re = new RegExp(pat.re.source, pat.re.flags);
+    let m;
+    const found = new Set();
+    while ((m = re.exec(text)) !== null) {
+      const start = m.index, end = m.index + m[0].length;
+      // Skip if overlapping with already claimed range
+      let overlap = false;
+      for (let i = start; i < end; i++) { if (claimed[i]) { overlap = true; break; } }
+      if (overlap) continue;
+      const val = m[0].trim();
+      if (!pat.filter(val)) continue;
+      if (found.has(val.toLowerCase())) continue;
+      found.add(val.toLowerCase());
+      if (!bulkExtracted[key]) bulkExtracted[key] = [];
+      bulkExtracted[key].push(val);
+      for (let i = start; i < end; i++) claimed[i] = 1;
+    }
+  });
+
+  renderBulkResults();
+}
+
+function renderBulkResults() {
+  const el = document.getElementById('bulk-results');
+  const statsEl = document.getElementById('bulk-stats');
+  const summaryEl = document.getElementById('bulk-summary');
+  const total = Object.values(bulkExtracted).reduce((s, a) => s + a.length, 0);
+
+  if (!total) {
+    el.innerHTML = '<div style="color:var(--dim);font-size:.72rem;text-align:center;padding:2rem">no IOCs found in the pasted text</div>';
+    summaryEl.textContent = '0 IOCs found';
+    statsEl.style.display = 'none';
+    return;
+  }
+
+  // Update stats bar
+  statsEl.style.display = 'flex';
+  summaryEl.textContent = `${total} IOCs extracted`;
+  const keys = {ip:'bst-ip',ipv6:'bst-ip',domain:'bst-dom',url:'bst-url',sha256:'bst-hash',sha1:'bst-hash',md5:'bst-hash',cve:'bst-cve',email:'bst-email',btc:'bst-wallet',eth:'bst-wallet',asn:'bst-wallet'};
+  const counts = {ip:0,dom:0,url:0,hash:0,cve:0,email:0,wallet:0};
+  EXTRACT_ORDER.forEach(k => {
+    const items = bulkExtracted[k] || [];
+    if (k==='ip'||k==='ipv6') counts.ip+=items.length;
+    else if (k==='domain') counts.dom+=items.length;
+    else if (k==='url') counts.url+=items.length;
+    else if (k==='sha256'||k==='sha1'||k==='md5') counts.hash+=items.length;
+    else if (k==='cve') counts.cve+=items.length;
+    else if (k==='email') counts.email+=items.length;
+    else if (k==='btc'||k==='eth'||k==='asn') counts.wallet+=items.length;
+  });
+  Object.entries(counts).forEach(([k,v]) => { const e=document.getElementById('bst-'+k); if(e) e.textContent=v; });
+
+  // Render grouped results
+  let html = '';
+  EXTRACT_ORDER.forEach(key => {
+    const items = bulkExtracted[key];
+    if (!items || !items.length) return;
+    const pat = IOC_PATTERNS[key];
+    html += `<div style="margin-bottom:.7rem">
+      <div class="bulk-type-hdr">
+        <span style="color:${pat.color}">${pat.label}</span>
+        <span style="color:var(--dim)">${items.length}</span>
+      </div>
+      ${items.map((v, i) => `
+        <div class="bulk-ioc">
+          <input type="checkbox" checked data-key="${key}" data-idx="${i}" data-val="${escH(v)}" data-type="${pat.entType}">
+          <span class="bulk-ioc-val" style="color:${pat.color}" onclick="quickEnrich('${escH(v)}')" title="click to enrich">${DEFANG_MODE ? escH(defang(v)) : escH(v)}</span>
+          <span class="bulk-ioc-type">${pat.label}</span>
+          <button class="fi-btn" style="flex-shrink:0;padding:1px 5px" onclick="navigator.clipboard.writeText(${DEFANG_MODE ? `'${defang(v)}'`:`'${v}'`});showToast('copied')">copy</button>
+          <button class="fi-btn" style="flex-shrink:0;padding:1px 5px" onclick="quickEnrich('${escH(v)}')">enrich</button>
+        </div>`).join('')}
+    </div>`;
+  });
+  el.innerHTML = html;
+}
+
+function bulkSelectAll(on) {
+  document.querySelectorAll('#bulk-results input[type=checkbox]').forEach(cb => cb.checked = on);
+}
+
+async function bulkPasteClipboard() {
+  try {
+    const text = await navigator.clipboard.readText();
+    document.getElementById('bulk-input').value = text;
+    runBulkExtract();
+  } catch(e) { showToast('Clipboard access denied — paste manually'); }
+}
+
+function clearBulkResults() {
+  bulkExtracted = {};
+  document.getElementById('bulk-results').innerHTML = '<div style="color:var(--dim);font-size:.72rem;text-align:center;padding:2rem;opacity:.5">extracted IOCs appear here</div>';
+  document.getElementById('bulk-stats').style.display = 'none';
+  document.getElementById('bulk-summary').textContent = 'paste text and click extract';
+}
+
+function bulkAddToCase() {
+  const c = getC();
+  if (!c) { alert('Select a case first'); return; }
+  const checkboxes = document.querySelectorAll('#bulk-results input[type=checkbox]:checked');
+  if (!checkboxes.length) { showToast('No IOCs selected'); return; }
+  let added = 0;
+  checkboxes.forEach(cb => {
+    const val = cb.dataset.val;
+    const type = cb.dataset.type;
+    const key = cb.dataset.key;
+    const pat = IOC_PATTERNS[key];
+    const ent = {
+      id: 'e' + Date.now() + Math.random(),
+      type, value: val,
+      color: pat?.color || '#484f58',
+      tlp: 'WHITE', ioc: 'suspected', confidence: 70,
+      notes: 'Extracted via Bulk Extractor',
+      created: new Date().toISOString()
+    };
+    c.entities[ent.id] = ent;
+    added++;
+  });
+  save(); renderAll();
+  showToast(`Added ${added} IOCs to case`);
+}
+
+// ═══════════════════════════════════════════════════════
+// GEO IP MAP
+// ═══════════════════════════════════════════════════════
+let geoData = [];
+let geoMapReady = false;
+let worldGeoJSON = null;
+
+async function initGeoMap() {
+  if (geoMapReady) return;
+  geoMapReady = true;
+  // Load world map from CDN
+  try {
+    const res = await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
+    worldGeoJSON = await res.json();
+    drawWorldBasemap();
+  } catch(e) {
+    document.getElementById('geo-svg').innerHTML = '<text x="480" y="250" text-anchor="middle" fill="#484f58" font-family="monospace" font-size="14">Could not load map tiles. Check internet connection.</text>';
+  }
+}
+
+function drawWorldBasemap() {
+  const svg = document.getElementById('geo-svg');
+  if (!svg || !worldGeoJSON) return;
+  // Simple equirectangular projection
+  const W = 960, H = 500;
+  const proj = ([lon, lat]) => [
+    (lon + 180) * W / 360,
+    (90 - lat) * H / 180
+  ];
+  // Draw countries using TopoJSON-like paths via D3 if available, else simple rect background
+  if (typeof d3 !== 'undefined' && d3.geoNaturalEarth1) {
+    const projection = d3.geoNaturalEarth1().scale(153).translate([W/2, H/2]);
+    const path = d3.geoPath().projection(projection);
+    const topo = worldGeoJSON;
+    let countries;
+    try {
+      const topojsonModule = window.topojson;
+      if (topojsonModule) {
+        countries = topojsonModule.feature(topo, topo.objects.countries);
+      }
+    } catch(e) {}
+
+    d3.select(svg).selectAll('*').remove();
+    // Ocean
+    d3.select(svg).append('rect').attr('width', W).attr('height', H).attr('fill', '#090e18');
+    if (countries) {
+      d3.select(svg).append('g').selectAll('path')
+        .data(countries.features)
+        .join('path')
+        .attr('d', path)
+        .attr('fill', '#0f1a2e')
+        .attr('stroke', '#1a2a3a')
+        .attr('stroke-width', 0.5);
+    }
+  } else {
+    // Fallback: simple background with grid lines
+    const el = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    el.setAttribute('width', 960); el.setAttribute('height', 500); el.setAttribute('fill', '#090e18');
+    svg.innerHTML = '';
+    svg.appendChild(el);
+    // Draw grid lines
+    for (let lon = -180; lon <= 180; lon += 30) {
+      const x = (lon + 180) * 960 / 360;
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', x); line.setAttribute('y1', 0); line.setAttribute('x2', x); line.setAttribute('y2', 500);
+      line.setAttribute('stroke', '#0f1e30'); line.setAttribute('stroke-width', 0.5);
+      svg.appendChild(line);
+    }
+    for (let lat = -90; lat <= 90; lat += 30) {
+      const y = (90 - lat) * 500 / 180;
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', 0); line.setAttribute('y1', y); line.setAttribute('x2', 960); line.setAttribute('y2', y);
+      line.setAttribute('stroke', '#0f1e30'); line.setAttribute('stroke-width', 0.5);
+      svg.appendChild(line);
+    }
+  }
+}
+
+async function loadGeoMap() {
+  const c = getC();
+  if (!c) { showToast('Select a case first'); return; }
+  const typeFilter = document.getElementById('geo-filter-type').value;
+  const ents = Object.values(c.entities).filter(e =>
+    !typeFilter ? (e.type === 'ip' || e.type === 'domain') : e.type === typeFilter
+  );
+  if (!ents.length) { showToast('No IP/domain entities in current case'); return; }
+
+  document.getElementById('geo-info').textContent = `resolving ${ents.length} entities...`;
+  geoData = [];
+
+  // Batch resolve IPs via ip-api (free, 45/min)
+  const toResolve = ents.slice(0, 40); // cap at 40 to avoid rate limit
+  const results = await Promise.allSettled(toResolve.map(ent => resolveGeoIP(ent)));
+  results.forEach((r, i) => {
+    if (r.status === 'fulfilled' && r.value) geoData.push({ ...r.value, ent: toResolve[i] });
+  });
+
+  renderGeoMap();
+  document.getElementById('geo-stats').style.display = 'flex';
+  document.getElementById('geo-legend').style.display = 'block';
+  const countries = new Set(geoData.map(d => d.country).filter(Boolean));
+  document.getElementById('geo-st-mapped').textContent = geoData.length;
+  document.getElementById('geo-st-countries').textContent = countries.size;
+  const topCountry = geoData.reduce((acc, d) => { acc[d.country] = (acc[d.country]||0)+1; return acc; }, {});
+  const top = Object.entries(topCountry).sort((a,b)=>b[1]-a[1])[0];
+  document.getElementById('geo-st-top').textContent = top ? `${top[0]} (${top[1]})` : '—';
+  document.getElementById('geo-info').textContent = `${geoData.length} / ${toResolve.length} resolved`;
+}
+
+async function resolveGeoIP(ent) {
+  try {
+    const val = ent.value;
+    // For domains, resolve via ip-api's domain support
+    const res = await proxyFetch(`https://ip-api.com/json/${encodeURIComponent(val)}?fields=status,country,countryCode,lat,lon,city,isp,org,query`);
+    const d = await res.json();
+    if (d.status !== 'success') return null;
+    return { ip: d.query, country: d.country, cc: d.countryCode, lat: d.lat, lon: d.lon, city: d.city, isp: d.isp, org: d.org };
+  } catch(e) { return null; }
+}
+
+function renderGeoMap() {
+  if (!geoData.length) return;
+  const svg = document.getElementById('geo-svg');
+  const W = 960, H = 500;
+
+  // Remove previous pins
+  svg.querySelectorAll('.geo-pin, .geo-pin-group').forEach(el => el.remove());
+
+  const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  g.setAttribute('class', 'geo-pin-group');
+
+  // Group by approximate position (cluster nearby)
+  const positioned = geoData.map(d => {
+    const x = (d.lon + 180) * W / 360;
+    const y = (90 - d.lat) * H / 180;
+    const col = d.ent.ioc === 'yes' ? '#ff4444' : d.ent.ioc === 'suspected' ? '#e8c547' : '#58a6ff';
+    return { ...d, x, y, col };
+  });
+
+  // Cluster within 8px radius
+  const clusters = [];
+  positioned.forEach(p => {
+    const existing = clusters.find(c => Math.sqrt((c.x-p.x)**2 + (c.y-p.y)**2) < 12);
+    if (existing) { existing.items.push(p); }
+    else clusters.push({ x: p.x, y: p.y, items: [p] });
+  });
+
+  clusters.forEach(cluster => {
+    const dominant = cluster.items.reduce((a, b) => {
+      const order = {'yes': 3, 'suspected': 2, 'no': 1};
+      return (order[a.ent?.ioc]||0) >= (order[b.ent?.ioc]||0) ? a : b;
+    });
+    const r = Math.min(4 + cluster.items.length * 1.5, 12);
+    const col = dominant.col;
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', cluster.x);
+    circle.setAttribute('cy', cluster.y);
+    circle.setAttribute('r', r);
+    circle.setAttribute('fill', col);
+    circle.setAttribute('fill-opacity', '0.85');
+    circle.setAttribute('stroke', col);
+    circle.setAttribute('stroke-width', '1');
+    circle.setAttribute('stroke-opacity', '0.4');
+    circle.setAttribute('class', 'geo-pin');
+    circle.style.cursor = 'pointer';
+
+    // Pulse ring for IOC clusters
+    if (dominant.ent?.ioc === 'yes') {
+      const pulse = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      pulse.setAttribute('cx', cluster.x); pulse.setAttribute('cy', cluster.y);
+      pulse.setAttribute('r', r + 4); pulse.setAttribute('fill', 'none');
+      pulse.setAttribute('stroke', col); pulse.setAttribute('stroke-width', '1');
+      pulse.setAttribute('stroke-opacity', '0.3'); pulse.setAttribute('stroke-dasharray', '3 2');
+      pulse.setAttribute('class', 'geo-pin');
+      g.appendChild(pulse);
+    }
+
+    // Count label for clusters > 1
+    if (cluster.items.length > 1) {
+      const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      txt.setAttribute('x', cluster.x); txt.setAttribute('y', cluster.y + 1);
+      txt.setAttribute('text-anchor', 'middle'); txt.setAttribute('dominant-baseline', 'central');
+      txt.setAttribute('fill', '#000'); txt.setAttribute('font-size', '7');
+      txt.setAttribute('font-weight', '700'); txt.setAttribute('font-family', 'monospace');
+      txt.setAttribute('class', 'geo-pin'); txt.setAttribute('pointer-events', 'none');
+      txt.textContent = cluster.items.length;
+      circle.appendChild(txt);
+    }
+
+    const tip = document.getElementById('geo-tip');
+    circle.addEventListener('mouseenter', (e) => {
+      const svgRect = svg.getBoundingClientRect();
+      const names = cluster.items.map(i => `<div style="color:var(--orange);font-family:monospace;font-size:.6rem">${i.ent.value}</div>`).join('');
+      tip.innerHTML = `<div style="font-weight:700;color:var(--text);margin-bottom:3px">${dominant.city||''} ${dominant.country||'Unknown'}</div>${names}<div style="color:var(--dim);margin-top:3px">ISP: ${dominant.isp||'—'}</div>`;
+      const px = e.clientX - svgRect.left;
+      const py = e.clientY - svgRect.top;
+      tip.style.left = (px + 12) + 'px';
+      tip.style.top = (py - 10) + 'px';
+      tip.style.display = 'block';
+    });
+    circle.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
+    circle.addEventListener('click', () => {
+      if (cluster.items[0]) showDetail(cluster.items[0].ent.id);
+    });
+    g.appendChild(circle);
+  });
+  svg.appendChild(g);
+}
+
+function clearGeoMap() {
+  geoData = [];
+  document.getElementById('geo-svg').querySelectorAll('.geo-pin, .geo-pin-group').forEach(el => el.remove());
+  document.getElementById('geo-stats').style.display = 'none';
+  document.getElementById('geo-legend').style.display = 'none';
+  document.getElementById('geo-info').textContent = 'select a case and click ↻ map';
+}
+
+// ═══════════════════════════════════════════════════════
+// SHODAN INTERNETDB (free, no key)
+// ═══════════════════════════════════════════════════════
+async function enrichShodanInternetDB(val, type) {
+  if (type !== 'ip') return null;
+  try {
+    const res = await proxyFetch(`https://internetdb.shodan.io/${encodeURIComponent(val)}`);
+    if (res.status === 404) return `<div class="ec"><div class="ec-hdr"><span class="ec-src">Shodan InternetDB</span><span class="ec-st ok">not indexed</span></div><div class="ec-body"><div style="font-size:.64rem;color:var(--dim)">No data for this IP.</div></div></div>`;
+    if (!res.ok) throw new Error('Shodan ' + res.status);
+    const d = await res.json();
+    const vulnCount = (d.vulns || []).length;
+    const portCount = (d.ports || []).length;
+    const tagCount = (d.tags || []).length;
+    const sev = vulnCount > 5 ? 'bad' : vulnCount > 0 ? 'warn' : 'ok';
+    return `<div class="ec"><div class="ec-hdr"><span class="ec-src">Shodan InternetDB <span style="color:var(--accent);font-size:.52rem">FREE</span></span><span class="ec-st ${sev}">${portCount} ports · ${vulnCount} CVEs</span></div><div class="ec-body">
+      <div class="ec-row"><span class="ec-k">Open Ports</span><span class="ec-v" style="font-family:monospace">${(d.ports||[]).join(', ')||'none'}</span></div>
+      ${(d.vulns||[]).length ? `<div class="ec-row"><span class="ec-k">CVEs</span><span class="ec-v" style="color:var(--red)">${d.vulns.slice(0,5).join(', ')}${d.vulns.length>5?' +'+( d.vulns.length-5)+' more':''}</span></div>` : ''}
+      ${(d.hostnames||[]).length ? `<div class="ec-row"><span class="ec-k">Hostnames</span><span class="ec-v" style="font-size:.6rem">${d.hostnames.slice(0,3).join(', ')}</span></div>` : ''}
+      ${(d.tags||[]).length ? `<div class="ec-row"><span class="ec-k">Tags</span><span class="ec-v">${d.tags.join(', ')}</span></div>` : ''}
+      ${d.cpes?.length ? `<div class="ec-row"><span class="ec-k">CPEs</span><span class="ec-v" style="font-size:.58rem">${d.cpes.slice(0,2).join(', ')}</span></div>` : ''}
+      <div class="ec-row"><span class="ec-k">Report</span><span class="ec-v"><a href="https://www.shodan.io/host/${val}" target="_blank">shodan.io ↗</a></span></div>
+    </div></div>`;
+  } catch(e) { return null; }
+}
+
+// ═══════════════════════════════════════════════════════
+// CERTIFICATE TRANSPARENCY — crt.sh (free, no key)
+// ═══════════════════════════════════════════════════════
+async function enrichCRTsh(val, type) {
+  if (type !== 'domain') return null;
+  try {
+    const res = await proxyFetch(`https://crt.sh/?q=%.${encodeURIComponent(val)}&output=json`);
+    if (!res.ok) throw new Error('crt.sh ' + res.status);
+    const data = await res.json();
+    const certs = Array.isArray(data) ? data : [];
+    // Deduplicate subdomains
+    const subdomains = [...new Set(
+      certs.flatMap(c => (c.name_value || '').split('\n'))
+           .filter(s => s && !s.includes('*') && s.endsWith(val))
+    )].sort().slice(0, 20);
+    const issuers = [...new Set(certs.slice(0, 5).map(c => c.issuer_name?.split(',').find(p => p.trim().startsWith('O='))?.replace('O=','').trim()).filter(Boolean))];
+    const latest = certs[0];
+    return `<div class="ec"><div class="ec-hdr"><span class="ec-src">crt.sh (cert transparency)</span><span class="ec-st ${certs.length > 0 ? 'ok' : 'nokey'}">${certs.length} certs</span></div><div class="ec-body">
+      ${latest ? `<div class="ec-row"><span class="ec-k">Latest cert</span><span class="ec-v">${(latest.not_before||'').slice(0,10)}</span></div>` : ''}
+      ${issuers.length ? `<div class="ec-row"><span class="ec-k">Issued by</span><span class="ec-v" style="font-size:.6rem">${issuers.join(', ')}</span></div>` : ''}
+      ${subdomains.length ? `<div class="ec-row"><span class="ec-k">Subdomains (${subdomains.length})</span><span class="ec-v" style="font-size:.58rem;font-family:monospace">${subdomains.slice(0,8).join('<br>')}</span></div>` : '<div class="ec-row"><span class="ec-k">Subdomains</span><span class="ec-v">none found</span></div>'}
+      <div class="ec-row"><span class="ec-k">Full report</span><span class="ec-v"><a href="https://crt.sh/?q=%.${encodeURIComponent(val)}" target="_blank">crt.sh ↗</a></span></div>
+    </div></div>`;
+  } catch(e) { return null; }
+}
+
+// ═══════════════════════════════════════════════════════
+// RDAP — structured WHOIS (free, no key)
+// ═══════════════════════════════════════════════════════
+async function enrichRDAP(val, type) {
+  if (type !== 'domain' && type !== 'ip') return null;
+  try {
+    const endpoint = type === 'ip'
+      ? `https://rdap.org/ip/${encodeURIComponent(val)}`
+      : `https://rdap.org/domain/${encodeURIComponent(val)}`;
+    const res = await proxyFetch(endpoint);
+    if (!res.ok) throw new Error('RDAP ' + res.status);
+    const d = await res.json();
+
+    const getEvent = (type) => (d.events||[]).find(e => e.eventAction === type)?.eventDate?.slice(0,10) || '—';
+    const getEntity = (role) => (d.entities||[]).find(e => (e.roles||[]).includes(role));
+    const registrar = getEntity('registrar');
+    const registrant = getEntity('registrant');
+    const regName = registrar?.vcardArray?.[1]?.find(v => v[0]==='fn')?.[3] || registrar?.handle || '—';
+    const status = (d.status||[]).join(', ') || '—';
+    const ns = (d.nameservers||[]).map(n => n.ldhName||n.unicodeName||'').filter(Boolean);
+
+    return `<div class="ec"><div class="ec-hdr"><span class="ec-src">RDAP (structured WHOIS)</span><span class="ec-st ok">found</span></div><div class="ec-body">
+      <div class="ec-row"><span class="ec-k">Registered</span><span class="ec-v">${getEvent('registration')}</span></div>
+      <div class="ec-row"><span class="ec-k">Expires</span><span class="ec-v">${getEvent('expiration')}</span></div>
+      <div class="ec-row"><span class="ec-k">Last changed</span><span class="ec-v">${getEvent('last changed')}</span></div>
+      <div class="ec-row"><span class="ec-k">Registrar</span><span class="ec-v">${regName}</span></div>
+      <div class="ec-row"><span class="ec-k">Status</span><span class="ec-v" style="font-size:.6rem">${status}</span></div>
+      ${ns.length ? `<div class="ec-row"><span class="ec-k">Nameservers</span><span class="ec-v" style="font-size:.6rem;font-family:monospace">${ns.slice(0,4).join('<br>')}</span></div>` : ''}
+      <div class="ec-row"><span class="ec-k">RDAP</span><span class="ec-v"><a href="${endpoint}" target="_blank">raw JSON ↗</a></span></div>
+    </div></div>`;
+  } catch(e) { return null; }
+}
 
 // ═══════════════════════════════════════════════════════
 // THREAT ACTOR DATABASE
@@ -2468,6 +3151,10 @@ renderMISPFeedList();
 renderActors();
 // Hide ThreatFox key warning if key exists
 if(getKey('abusech'))document.getElementById('tf-key-warn').style.display='none';
+// Restore defang state
+if(localStorage.getItem('k6_defang')==='1'){DEFANG_MODE=true;const db=document.getElementById('defang-btn');if(db){db.textContent='[ defang: ON ]';db.style.borderColor='var(--accent)';db.style.color='var(--accent)';}}
+// Load TopoJSON for geo map (async, non-blocking)
+(function(){const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js';document.head.appendChild(s);})();
 </script>
 </body>
 </html>
