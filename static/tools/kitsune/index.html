@@ -273,6 +273,13 @@ a{color:var(--accent2);text-decoration:none}
 .defang-pill{font-family:monospace;font-size:.66rem;color:var(--orange);background:var(--bg3);border:1px solid var(--border2);padding:2px 7px;border-radius:2px;display:inline-flex;align-items:center;gap:5px;margin:2px;cursor:pointer;transition:all .15s}
 .defang-pill:hover{border-color:var(--accent);color:var(--accent)}
 
+/* ACTOR EDITOR MODAL */
+.actor-editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.custom-badge{font-size:.48rem;background:rgba(0,255,65,.1);border:1px solid rgba(0,255,65,.25);color:var(--accent);padding:1px 4px;border-radius:2px;margin-left:4px;vertical-align:middle}
+.actor-card .edit-btn{position:absolute;top:4px;right:4px;background:none;border:1px solid var(--border2);color:var(--dim);font-size:.52rem;padding:1px 5px;border-radius:2px;opacity:0;transition:opacity .15s}
+.actor-card:hover .edit-btn{opacity:1}
+.actor-card .edit-btn:hover{border-color:var(--accent);color:var(--accent)}
+
 /* BULK EXTRACTOR */
 .bulk-wrap{display:grid;grid-template-columns:1fr 1fr;flex:1;overflow:hidden;gap:0}
 .bulk-left{display:flex;flex-direction:column;border-right:1px solid var(--border);overflow:hidden}
@@ -615,6 +622,10 @@ a{color:var(--accent2);text-decoration:none}
   <div class="cv-panel" id="panel-actors">
     <div class="actor-search-bar">
       <span style="font-size:.62rem;color:var(--accent2);font-weight:700">🕵 Threat Actor Database</span>
+      <div class="vsep"></div>
+      <button class="hbtn p" onclick="openActorEditor(null)">+ add actor</button>
+      <button class="hbtn" onclick="exportActorDB()">export DB</button>
+      <button class="hbtn" onclick="importActorDB()">import DB</button>
       <input style="flex:1;padding:3px 7px;font-size:.68rem;border-radius:3px" id="actor-q" placeholder="search actors, aliases, TTPs..." oninput="filterActors(this.value)">
       <select class="hbtn" id="actor-filter-nation" style="padding:3px 6px" onchange="filterActors(document.getElementById('actor-q').value)">
         <option value="">all nations</option>
@@ -904,6 +915,49 @@ Defanged IOCs are automatically refanged:
   </div>
 </div>
 
+<!-- ACTOR EDITOR MODAL -->
+<div class="mo" id="actor-modal">
+  <div class="md" style="width:min(680px,95vw)">
+    <div class="md-t"><span id="actor-modal-title">Add Threat Actor</span><button class="md-x" onclick="closeModal('actor-modal')">×</button></div>
+    <input type="hidden" id="actor-edit-id">
+    <div class="actor-editor-grid">
+      <div class="fg"><label class="fl2">actor name *</label><input class="fi3" id="ae-name" placeholder="e.g. APT28"></div>
+      <div class="fg"><label class="fl2">nation / origin *</label><input class="fi3" id="ae-nation" placeholder="e.g. Russia, China, Unknown"></div>
+    </div>
+    <div class="actor-editor-grid">
+      <div class="fg"><label class="fl2">flag emoji</label><input class="fi3" id="ae-flag" placeholder="🇷🇺" maxlength="4"></div>
+      <div class="fg"><label class="fl2">sponsor / unit</label><input class="fi3" id="ae-sponsor" placeholder="e.g. GRU Unit 26165, IRGC"></div>
+    </div>
+    <div class="fg"><label class="fl2">aliases (comma separated)</label><input class="fi3" id="ae-aliases" placeholder="Fancy Bear, Sofacy, STRONTIUM"></div>
+    <div class="actor-editor-grid">
+      <div class="fg"><label class="fl2">motivation</label><select class="fs3" id="ae-motivation">
+        <option value="espionage">espionage</option><option value="financial">financial</option>
+        <option value="destruction">destruction</option><option value="espionage+financial">espionage+financial</option>
+        <option value="pre-positioning">pre-positioning</option><option value="hacktivism">hacktivism</option>
+      </select></div>
+      <div class="fg"><label class="fl2">type (comma separated)</label><input class="fi3" id="ae-type" placeholder="espionage, nation-state, ransomware"></div>
+    </div>
+    <div class="fg"><label class="fl2">description</label><textarea class="fta2" id="ae-desc" placeholder="Brief description of the group's history and notable operations..." style="min-height:60px"></textarea></div>
+    <div class="actor-editor-grid">
+      <div class="fg"><label class="fl2">tools & malware (comma separated)</label><textarea class="fta2" id="ae-tools" placeholder="X-Agent, Mimikatz, Cobalt Strike" style="min-height:46px"></textarea></div>
+      <div class="fg"><label class="fl2">MITRE ATT&CK TTPs (comma separated)</label><textarea class="fta2" id="ae-ttps" placeholder="T1566, T1059, T1078, T1003" style="min-height:46px"></textarea></div>
+    </div>
+    <div class="actor-editor-grid">
+      <div class="fg"><label class="fl2">targets / sectors (comma separated)</label><textarea class="fta2" id="ae-targets" placeholder="governments, defense, energy" style="min-height:46px"></textarea></div>
+      <div class="fg"><label class="fl2">known IOCs (comma separated)</label><textarea class="fta2" id="ae-iocs" placeholder="evil.com, 1.2.3.4, malware.ru" style="min-height:46px"></textarea></div>
+    </div>
+    <div class="fg"><label class="fl2">references (one per line)</label><textarea class="fta2" id="ae-refs" placeholder="https://attack.mitre.org/groups/G0007/&#10;https://www.cisa.gov/..." style="min-height:46px"></textarea></div>
+    <div style="font-size:.6rem;color:var(--dim);margin:.4rem 0;padding:.4rem .6rem;background:var(--bg3);border-radius:3px">
+      Custom actors are saved to your browser (localStorage) and persist across sessions. Export to JSON to back them up.
+    </div>
+    <div class="ma">
+      <button class="mb" onclick="closeModal('actor-modal')">cancel</button>
+      <button class="mb" id="ae-delete-btn" style="border-color:var(--red);color:var(--red);display:none" onclick="deleteCustomActor()">delete</button>
+      <button class="mb p" onclick="saveActorEdit()">save actor</button>
+    </div>
+  </div>
+</div>
+
 <!-- PROXY MODAL -->
 <div class="mo" id="proxy-modal">
   <div class="md">
@@ -969,7 +1023,7 @@ let selColor='#ff4444';
 let feedData=[];
 let feedCat='all';
 let feedQ='';
-let activeSrcs=new Set(['FeodoTracker','URLhaus','CISA-KEV','OpenPhish','Spamhaus','Ransomware.live']);
+let activeSrcs=new Set(['FeodoTracker','URLhaus','CISA-KEV','OpenPhish','Spamhaus','Ransomware.live','ThreatFox','MalwareBazaar']);
 let kevCache=null;
 let PROXY_URL=''; // set via proxy modal
 
@@ -1043,12 +1097,20 @@ function saveApiKeys(){
 }
 
 function saveProxy(){
-  const v=(document.getElementById('proxy-url-input').value||'').trim().replace(/\/$/,'');
+  let v=(document.getElementById('proxy-url-input').value||'').trim();
+  // Strip trailing slash and any path — only keep scheme+host
+  try{
+    const u=new URL(v);
+    v=u.origin; // e.g. https://kitsune-proxy.vercel.app — no path
+  }catch(e){
+    if(v){showToast('Invalid URL — must start with https://');return;}
+    v='';
+  }
   localStorage.setItem('k6_proxy',v);
   PROXY_URL=v;
   updateProxyStatus();
   closeModal('proxy-modal');
-  showToast(v?'Proxy saved':'Proxy cleared');
+  showToast(v?'Proxy saved: '+v:'Proxy cleared');
 }
 
 async function testProxy(){
@@ -1310,42 +1372,56 @@ async function fetchRansomwareLive(){
 
 async function fetchThreatFox(authKey){
   try{
-    const res=await proxyFetch('https://threatfox-api.abuse.ch/api/v1/',{
-      method:'POST',_authKey:authKey,
-      headers:{'Content-Type':'application/json'},
+    // Must go through proxy — direct fetch is CORS-blocked from browser
+    if(!PROXY_URL){console.warn('ThreatFox: proxy required');return[];}
+    const res=await fetch(`${PROXY_URL}/api/proxy`,{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'X-Target-URL':'https://threatfox-api.abuse.ch/api/v1/',
+        'X-Auth-Key':authKey,
+      },
       body:JSON.stringify({query:'get_iocs',days:1})
     });
+    if(!res.ok) throw new Error('ThreatFox proxy '+res.status);
     const d=await res.json();
-    if(d.query_status!=='ok')return[];
+    if(d.query_status!=='ok'&&d.query_status!=='no_result')throw new Error(d.query_status);
     return(d.data||[]).slice(0,25).map(i=>({
       id:'tf_'+i.id,source:'ThreatFox',category:i.ioc_type?.includes('ip')?'c2':'malware',
       severity:i.confidence_level>75?'high':'medium',
-      title:`${i.malware} — ${i.ioc}`,
+      title:`${i.malware||'Unknown'} — ${i.ioc}`,
       ioc:i.ioc,desc:`Type: ${i.ioc_type} · Confidence: ${i.confidence_level}% · Tags: ${(i.tags||[]).join(', ')||'none'}`,
       date:i.first_seen,link:'https://threatfox.abuse.ch/ioc/'+i.id,
       tags:[i.malware,...(i.tags||[])].filter(Boolean),
     }));
-  }catch(e){return[];}
+  }catch(e){console.warn('ThreatFox feed error:',e.message);return[];}
 }
 
 async function fetchMalwareBazaar(authKey){
   try{
-    const res=await proxyFetch('https://mb-api.abuse.ch/api/v1/',{
-      method:'POST',_authKey:authKey,
-      headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    if(!PROXY_URL){console.warn('MalwareBazaar: proxy required');return[];}
+    // MalwareBazaar uses form-urlencoded body + Auth-Key header
+    const res=await fetch(`${PROXY_URL}/api/proxy`,{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/x-www-form-urlencoded',
+        'X-Target-URL':'https://mb-api.abuse.ch/api/v1/',
+        'X-Auth-Key':authKey,
+      },
       body:'query=get_recent&selector=time'
     });
+    if(!res.ok) throw new Error('MalwareBazaar proxy '+res.status);
     const d=await res.json();
-    if(d.query_status!=='ok')return[];
+    if(d.query_status!=='ok')throw new Error(d.query_status);
     return(d.data||[]).slice(0,20).map(s=>({
       id:'mbz_'+s.sha256_hash,source:'MalwareBazaar',category:'malware',severity:'high',
-      title:`${s.signature||'Unknown'} — ${s.file_name||'unnamed'} [${s.file_type}]`,
+      title:`${s.signature||'Unknown'} — ${s.file_name||'unnamed'} [${s.file_type||'file'}]`,
       ioc:s.sha256_hash,
-      desc:`Tags: ${(s.tags||[]).join(', ')||'none'} · Size: ${s.file_size}B`,
+      desc:`Tags: ${(s.tags||[]).join(', ')||'none'} · Size: ${s.file_size||0}B`,
       date:s.first_seen,link:'https://bazaar.abuse.ch/sample/'+s.sha256_hash,
       tags:(s.tags||[s.signature]).filter(Boolean),
     }));
-  }catch(e){return[];}
+  }catch(e){console.warn('MalwareBazaar feed error:',e.message);return[];}
 }
 
 function toggleSrc(btn){const src=btn.dataset.src;btn.classList.toggle('on');if(btn.classList.contains('on'))activeSrcs.add(src);else activeSrcs.delete(src);renderFeed();}
@@ -2626,7 +2702,124 @@ const ACTOR_DB = [
     refs:['https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-320a']},
 ];
 
-let actorDataFiltered = [...ACTOR_DB];
+// ═══════════════════════════════════════════════════════
+// ACTOR DB — EDITOR + CUSTOM ACTORS
+// ═══════════════════════════════════════════════════════
+let customActors = []; // loaded from localStorage
+let actorDataFiltered = [];
+
+function loadCustomActors(){
+  try{ customActors=JSON.parse(localStorage.getItem('k6_actors')||'[]'); }catch(e){ customActors=[]; }
+}
+function saveCustomActors(){
+  localStorage.setItem('k6_actors',JSON.stringify(customActors));
+}
+function getAllActors(){ return [...ACTOR_DB,...customActors]; }
+
+function openActorEditor(id){
+  const a = id ? getAllActors().find(x=>x.id===id) : null;
+  document.getElementById('actor-modal-title').textContent = a ? 'Edit Actor' : 'Add Threat Actor';
+  document.getElementById('actor-edit-id').value = id||'';
+  document.getElementById('ae-name').value = a?.name||'';
+  document.getElementById('ae-nation').value = a?.nation||'';
+  document.getElementById('ae-flag').value = a?.flag||'🌐';
+  document.getElementById('ae-sponsor').value = a?.sponsor||'';
+  document.getElementById('ae-aliases').value = (a?.aliases||[]).join(', ');
+  document.getElementById('ae-motivation').value = a?.motivation||'espionage';
+  document.getElementById('ae-type').value = (a?.type||[]).join(', ');
+  document.getElementById('ae-desc').value = a?.desc||'';
+  document.getElementById('ae-tools').value = (a?.tools||[]).join(', ');
+  document.getElementById('ae-ttps').value = (a?.ttps||[]).join(', ');
+  document.getElementById('ae-targets').value = (a?.targets||[]).join(', ');
+  document.getElementById('ae-iocs').value = (a?.iocs||[]).join(', ');
+  document.getElementById('ae-refs').value = (a?.refs||[]).join('\n');
+  // Show delete button only for custom actors
+  const isCustom = id && customActors.some(x=>x.id===id);
+  document.getElementById('ae-delete-btn').style.display = isCustom ? 'flex' : 'none';
+  openModal('actor-modal');
+  setTimeout(()=>document.getElementById('ae-name').focus(),80);
+}
+
+function saveActorEdit(){
+  const name = document.getElementById('ae-name').value.trim();
+  const nation = document.getElementById('ae-nation').value.trim();
+  if(!name||!nation){ alert('Name and nation are required'); return; }
+  const editId = document.getElementById('actor-edit-id').value;
+  const isBuiltIn = editId && ACTOR_DB.some(x=>x.id===editId);
+
+  const actor = {
+    id: editId && !isBuiltIn ? editId : 'custom_'+Date.now(),
+    name,
+    nation,
+    flag: document.getElementById('ae-flag').value||'🌐',
+    sponsor: document.getElementById('ae-sponsor').value.trim(),
+    aliases: document.getElementById('ae-aliases').value.split(',').map(s=>s.trim()).filter(Boolean),
+    motivation: document.getElementById('ae-motivation').value,
+    type: document.getElementById('ae-type').value.split(',').map(s=>s.trim()).filter(Boolean),
+    desc: document.getElementById('ae-desc').value.trim(),
+    tools: document.getElementById('ae-tools').value.split(',').map(s=>s.trim()).filter(Boolean),
+    ttps: document.getElementById('ae-ttps').value.split(',').map(s=>s.trim()).filter(Boolean),
+    targets: document.getElementById('ae-targets').value.split(',').map(s=>s.trim()).filter(Boolean),
+    iocs: document.getElementById('ae-iocs').value.split(',').map(s=>s.trim()).filter(Boolean),
+    refs: document.getElementById('ae-refs').value.split('\n').map(s=>s.trim()).filter(Boolean),
+    _custom: true,
+  };
+
+  if(editId && !isBuiltIn){
+    const idx = customActors.findIndex(x=>x.id===editId);
+    if(idx>=0) customActors[idx]=actor; else customActors.push(actor);
+  } else {
+    customActors.push(actor);
+  }
+  saveCustomActors();
+  closeModal('actor-modal');
+  selActor=actor;
+  filterActors();
+  showActorDetail(actor.id);
+  showToast((editId&&!isBuiltIn?'Updated':'Added')+': '+actor.name);
+}
+
+function deleteCustomActor(){
+  const editId = document.getElementById('actor-edit-id').value;
+  if(!editId||!customActors.some(x=>x.id===editId)){ showToast('Cannot delete built-in actors'); return; }
+  if(!confirm('Delete this custom actor?')) return;
+  customActors = customActors.filter(x=>x.id!==editId);
+  saveCustomActors();
+  selActor=null;
+  document.getElementById('actor-detail').innerHTML='<div style="color:var(--dim);font-size:.68rem;padding:.5rem">Actor deleted.</div>';
+  closeModal('actor-modal');
+  filterActors();
+  showToast('Actor deleted');
+}
+
+function exportActorDB(){
+  const all = getAllActors();
+  const blob = new Blob([JSON.stringify({version:1,exported:new Date().toISOString(),actors:all},null,2)],{type:'application/json'});
+  const a = document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=`kitsune-actors-${Date.now()}.json`; a.click();
+  showToast('Exported '+all.length+' actors');
+}
+
+function importActorDB(){
+  const input = document.createElement('input'); input.type='file'; input.accept='.json';
+  input.onchange = e => {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try{
+        const data = JSON.parse(ev.target.result);
+        const actors = data.actors || (Array.isArray(data)?data:[]);
+        const custom = actors.filter(a=>a._custom||!ACTOR_DB.some(b=>b.id===a.id));
+        customActors = [...customActors, ...custom.filter(n=>!customActors.some(e=>e.id===n.id))];
+        saveCustomActors(); filterActors();
+        showToast('Imported '+custom.length+' custom actors');
+      }catch(e){ alert('Invalid JSON: '+e.message); }
+    };
+    reader.readAsText(e.target.files[0]);
+  };
+  input.click();
+}
+
+let selActor = null;
 let selActor = null;
 
 function renderActors(q='') {
@@ -2638,7 +2831,7 @@ function filterActors(q='') {
   const type = document.getElementById('actor-filter-type')?.value || '';
   q = (q || document.getElementById('actor-q')?.value || '').toLowerCase();
 
-  actorDataFiltered = ACTOR_DB.filter(a => {
+  actorDataFiltered = getAllActors().filter(a => {
     const matchQ = !q || a.name.toLowerCase().includes(q)
       || (a.aliases || []).some(al => al.toLowerCase().includes(q))
       || (a.tools || []).some(t => t.toLowerCase().includes(q))
@@ -2665,7 +2858,7 @@ function filterActors(q='') {
 }
 
 function showActorDetail(id) {
-  selActor = ACTOR_DB.find(a => a.id === id);
+  selActor = getAllActors().find(a => a.id === id);
   if (!selActor) return;
   filterActors(); // re-render grid to update selection
 
@@ -2703,6 +2896,7 @@ function showActorDetail(id) {
       <button class="hbtn p" onclick="importActorToCase('${a.id}')">+ import to case</button>
       <button class="hbtn" onclick="tagActorMITRE('${a.id}')">tag MITRE techniques</button>
       <button class="hbtn" onclick="searchThreatFoxActor('${a.name}')">hunt in ThreatFox</button>
+      <button class="hbtn" onclick="openActorEditor('${a.id}')" style="border-color:var(--accent2);color:var(--accent2)">✎ edit actor</button>
     </div>
 
     ${(a.refs || []).length ? `<div class="actor-detail-section">// references</div>${a.refs.map(r => `<div style="font-size:.58rem;margin-bottom:2px"><a href="${r}" target="_blank" style="color:var(--accent2)">${r.slice(0, 60)}…</a></div>`).join('')}` : ''}
@@ -2711,7 +2905,7 @@ function showActorDetail(id) {
 
 function importActorToCase(id) {
   const c = getC(); if (!c) { alert('Select a case first'); return; }
-  const a = ACTOR_DB.find(x => x.id === id); if (!a) return;
+  const a = getAllActors().find(x => x.id === id); if (!a) return;
   // Add actor as entity
   const actorEnt = {id: 'e' + Date.now(), type: 'actor', value: a.name, color: '#e8c547',
     tlp: 'WHITE', ioc: 'yes', confidence: 90,
@@ -2730,7 +2924,7 @@ function importActorToCase(id) {
 
 function tagActorMITRE(id) {
   const c = getC(); if (!c) { alert('Select a case first'); return; }
-  const a = ACTOR_DB.find(x => x.id === id); if (!a) return;
+  const a = getAllActors().find(x => x.id === id); if (!a) return;
   if (!c.mitreTags) c.mitreTags = [];
   (a.ttps || []).forEach(t => { if (!c.mitreTags.includes(t)) c.mitreTags.push(t); });
   save(); showToast(`Tagged ${(a.ttps||[]).length} MITRE techniques for ${a.name}`);
@@ -2887,11 +3081,12 @@ async function tfSearch() {
   try {
     const body = {query: 'search_ioc', search_term: q};
     if (iocType) body.ioc_type = iocType;
-    const headers = {'Content-Type': 'application/json'};
-    const fetchOpts = {method: 'POST', headers, body: JSON.stringify(body)};
-    if (authKey) fetchOpts._authKey = authKey;
-
-    const res = await proxyFetch('https://threatfox-api.abuse.ch/api/v1/', fetchOpts);
+    if(!PROXY_URL){el.innerHTML='<div style="color:var(--red);font-size:.7rem;padding:.75rem">Proxy URL not set. Click ⚡ proxy in header.</div>';return;}
+    const res = await fetch(`${PROXY_URL}/api/proxy`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-Target-URL':'https://threatfox-api.abuse.ch/api/v1/',...(authKey?{'X-Auth-Key':authKey}:{})},
+      body:JSON.stringify(body)
+    });
     const d = await res.json();
 
     if (d.query_status === 'no_result') {
@@ -2914,10 +3109,13 @@ async function tfLoadRecent() {
   document.getElementById('tf-key-warn').style.display = authKey ? 'none' : '';
 
   try {
+    if(!PROXY_URL){el.innerHTML='<div style="color:var(--red);font-size:.7rem;padding:.75rem">Proxy URL not set. Click ⚡ proxy in header.</div>';return;}
     const body = {query: 'get_iocs', days: 1};
-    const fetchOpts = {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)};
-    if (authKey) fetchOpts._authKey = authKey;
-    const res = await proxyFetch('https://threatfox-api.abuse.ch/api/v1/', fetchOpts);
+    const res = await fetch(`${PROXY_URL}/api/proxy`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-Target-URL':'https://threatfox-api.abuse.ch/api/v1/',...(authKey?{'X-Auth-Key':authKey}:{})},
+      body:JSON.stringify(body)
+    });
     const d = await res.json();
     if (d.query_status !== 'ok' && d.query_status !== 'no_result') throw new Error(d.query_status);
     tfData = d.data || [];
@@ -2936,10 +3134,13 @@ async function tfLoadByTag() {
   el.innerHTML = `<div class="feed-loading">searching ThreatFox for "${escH(tag)}"...</div>`;
 
   try {
+    if(!PROXY_URL){el.innerHTML='<div style="color:var(--red);font-size:.7rem;padding:.75rem">Proxy URL not set. Click ⚡ proxy in header.</div>';return;}
     const body = {query: 'taginfo', tag};
-    const fetchOpts = {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)};
-    if (authKey) fetchOpts._authKey = authKey;
-    const res = await proxyFetch('https://threatfox-api.abuse.ch/api/v1/', fetchOpts);
+    const res = await fetch(`${PROXY_URL}/api/proxy`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-Target-URL':'https://threatfox-api.abuse.ch/api/v1/',...(authKey?{'X-Auth-Key':authKey}:{})},
+      body:JSON.stringify(body)
+    });
     const d = await res.json();
     tfData = d.data || [];
     document.getElementById('tf-count').textContent = tfData.length + ` IOCs tagged "${tag}"`;
@@ -3144,7 +3345,7 @@ function clearMISPData() { mispIOCs = []; document.getElementById('misp-ioc-list
 
 // ═══════════════════════════════════════════════════════
 
-load();loadKeys();renderAll();setMode('select');
+loadCustomActors();load();loadKeys();renderAll();setMode('select');
 document.getElementById('tl-date').value=new Date().toISOString().split('T')[0];
 window.addEventListener('resize',renderGraph);
 renderMISPFeedList();
