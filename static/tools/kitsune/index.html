@@ -47,10 +47,39 @@ a{color:var(--accent2);text-decoration:none}
 .proxy-st.bad{color:var(--red);border-color:rgba(255,68,68,.2);background:rgba(255,68,68,.05)}
 
 /* LAYOUT */
-.main{display:grid;grid-template-columns:var(--sw) 1fr var(--dw);overflow:hidden}
+.main{display:grid;grid-template-columns:var(--sw) 1fr var(--dw);overflow:hidden;transition:grid-template-columns .25s ease}
+/* Collapsed states — aside shrinks to 26px tab, content hidden via overflow */
+.main.sb-hidden{grid-template-columns:26px 1fr var(--dw)}
+.main.dp-hidden{grid-template-columns:var(--sw) 1fr 26px}
+.main.sb-hidden.dp-hidden{grid-template-columns:26px 1fr 26px}
+/* Sidebar */
+.sb{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;position:relative;width:var(--sw);transition:width .25s ease;flex-shrink:0}
+.sb.collapsed{width:26px;min-width:26px}
+.sb.collapsed .sb-content{opacity:0;pointer-events:none}
+/* Sidebar toggle tab */
+.sb-tab{position:absolute;top:50%;right:0;transform:translateY(-50%);width:26px;display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 0;z-index:10;cursor:pointer}
+.sb-tab-arrow{font-size:.6rem;color:var(--dim);transition:color .15s;line-height:1;background:none;border:none;cursor:pointer;padding:0}
+.sb-tab-arrow:hover{color:var(--accent)}
+.sb-tab-label{writing-mode:vertical-rl;font-size:.48rem;color:var(--dim);letter-spacing:.1em;white-space:nowrap;user-select:none;opacity:0;transition:opacity .2s}
+.sb.collapsed .sb-tab-label{opacity:1}
+.sb.collapsed .sb-tab-arrow{color:var(--accent)}
+/* Detail panel */
+.detail{background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;position:relative;width:var(--dw);transition:width .25s ease;flex-shrink:0}
+.detail.collapsed{width:26px;min-width:26px}
+.detail.collapsed .dp-content{opacity:0;pointer-events:none}
+/* Detail toggle tab */
+.dp-tab{position:absolute;top:50%;left:0;transform:translateY(-50%);width:26px;display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 0;z-index:10;cursor:pointer}
+.dp-tab-arrow{font-size:.6rem;color:var(--dim);transition:color .15s;line-height:1;background:none;border:none;cursor:pointer;padding:0}
+.dp-tab-arrow:hover{color:var(--accent)}
+.dp-tab-label{writing-mode:vertical-rl;font-size:.48rem;color:var(--dim);letter-spacing:.1em;white-space:nowrap;user-select:none;opacity:0;transition:opacity .2s}
+.detail.collapsed .dp-tab-label{opacity:1}
+.detail.collapsed .dp-tab-arrow{color:var(--accent)}
+/* Wrap all panel content so we can fade it */
+.sb-content{display:flex;flex-direction:column;flex:1;overflow:hidden;min-width:var(--sw);transition:opacity .15s}
+.dp-content{display:flex;flex-direction:column;flex:1;overflow:hidden;min-width:var(--dw);transition:opacity .15s}
 
 /* SIDEBAR */
-.sb{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+/* .sb defined above */
 .sb-sec{flex-shrink:0;border-bottom:1px solid var(--border)}
 .sb-hdr{padding:6px 8px;font-size:.56rem;color:var(--dim);letter-spacing:.06em;display:flex;align-items:center;justify-content:space-between;text-transform:uppercase}
 .sb-add{background:none;border:none;color:var(--dim);font-size:.88rem;line-height:1;padding:0 2px}
@@ -219,7 +248,7 @@ a{color:var(--accent2);text-decoration:none}
 .rp-table td{padding:3px 6px;border:1px solid var(--border);color:var(--text2);word-break:break-all}
 
 /* DETAIL */
-.detail{background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+/* .detail defined above */
 .dp-hdr{padding:7px 10px;border-bottom:1px solid var(--border);font-size:.62rem;color:var(--accent);font-weight:700;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .dp-body{flex:1;overflow-y:auto;padding:8px}
 .dp-empty{color:var(--dim);font-size:.66rem;line-height:1.7}
@@ -378,9 +407,18 @@ a{color:var(--accent2);text-decoration:none}
   </div>
 </header>
 
-<div class="main">
+<div class="main" id="main-grid">
+
+<!-- LEFT COLLAPSED RAIL (shown when sidebar hidden) -->
 <!-- SIDEBAR -->
-<aside class="sb">
+<aside class="sb" id="sb-aside">
+  <!-- Toggle tab — always visible, clicking anywhere on it toggles -->
+  <div class="sb-tab" onclick="toggleSidebar()" title="Toggle sidebar">
+    <button class="sb-tab-arrow" id="sb-arrow">◀</button>
+    <span class="sb-tab-label">CASES · ENTITIES</span>
+  </div>
+  <!-- All sidebar content wrapped so we can hide it cleanly -->
+  <div class="sb-content" id="sb-content">
   <div class="sb-sec">
     <div class="sb-hdr"><span>Cases</span><button class="sb-add" onclick="openModal('case-modal')">+</button></div>
     <div class="sb-list" id="cases-list"></div>
@@ -405,6 +443,7 @@ a{color:var(--accent2);text-decoration:none}
     </div>
     <div class="sb-ents" id="ents-list"></div>
   </div>
+  </div><!-- /sb-content -->
 </aside>
 
 <!-- CANVAS -->
@@ -849,7 +888,14 @@ Defanged IOCs are automatically refanged:
 </main>
 
 <!-- DETAIL -->
-<aside class="detail">
+<aside class="detail" id="dp-aside">
+  <!-- Toggle tab -->
+  <div class="dp-tab" onclick="toggleDetail()" title="Toggle detail panel">
+    <button class="dp-tab-arrow" id="dp-arrow">▶</button>
+    <span class="dp-tab-label">ENTITY DETAIL</span>
+  </div>
+  <!-- All detail content wrapped -->
+  <div class="dp-content" id="dp-content">
   <div class="dp-hdr">
     <span>// entity detail</span>
     <button class="hbtn" onclick="closeDetail()" style="font-size:.56rem;padding:1px 5px">×</button>
@@ -868,6 +914,7 @@ Defanged IOCs are automatically refanged:
     <button class="dpa" onclick="editDetail()">edit</button>
     <button class="dpa r" onclick="deleteDetail()">del</button>
   </div>
+  </div><!-- /dp-content -->
 </aside>
 </div>
 
@@ -1539,16 +1586,16 @@ async function loadRecentCVEs(){
   el.innerHTML='<div class="feed-loading">fetching recent CVEs from NVD...</div>';
   cveData=[];
   try{
+    if(!PROXY_URL){el.innerHTML='<div style="color:var(--red);font-size:.7rem;padding:.75rem">Proxy URL not set — click ⚡ proxy in header.</div>';return;}
     const nvdKey=getKey('nvd');
     const now=new Date();
     const past=new Date(now-86400000*3);
     const fmt=d=>d.toISOString().replace(/\.\d+Z$/,'+00:00');
-    const extraHeaders=nvdKey?{'apiKey':nvdKey}:{};
-    if(!nvdKey)await new Promise(r=>setTimeout(r,600));
-    const res=await proxyFetch(
-      `https://services.nvd.nist.gov/rest/json/cves/2.0?pubStartDate=${fmt(past)}&pubEndDate=${fmt(now)}&resultsPerPage=30`,
-      {_extraHeaders:extraHeaders}
-    );
+    if(!nvdKey)await new Promise(r=>setTimeout(r,700));
+    const nvdUrl=`https://services.nvd.nist.gov/rest/json/cves/2.0?pubStartDate=${fmt(past)}&pubEndDate=${fmt(now)}&resultsPerPage=30`;
+    const nvdHeaders={'Content-Type':'application/json','X-Target-URL':nvdUrl};
+    if(nvdKey) nvdHeaders['X-Extra-Headers']=JSON.stringify({'apiKey':nvdKey});
+    const res=await fetch(`${PROXY_URL}/api/proxy`,{method:'GET',headers:nvdHeaders});
     if(!res.ok)throw new Error('NVD returned '+res.status);
     const d=await res.json();
     const kev=await fetchKEV();
@@ -1593,14 +1640,16 @@ async function searchCVEs(){
   el.innerHTML='<div class="feed-loading">searching NVD...</div>';
   cveData=[];
   try{
+    if(!PROXY_URL){el.innerHTML='<div style="color:var(--red);font-size:.7rem;padding:.75rem">Proxy URL not set — click ⚡ proxy.</div>';return;}
     const nvdKey=getKey('nvd');
-    const extraHeaders=nvdKey?{'apiKey':nvdKey}:{};
-    if(!nvdKey)await new Promise(r=>setTimeout(r,600));
-    let url='https://services.nvd.nist.gov/rest/json/cves/2.0?resultsPerPage=20';
-    if(q)url+=q.match(/^CVE-/i)?`&cveId=${encodeURIComponent(q)}`:`&keywordSearch=${encodeURIComponent(q)}`;
-    if(sev)url+=`&cvssV3Severity=${sev}`;
-    const res=await proxyFetch(url,{_extraHeaders:extraHeaders});
-    if(!res.ok)throw new Error('NVD '+res.status+' — rate limited. Wait 30s or add NVD key.');
+    if(!nvdKey)await new Promise(r=>setTimeout(r,700));
+    let nvdUrl='https://services.nvd.nist.gov/rest/json/cves/2.0?resultsPerPage=20';
+    if(q)nvdUrl+=q.match(/^CVE-/i)?`&cveId=${encodeURIComponent(q)}`:`&keywordSearch=${encodeURIComponent(q)}`;
+    if(sev)nvdUrl+=`&cvssV3Severity=${sev}`;
+    const nvdH={'Content-Type':'application/json','X-Target-URL':nvdUrl};
+    if(nvdKey) nvdH['X-Extra-Headers']=JSON.stringify({'apiKey':nvdKey});
+    const res=await fetch(`${PROXY_URL}/api/proxy`,{method:'GET',headers:nvdH});
+    if(!res.ok)throw new Error('NVD '+res.status+' — rate limited. Wait 30s or add free NVD key.');
     const d=await res.json();
     const kev=await fetchKEV();
     const kevIds=new Set(kev.map(v=>v.cveID));
@@ -1713,9 +1762,12 @@ function noKeyCard(name,keyNeeded){return`<div class="ec"><div class="ec-hdr"><s
 
 async function enrichCVElookup(cveId){
   try{
+    if(!PROXY_URL) return null;
     const nvdKey=getKey('nvd');
-    const extraHeaders=nvdKey?{'apiKey':nvdKey}:{};
-    const res=await proxyFetch(`https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=${cveId}`,{_extraHeaders:extraHeaders});
+    const ecUrl=`https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=${cveId}`;
+    const ecH={'Content-Type':'application/json','X-Target-URL':ecUrl};
+    if(nvdKey) ecH['X-Extra-Headers']=JSON.stringify({'apiKey':nvdKey});
+    const res=await fetch(`${PROXY_URL}/api/proxy`,{method:'GET',headers:ecH});
     const d=await res.json();if(!d.vulnerabilities?.length)return null;
     const kev=await fetchKEV();const kevIds=new Set(kev.map(v=>v.cveID));
     const cve=parseCVE(d.vulnerabilities[0],kevIds);
@@ -3344,6 +3396,47 @@ function clearMISPData() { mispIOCs = []; document.getElementById('misp-ioc-list
 
 // ═══════════════════════════════════════════════════════
 
+// ═══════════════════════════════════════════════════════
+// SIDEBAR / DETAIL PANEL COLLAPSE TOGGLES
+// ═══════════════════════════════════════════════════════
+let sbHidden = false;
+let dpHidden = false;
+
+function toggleSidebar() {
+  sbHidden = !sbHidden;
+  const main  = document.getElementById('main-grid');
+  const aside = document.getElementById('sb-aside');
+  const arrow = document.getElementById('sb-arrow');
+
+  aside.classList.toggle('collapsed', sbHidden);
+  main.classList.toggle('sb-hidden', sbHidden);
+  // Arrow points right when hidden (expand), left when shown (collapse)
+  if (arrow) arrow.textContent = sbHidden ? '▶' : '◀';
+
+  localStorage.setItem('k6_sb', sbHidden ? '1' : '0');
+  setTimeout(renderGraph, 260);
+}
+
+function toggleDetail() {
+  dpHidden = !dpHidden;
+  const main  = document.getElementById('main-grid');
+  const aside = document.getElementById('dp-aside');
+  const arrow = document.getElementById('dp-arrow');
+
+  aside.classList.toggle('collapsed', dpHidden);
+  main.classList.toggle('dp-hidden', dpHidden);
+  // Arrow points left when hidden (expand), right when shown (collapse)
+  if (arrow) arrow.textContent = dpHidden ? '◀' : '▶';
+
+  localStorage.setItem('k6_dp', dpHidden ? '1' : '0');
+  setTimeout(renderGraph, 260);
+}
+
+function restorePanelState() {
+  if (localStorage.getItem('k6_sb') === '1') { sbHidden = false; toggleSidebar(); }
+  if (localStorage.getItem('k6_dp') === '1') { dpHidden = false; toggleDetail(); }
+}
+
 loadCustomActors();load();loadKeys();renderAll();setMode('select');
 document.getElementById('tl-date').value=new Date().toISOString().split('T')[0];
 window.addEventListener('resize',renderGraph);
@@ -3355,6 +3448,8 @@ if(getKey('abusech'))document.getElementById('tf-key-warn').style.display='none'
 if(localStorage.getItem('k6_defang')==='1'){DEFANG_MODE=true;const db=document.getElementById('defang-btn');if(db){db.textContent='[ defang: ON ]';db.style.borderColor='var(--accent)';db.style.color='var(--accent)';}}
 // Load TopoJSON for geo map (async, non-blocking)
 (function(){const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js';document.head.appendChild(s);})();
+// Restore panel collapse state
+restorePanelState();
 </script>
 </body>
 </html>
