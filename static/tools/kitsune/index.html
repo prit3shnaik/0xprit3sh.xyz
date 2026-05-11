@@ -396,10 +396,10 @@ a{color:var(--accent2);text-decoration:none}
   <button class="hbtn" onclick="exportData()">export</button>
   <div class="vsep"></div>
   <button class="hbtn" onclick="openModal('keys-modal')">⚙ API keys</button>
-  <button class="hbtn" onclick="openModal('proxy-modal')">⚡ proxy</button>
+  <!-- proxy button hidden - hardcoded -->
   <button class="hbtn" onclick="goReport()">📄 report</button>
   <div class="hdr-right">
-    <span class="proxy-st" id="proxy-st">proxy: unset</span>
+    <!-- proxy status hidden -->
     <span class="sst" id="save-st">ready</span>
     <a href="/" style="font-size:.58rem;color:var(--dim);border:1px solid var(--border2);padding:2px 6px;border-radius:3px">← site</a>
     <button class="hbtn" id="defang-btn" onclick="toggleDefang()" title="Toggle defanged IOC display">[ defang: off ]</button>
@@ -1072,7 +1072,7 @@ let feedCat='all';
 let feedQ='';
 let activeSrcs=new Set(['FeodoTracker','URLhaus','CISA-KEV','OpenPhish','Spamhaus','Ransomware.live','ThreatFox','MalwareBazaar']);
 let kevCache=null;
-let PROXY_URL=''; // set via proxy modal
+let PROXY_URL='https://kitsune-proxy.vercel.app'; // hardcoded
 
 // ═══════════════════════════════════════════════════════
 // PROXY ROUTING — core fetch wrapper
@@ -1119,7 +1119,7 @@ function load(){
     const r=localStorage.getItem('k6');
     if(r){const d=JSON.parse(r);S.cases=d.cases||{};S.cur=d.cur||null;S.watchlist=d.watchlist||[];S.mitreTags=d.mitreTags||{};}
   }catch(e){S.cases={};}
-  PROXY_URL=localStorage.getItem('k6_proxy')||'';
+  PROXY_URL=localStorage.getItem('k6_proxy')||'https://kitsune-proxy.vercel.app';
   updateProxyStatus();
 }
 function getKey(k){return localStorage.getItem('k6_'+k)||'';}
@@ -1145,19 +1145,18 @@ function saveApiKeys(){
 
 function saveProxy(){
   let v=(document.getElementById('proxy-url-input').value||'').trim();
-  // Strip trailing slash and any path — only keep scheme+host
   try{
     const u=new URL(v);
-    v=u.origin; // e.g. https://kitsune-proxy.vercel.app — no path
+    v=u.origin;
   }catch(e){
-    if(v){showToast('Invalid URL — must start with https://');return;}
-    v='';
+    v='https://kitsune-proxy.vercel.app'; // fallback to default
   }
+  if(!v) v='https://kitsune-proxy.vercel.app';
   localStorage.setItem('k6_proxy',v);
   PROXY_URL=v;
   updateProxyStatus();
   closeModal('proxy-modal');
-  showToast(v?'Proxy saved: '+v:'Proxy cleared');
+  showToast('Proxy saved: '+v);
 }
 
 async function testProxy(){
@@ -1175,13 +1174,10 @@ async function testProxy(){
 
 function updateProxyStatus(){
   const el=document.getElementById('proxy-st');
-  if(PROXY_URL){
-    el.textContent='proxy: ✓';el.className='proxy-st ok';
-    el.title=PROXY_URL;
-  }else{
-    el.textContent='proxy: unset';el.className='proxy-st';
-    el.title='Set proxy via ⚡ proxy button for full feed support';
-  }
+  if(!el) return;
+  PROXY_URL=PROXY_URL||'https://kitsune-proxy.vercel.app';
+  el.textContent='proxy: ✓';el.className='proxy-st ok';
+  el.title=PROXY_URL;
 }
 
 // ═══════════════════════════════════════════════════════
