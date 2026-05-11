@@ -1586,31 +1586,17 @@ async function loadRecentCVEs(){
   el.innerHTML='<div class="feed-loading">fetching recent CVEs from NVD...</div>';
   cveData=[];
   try{
+    if(!PROXY_URL){await loadKEV();return;}
     const nvdKey=getKey('nvd');
     const now=new Date();
     const past=new Date(now-86400000*3);
     const fmt=d=>d.toISOString().replace(/\.\d+Z$/,'+00:00');
     if(!nvdKey)await new Promise(r=>setTimeout(r,700));
     const nvdUrl=`https://services.nvd.nist.gov/rest/json/cves/2.0?pubStartDate=${fmt(past)}&pubEndDate=${fmt(now)}&resultsPerPage=30`;
-    // Try proxy first, fall back to direct NVD (NVD supports CORS)
-    let res;
-    if(PROXY_URL){
-      try{
-        const nvdHeaders={'X-Target-URL':nvdUrl};
-        if(nvdKey) nvdHeaders['X-Extra-Headers']=JSON.stringify({'apiKey':nvdKey});
-        res=await fetch(`${PROXY_URL}/api/proxy`,{method:'GET',headers:nvdHeaders});
-        if(!res.ok) throw new Error('proxy '+res.status);
-      }catch(proxyErr){
-        console.warn('NVD proxy failed, trying direct:',proxyErr.message);
-        const directH=nvdKey?{'apiKey':nvdKey}:{};
-        res=await fetch(nvdUrl,{headers:directH});
-      }
-    } else {
-      // No proxy — direct fetch (NVD has CORS open for browsers)
-      const directH=nvdKey?{'apiKey':nvdKey}:{};
-      res=await fetch(nvdUrl,{headers:directH});
-    }
-    if(!res.ok)throw new Error('NVD returned '+res.status);
+    const nvdHeaders={'X-Target-URL':nvdUrl};
+    if(nvdKey) nvdHeaders['X-Extra-Headers']=JSON.stringify({'apiKey':nvdKey});
+    const res=await fetch(`${PROXY_URL}/api/proxy`,{method:'GET',headers:nvdHeaders});
+    if(!res.ok)throw new Error('proxy '+res.status);
     const d=await res.json();
     const kev=await fetchKEV();
     const kevIds=new Set(kev.map(v=>v.cveID));
@@ -1654,26 +1640,15 @@ async function searchCVEs(){
   el.innerHTML='<div class="feed-loading">searching NVD...</div>';
   cveData=[];
   try{
+    if(!PROXY_URL){el.innerHTML='<div style="color:var(--yellow);font-size:.7rem;padding:.75rem">Set proxy URL via ⚡ proxy button first.</div>';return;}
     const nvdKey=getKey('nvd');
     if(!nvdKey)await new Promise(r=>setTimeout(r,700));
     let nvdUrl='https://services.nvd.nist.gov/rest/json/cves/2.0?resultsPerPage=20';
     if(q)nvdUrl+=q.match(/^CVE-/i)?`&cveId=${encodeURIComponent(q)}`:`&keywordSearch=${encodeURIComponent(q)}`;
     if(sev)nvdUrl+=`&cvssV3Severity=${sev}`;
-    // Proxy first, direct fallback
-    let res;
-    if(PROXY_URL){
-      try{
-        const nvdH={'X-Target-URL':nvdUrl};
-        if(nvdKey) nvdH['X-Extra-Headers']=JSON.stringify({'apiKey':nvdKey});
-        res=await fetch(`${PROXY_URL}/api/proxy`,{method:'GET',headers:nvdH});
-        if(!res.ok) throw new Error('proxy '+res.status);
-      }catch(proxyErr){
-        console.warn('CVE proxy failed, trying direct:',proxyErr.message);
-        res=await fetch(nvdUrl,nvdKey?{headers:{'apiKey':nvdKey}}:{});
-      }
-    } else {
-      res=await fetch(nvdUrl,nvdKey?{headers:{'apiKey':nvdKey}}:{});
-    }
+    const nvdH={'X-Target-URL':nvdUrl};
+    if(nvdKey) nvdH['X-Extra-Headers']=JSON.stringify({'apiKey':nvdKey});
+    const res=await fetch(`${PROXY_URL}/api/proxy`,{method:'GET',headers:nvdH});
     if(!res.ok)throw new Error('NVD '+res.status+' — rate limited. Wait 30s or add free NVD key at nvd.nist.gov/developers');
     const d=await res.json();
     const kev=await fetchKEV();
@@ -1787,19 +1762,12 @@ function noKeyCard(name,keyNeeded){return`<div class="ec"><div class="ec-hdr"><s
 
 async function enrichCVElookup(cveId){
   try{
+    if(!PROXY_URL) return null;
     const nvdKey=getKey('nvd');
     const ecUrl=`https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=${cveId}`;
-    let res;
-    if(PROXY_URL){
-      try{
-        const ecH={'X-Target-URL':ecUrl};
-        if(nvdKey) ecH['X-Extra-Headers']=JSON.stringify({'apiKey':nvdKey});
-        res=await fetch(`${PROXY_URL}/api/proxy`,{method:'GET',headers:ecH});
-        if(!res.ok) throw new Error('proxy '+res.status);
-      }catch(e){ res=await fetch(ecUrl,nvdKey?{headers:{'apiKey':nvdKey}}:{}); }
-    } else {
-      res=await fetch(ecUrl,nvdKey?{headers:{'apiKey':nvdKey}}:{});
-    }
+    const ecH={'X-Target-URL':ecUrl};
+    if(nvdKey) ecH['X-Extra-Headers']=JSON.stringify({'apiKey':nvdKey});
+    const res=await fetch(`${PROXY_URL}/api/proxy`,{method:'GET',headers:ecH});
     const d=await res.json();if(!d.vulnerabilities?.length)return null;
     const kev=await fetchKEV();const kevIds=new Set(kev.map(v=>v.cveID));
     const cve=parseCVE(d.vulnerabilities[0],kevIds);
