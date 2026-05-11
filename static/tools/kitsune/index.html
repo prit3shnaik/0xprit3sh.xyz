@@ -1590,7 +1590,7 @@ async function loadRecentCVEs(){
     const nvdKey=getKey('nvd');
     const now=new Date();
     const past=new Date(now-86400000*3);
-    const fmt=d=>d.toISOString().replace(/\.\d+Z$/,'+00:00');
+    const fmt=d=>d.toISOString().replace(/\.\d+Z$/,'Z');
     if(!nvdKey)await new Promise(r=>setTimeout(r,700));
     const nvdUrl=`https://services.nvd.nist.gov/rest/json/cves/2.0?pubStartDate=${fmt(past)}&pubEndDate=${fmt(now)}&resultsPerPage=30`;
     const nvdHeaders={'X-Target-URL':nvdUrl};
