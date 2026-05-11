@@ -1084,8 +1084,8 @@ function proxyFetch(url, opts={}) {
     return fetch(url, nativeOpts);
   }
   const headers = { 'X-Target-URL': url };
-  // Content-Type: carry forward original so proxy forwards it correctly upstream
-  if (opts.body) {
+  // Only set Content-Type for POST/PUT with a body — never on GET
+  if (opts.body && opts.method && opts.method !== 'GET') {
     headers['Content-Type'] = opts.headers?.['Content-Type'] || opts.headers?.['content-type'] || 'application/json';
   }
   // API key forwarding
