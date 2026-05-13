@@ -302,6 +302,42 @@ a{color:var(--accent2);text-decoration:none}
 .defang-pill{font-family:monospace;font-size:.66rem;color:var(--orange);background:var(--bg3);border:1px solid var(--border2);padding:2px 7px;border-radius:2px;display:inline-flex;align-items:center;gap:5px;margin:2px;cursor:pointer;transition:all .15s}
 .defang-pill:hover{border-color:var(--accent);color:var(--accent)}
 
+/* GUIDE MODAL */
+.guide-md{width:min(820px,96vw);max-height:90vh;overflow-y:auto}
+.guide-sec{margin-bottom:1.4rem}
+.guide-sec-hdr{display:flex;align-items:center;gap:7px;margin-bottom:.65rem;padding-bottom:.3rem;border-bottom:1px solid var(--border)}
+.guide-num{background:rgba(0,212,255,.08);color:var(--accent2);font-size:.54rem;font-weight:700;padding:1px 7px;border-radius:2px;border:1px solid rgba(0,212,255,.15)}
+.guide-sec-title{font-size:.76rem;font-weight:700;color:var(--text)}
+.guide-steps{display:flex;flex-direction:column;gap:5px}
+.guide-step{display:grid;grid-template-columns:22px 1fr;gap:8px;padding:.45rem .65rem;border:1px solid var(--border);border-radius:3px;background:var(--bg2)}
+.guide-step-n{font-size:.6rem;font-weight:700;color:var(--accent2);padding-top:1px}
+.guide-step-title{font-size:.7rem;font-weight:700;color:var(--text);margin-bottom:.1rem}
+.guide-step-desc{font-size:.62rem;color:var(--text2);line-height:1.6}
+.guide-feat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:5px}
+.guide-feat{border:1px solid var(--border);border-radius:3px;padding:.45rem .6rem;background:var(--bg2)}
+.guide-feat-name{font-size:.66rem;font-weight:700;color:var(--text);margin-bottom:.12rem}
+.guide-feat-desc{font-size:.58rem;color:var(--text2);line-height:1.5}
+.guide-scenario{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:.6rem .8rem;margin-bottom:.45rem}
+.guide-sc-hdr{display:flex;align-items:center;gap:5px;margin-bottom:.35rem}
+.guide-sc-title{font-size:.7rem;font-weight:700;color:var(--text)}
+.guide-sc-steps{font-size:.62rem;color:var(--text2);line-height:1.85;counter-reset:gsc;padding-left:.1rem}
+.guide-sc-steps li{list-style:none;counter-increment:gsc}
+.guide-sc-steps li::before{content:counter(gsc)'. ';color:var(--accent2);font-weight:700}
+.guide-grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.guide-card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:.55rem .7rem}
+.guide-card-title{font-size:.66rem;font-weight:700;color:var(--text);margin-bottom:.2rem}
+.guide-card-body{font-size:.6rem;color:var(--text2);line-height:1.6}
+.guide-check{color:var(--accent)}
+.guide-tip{background:var(--bg3);border:1px solid var(--border2);border-left:2px solid var(--accent2);border-radius:2px;padding:.4rem .65rem;font-size:.62rem;color:var(--text2);line-height:1.65;margin-top:.4rem}
+.guide-tip strong{color:var(--accent2)}
+.guide-tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:.65rem;border-bottom:1px solid var(--border);padding-bottom:.5rem}
+.guide-tab{background:none;border:1px solid var(--border2);color:var(--dim);font-size:.6rem;padding:3px 9px;border-radius:3px;cursor:pointer;font-family:var(--font);transition:all .15s}
+.guide-tab:hover{border-color:var(--accent2);color:var(--accent2)}
+.guide-tab.on{background:rgba(0,212,255,.08);border-color:var(--accent2);color:var(--accent2)}
+.guide-page{display:none}
+.guide-page.on{display:block}
+.dont-show-row{display:flex;align-items:center;gap:6px;margin-top:1rem;padding-top:.65rem;border-top:1px solid var(--border);font-size:.62rem;color:var(--dim)}
+
 /* ACTOR EDITOR MODAL */
 .actor-editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .custom-badge{font-size:.48rem;background:rgba(0,255,65,.1);border:1px solid rgba(0,255,65,.25);color:var(--accent);padding:1px 4px;border-radius:2px;margin-left:4px;vertical-align:middle}
@@ -396,6 +432,7 @@ a{color:var(--accent2);text-decoration:none}
   <button class="hbtn" onclick="exportData()">export</button>
   <div class="vsep"></div>
   <button class="hbtn" onclick="openModal('keys-modal')">⚙ API keys</button>
+      <button class="hbtn" onclick="openModal('guide-modal')" style="border-color:var(--accent2);color:var(--accent2)">? guide</button>
   <!-- proxy button hidden - hardcoded -->
   <button class="hbtn" onclick="goReport()">📄 report</button>
   <div class="hdr-right">
@@ -959,6 +996,162 @@ Defanged IOCs are automatically refanged:
       </div>
     </div>
     <div class="ma"><button class="mb" onclick="closeModal('ent-modal')">cancel</button><button class="mb p" onclick="saveEnt()">save</button></div>
+  </div>
+</div>
+
+<!-- GUIDE MODAL -->
+<div class="mo" id="guide-modal">
+  <div class="md guide-md">
+    <div class="md-t">
+      <span style="color:var(--accent2)">// Kitsune CTI — User Guide</span>
+      <button class="md-x" onclick="closeModal('guide-modal')">×</button>
+    </div>
+
+    <div class="guide-tabs">
+      <button class="guide-tab on" onclick="switchGuideTab('start',this)">getting started</button>
+      <button class="guide-tab" onclick="switchGuideTab('tabs',this)">all features</button>
+      <button class="guide-tab" onclick="switchGuideTab('workflows',this)">workflows</button>
+      <button class="guide-tab" onclick="switchGuideTab('tips',this)">tips & tricks</button>
+      <button class="guide-tab" onclick="switchGuideTab('entities',this)">entity types</button>
+    </div>
+
+    <!-- GETTING STARTED -->
+    <div class="guide-page on" id="gp-start">
+      <div class="guide-sec">
+        <div class="guide-sec-hdr"><span class="guide-num">WHAT IS KITSUNE</span></div>
+        <div class="guide-grid2">
+          <div class="guide-card">
+            <div class="guide-card-title">Purpose</div>
+            <div class="guide-card-body">Browser-based CTI platform for investigating threats, mapping infrastructure, enriching IOCs, and producing reports — all in one place. No installation needed.</div>
+          </div>
+          <div class="guide-card">
+            <div class="guide-card-title">Core concept</div>
+            <div class="guide-card-body">Everything revolves around <strong style="color:var(--accent)">Cases</strong>. A case is an investigation (e.g. "APT28 C2 Campaign"). Add entities, enrich them, tag MITRE techniques, export a report.</div>
+          </div>
+        </div>
+      </div>
+      <div class="guide-sec">
+        <div class="guide-sec-hdr"><span class="guide-num">FIRST INVESTIGATION</span><span class="guide-sec-title">step by step</span></div>
+        <div class="guide-steps">
+          <div class="guide-step"><span class="guide-step-n">01</span><div><div class="guide-step-title">Create a case</div><div class="guide-step-desc">Click <code>+ new case</code> in the header. Give it a name (e.g. "Ransomware Campaign May 2026"), set priority and status. This is your investigation container — all entities, timeline, evidence, and reports live inside it.</div></div></div>
+          <div class="guide-step"><span class="guide-step-n">02</span><div><div class="guide-step-title">Add entities (IOCs)</div><div class="guide-step-desc">Use the left sidebar buttons — <code>IP</code> <code>Domain</code> <code>Hash</code> <code>URL</code> <code>Actor</code> <code>Email</code> <code>Wallet</code> <code>Org</code>. Each has TLP, IOC status, confidence, and notes. Or use <code>⚡ Bulk Extract</code> tab to paste raw text and extract all IOCs at once.</div></div></div>
+          <div class="guide-step"><span class="guide-step-n">03</span><div><div class="guide-step-title">Build the relationship graph</div><div class="guide-step-desc">Go to <code>Graph</code> tab → click <code>+ all entities</code>. Drag nodes to arrange. Click <code>draw edge</code> to connect related entities (IP → Domain → Actor). Click edges to label or delete them.</div></div></div>
+          <div class="guide-step"><span class="guide-step-n">04</span><div><div class="guide-step-title">Enrich your IOCs</div><div class="guide-step-desc">Go to <code>Enrich</code> tab → paste any IP, domain, hash, URL, email, or CVE ID → click <code>enrich →</code>. Kitsune queries Shodan, ip-api, GreyNoise, crt.sh, RDAP, URLhaus and your keyed APIs simultaneously.</div></div></div>
+          <div class="guide-step"><span class="guide-step-n">05</span><div><div class="guide-step-title">Tag MITRE ATT&CK techniques</div><div class="guide-step-desc">Go to <code>MITRE</code> tab → click any technique to tag it to the current case. Or go to <code>Actors</code>, find the threat actor, and click <code>tag MITRE techniques</code> to auto-import all their known TTPs.</div></div></div>
+          <div class="guide-step"><span class="guide-step-n">06</span><div><div class="guide-step-title">Export your report</div><div class="guide-step-desc">Go to <code>Report</code> tab. Preview the full case report — IOC table, MITRE techniques, timeline, evidence. Export as <code>HTML</code>, <code>PDF</code>, or copy as <code>Markdown</code>. Push IOCs to MISP if configured.</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ALL FEATURES -->
+    <div class="guide-page" id="gp-tabs">
+      <div class="guide-feat-grid">
+        <div class="guide-feat"><div class="guide-feat-name">⬡ Graph</div><div class="guide-feat-desc">Visual relationship map. Drag nodes, draw edges, auto-layout. Confirmed IOCs show a dashed ring. Zoom with scroll wheel.</div></div>
+        <div class="guide-feat"><div class="guide-feat-name">📡 Live Feed</div><div class="guide-feat-desc">Real-time threat intel from FeodoTracker, URLhaus, CISA KEV, OpenPhish, Spamhaus, Ransomware.live, ThreatFox, MalwareBazaar. Filter by category. Add items to case.</div></div>
+        <div class="guide-feat"><div class="guide-feat-name">⚡ CVEs</div><div class="guide-feat-desc">Search NVD by keyword, CVE ID, or severity. Load recent CVEs or CISA KEV exploited vulnerabilities. Requires NVD API key for full access.</div></div>
+        <div class="guide-feat"><div class="guide-feat-name">🔍 Enrich</div><div class="guide-feat-desc">Multi-source IOC enrichment. Free: Shodan InternetDB, ip-api, GreyNoise, crt.sh, RDAP, URLhaus. Keyed: VirusTotal, AbuseIPDB, OTX, URLScan, HIBP, Shodan full.</div></div>
+        <div class="guide-feat"><div class="guide-feat-name">🛡 MITRE ATT&CK</div><div class="guide-feat-desc">Full Enterprise ATT&CK matrix. Click techniques to tag. Export as ATT&CK Navigator JSON layer for sharing with your team.</div></div>
+        <div class="guide-feat"><div class="guide-feat-name">👁 Watchlist</div><div class="guide-feat-desc">Add IOCs or keywords to monitor. Auto-checked on every Live Feed refresh. Pops an alert with matching items when a hit is found.</div></div>
+        <div class="guide-feat"><div class="guide-feat-name">⏱ Timeline</div><div class="guide-feat-desc">Chronological event log for the investigation. Add events by date and type (IOC Detected, C2 Infrastructure, Attribution, etc.).</div></div>
+        <div class="guide-feat"><div class="guide-feat-name">📋 Evidence</div><div class="guide-feat-desc">Paste raw data, WHOIS output, Shodan results, Telegram intel, stealer logs. Tagged and timestamped evidence locker per case.</div></div>
+        <div class="guide-feat"><div class="guide-feat-name">🕵 Actors</div><div class="guide-feat-desc">15+ built-in APT and ransomware profiles. Import actor IOCs + MITRE TTPs into case with one click. Add and edit custom actors.</div></div>
+        <div class="guide-feat"><div class="guide-feat-name">🎣 PhishStats</div><div class="guide-feat-desc">Live phishing URL feed with confidence scores (0-10). Filter by score threshold. Enrich any URL or resolved IP directly.</div></div>
+        <div class="guide-feat"><div class="guide-feat-name">🦊 ThreatFox</div><div class="guide-feat-desc">Hunt in abuse.ch ThreatFox. Search by IOC, load recent 24h, or query by malware tag. Requires free abuse.ch API key.</div></div>
+        <div class="guide-feat"><div class="guide-feat-name">🌐 MISP Feeds</div><div class="guide-feat-desc">Pull from public MISP feeds: CIRCL, Botvrij, FeodoTracker, URLhaus, CISA KEV, OpenPhish, OISD. Filter and add IOCs to case.</div></div>
+        <div class="guide-feat"><div class="guide-feat-name">⚡ Bulk Extract</div><div class="guide-feat-desc">Paste any raw text — email, log, Telegram dump. Auto-extracts IPs, domains, hashes, CVEs, emails, BTC/ETH wallets, ASNs. Select and add all to case.</div></div>
+        <div class="guide-feat"><div class="guide-feat-name">🌍 Geo Map</div><div class="guide-feat-desc">World map of case IPs. Pins colored by IOC status. Hover for country, city, ISP. Click pin to open entity detail panel.</div></div>
+        <div class="guide-feat"><div class="guide-feat-name">📄 Report</div><div class="guide-feat-desc">Full case report with IOC table, MITRE techniques, timeline, evidence. Export HTML, PDF, Markdown. Push IOCs to MISP.</div></div>
+      </div>
+    </div>
+
+    <!-- WORKFLOWS -->
+    <div class="guide-page" id="gp-workflows">
+      <div class="guide-scenario">
+        <div class="guide-sc-hdr"><span class="badge b-red">ransomware</span><span class="guide-sc-title">Investigating a ransomware incident</span></div>
+        <ol class="guide-sc-steps">
+          <li>Create case: "Ransomware — [victim] — [date]", priority Critical</li>
+          <li><code>Actors</code> tab → search ransomware group → <code>+ import to case</code> (pulls IOCs + MITRE TTPs)</li>
+          <li><code>Bulk Extract</code> → paste ransom note, IR logs, forensic artifacts → add extracted IOCs to case</li>
+          <li><code>Live Feed</code> → filter by <code>ransomware</code> → check Ransomware.live for the group</li>
+          <li><code>CVEs</code> → click <code>🔥 exploited</code> → search CVEs the group is known to exploit</li>
+          <li><code>MITRE</code> → tag all observed techniques → export Navigator layer</li>
+          <li><code>Timeline</code> → add: initial access date, lateral movement, encryption, ransom demand</li>
+          <li><code>Report</code> → export HTML/PDF for stakeholders and legal</li>
+        </ol>
+      </div>
+      <div class="guide-scenario">
+        <div class="guide-sc-hdr"><span class="badge b-blue">phishing</span><span class="guide-sc-title">Investigating a phishing campaign</span></div>
+        <ol class="guide-sc-steps">
+          <li>Create case: "Phishing Campaign — [target] — [date]", priority High</li>
+          <li><code>Bulk Extract</code> → paste email headers + body → extract sender IP, URLs, domains, hashes</li>
+          <li><code>Enrich</code> → enrich each domain → crt.sh reveals subdomains for infrastructure mapping</li>
+          <li><code>PhishStats</code> → refresh → search the sender domain in the phishing database</li>
+          <li><code>ThreatFox</code> → search sender IP or payload hash for existing intelligence</li>
+          <li><code>Watchlist</code> → add sender domain to watch for future hits in live feeds</li>
+          <li><code>Geo Map</code> → map all IPs to visualise hosting infrastructure geography</li>
+          <li><code>Graph</code> → build relationship map: email → URL → IP → hosting ASN</li>
+        </ol>
+      </div>
+      <div class="guide-scenario">
+        <div class="guide-sc-hdr"><span class="badge b-yellow">threat hunt</span><span class="guide-sc-title">Proactive threat hunting</span></div>
+        <ol class="guide-sc-steps">
+          <li><code>Live Feed</code> → click <code>↻ refresh</code> → review all critical and high severity items</li>
+          <li><code>ThreatFox</code> → click <code>recent IOCs</code> → scan last 24h malware infrastructure</li>
+          <li><code>CVEs</code> → click <code>🔥 exploited</code> → check newly added KEV entries</li>
+          <li><code>Watchlist</code> → review any hits from monitored IOCs or keywords</li>
+          <li>For any suspicious items → click <code>enrich</code> → run full multi-source enrichment</li>
+          <li>Create new case for any confirmed threat → add IOCs → build graph → tag MITRE</li>
+        </ol>
+      </div>
+      <div class="guide-scenario">
+        <div class="guide-sc-hdr"><span class="badge b-purple">apt</span><span class="guide-sc-title">APT actor attribution</span></div>
+        <ol class="guide-sc-steps">
+          <li>Create case for the suspected campaign</li>
+          <li><code>Actors</code> tab → browse or search suspected APT groups → compare TTPs with observed activity</li>
+          <li>Import matching actor → all known IOCs and MITRE techniques added automatically</li>
+          <li><code>MISP Feeds</code> → pull CIRCL OSINT feed → search for overlapping IOCs</li>
+          <li><code>Enrich</code> → enrich infrastructure IOCs → look for ASN/registrar/certificate patterns</li>
+          <li><code>Graph</code> → draw edges between actor, C2 IPs, domains, and malware hashes</li>
+          <li><code>MITRE</code> → verify technique overlap → export Navigator layer as attribution evidence</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- TIPS -->
+    <div class="guide-page" id="gp-tips">
+      <div class="guide-steps">
+        <div class="guide-step"><span class="guide-step-n guide-check">✓</span><div><div class="guide-step-title">Click any orange IOC pill to enrich instantly</div><div class="guide-step-desc">Every IOC shown in Live Feed, ThreatFox, PhishStats, and MISP Feeds is clickable. It jumps to the Enrich tab and runs enrichment automatically — no copy-paste needed.</div></div></div>
+        <div class="guide-step"><span class="guide-step-n guide-check">✓</span><div><div class="guide-step-title">Use defang mode for safe sharing</div><div class="guide-step-desc">Toggle <code>[ defang: off ]</code> in the top-right header. All IOCs display as <code>evil[.]com</code> and <code>hxxp://</code> format — safe to paste into Slack, emails, and reports without triggering security tools.</div></div></div>
+        <div class="guide-step"><span class="guide-step-n guide-check">✓</span><div><div class="guide-step-title">Collapse sidebars for full-screen analysis</div><div class="guide-step-desc">Click the <code>◀</code> tab on the left sidebar to hide Cases+Entities. Click <code>▶</code> on the right to hide Entity Detail. The graph and feed expand to fill the space. Both states persist across sessions.</div></div></div>
+        <div class="guide-step"><span class="guide-step-n guide-check">✓</span><div><div class="guide-step-title">Get free API keys for deeper enrichment</div><div class="guide-step-desc">Click <code>API keys</code> in the header. Free keys worth getting: <strong style="color:var(--accent)">abuse.ch</strong> (ThreatFox + MalwareBazaar), <strong style="color:var(--accent)">NVD</strong> (faster CVE search), <strong style="color:var(--accent)">VirusTotal</strong> (500 req/day), <strong style="color:var(--accent)">AbuseIPDB</strong>, <strong style="color:var(--accent)">OTX</strong>, <strong style="color:var(--accent)">URLScan</strong>. All stored locally in your browser.</div></div></div>
+        <div class="guide-step"><span class="guide-step-n guide-check">✓</span><div><div class="guide-step-title">Import/export cases for backup and sharing</div><div class="guide-step-desc">Use <code>export</code> in the header to save all cases as JSON. Share with teammates — they import into their own Kitsune. Use <code>import</code> to load any saved file. Data never leaves your browser otherwise.</div></div></div>
+        <div class="guide-step"><span class="guide-step-n guide-check">✓</span><div><div class="guide-step-title">Watchlist runs automatically on every feed refresh</div><div class="guide-step-desc">Add IOCs or keywords to <code>Watchlist</code> tab once. Every time you click <code>↻ refresh</code> in Live Feed, Kitsune checks all items against the fresh feed data and pops an alert on any match.</div></div></div>
+        <div class="guide-step"><span class="guide-step-n guide-check">✓</span><div><div class="guide-step-title">Add custom threat actors</div><div class="guide-step-desc"><code>Actors</code> tab → <code>+ add actor</code>. Fill in name, nation, aliases, tools, MITRE TTPs, IOCs, targets. Hover any existing card and click <code>✎ edit</code> to modify built-in actors. Export the full database as JSON for backup.</div></div></div>
+        <div class="guide-step"><span class="guide-step-n guide-check">✓</span><div><div class="guide-step-title">Use timeline + evidence as your case notebook</div><div class="guide-step-desc"><code>Timeline</code> records when things happened (initial access, C2 beacon, data exfil). <code>Evidence</code> is for raw data — paste WHOIS output, Shodan results, stealer log snippets, Telegram screenshots as text. Both appear in the exported report.</div></div></div>
+      </div>
+    </div>
+
+    <!-- ENTITY TYPES -->
+    <div class="guide-page" id="gp-entities">
+      <div class="guide-grid2">
+        <div class="guide-card"><div class="guide-card-title"><span class="badge b-red">IP</span> IP address</div><div class="guide-card-body">C2 servers, malicious hosts, scanning IPs, Tor exit nodes. Fields: ASN, country, org, port. Enriched by Shodan InternetDB, ip-api, GreyNoise, AbuseIPDB, VirusTotal.</div></div>
+        <div class="guide-card"><div class="guide-card-title"><span class="badge b-blue">Domain</span> Domain / hostname</div><div class="guide-card-body">Phishing domains, C2 domains, DGA hosts, typosquats. Fields: registrar, NS, created date. Enriched by crt.sh (subdomains), RDAP (WHOIS), URLhaus, GreyNoise, VirusTotal.</div></div>
+        <div class="guide-card"><div class="guide-card-title"><span class="badge b-gray">Hash</span> File hash</div><div class="guide-card-body">Malware samples — MD5, SHA1, SHA256. Fields: algorithm, malware family, VT hits. Enriched by VirusTotal, MalwareBazaar, ThreatFox.</div></div>
+        <div class="guide-card"><div class="guide-card-title"><span class="badge b-green">URL</span> URL or CVE ID</div><div class="guide-card-body">Malicious URLs, phishing links, exploit URLs, or CVE IDs (e.g. CVE-2024-1234). CVEs enriched via NVD with CVSS score and KEV exploitation status.</div></div>
+        <div class="guide-card"><div class="guide-card-title"><span class="badge b-yellow">Actor</span> Threat actor</div><div class="guide-card-body">APT groups, ransomware gangs, cybercriminals, insider threats. Fields: aliases, origin country, motivation, APT group name. Link to IP/domain/hash entities.</div></div>
+        <div class="guide-card"><div class="guide-card-title"><span class="badge b-purple">Wallet</span> Crypto wallet</div><div class="guide-card-body">Bitcoin, Ethereum, Monero addresses used for ransom payments or money laundering. Fields: chain, exchange. Link to actor and case timeline events.</div></div>
+        <div class="guide-card"><div class="guide-card-title"><span class="badge b-red">Email</span> Email address</div><div class="guide-card-body">Sender addresses in phishing, attacker-controlled accounts, registration emails for malicious domains. Enriched by HaveIBeenPwned (breach lookup) with HIBP key.</div></div>
+        <div class="guide-card"><div class="guide-card-title"><span class="badge b-gray">Org</span> Organisation</div><div class="guide-card-body">Victim organisations, hosting companies, bullet-proof hosters, ASN owners. Fields: industry, country. Useful for grouping infrastructure by provider.</div></div>
+      </div>
+      <div class="guide-tip" style="margin-top:.65rem"><strong>TLP levels:</strong> WHITE = public sharing · GREEN = community sharing · AMBER = limited sharing · RED = do not share. Set TLP on each entity when adding it. TLP appears in the exported report.</div>
+      <div class="guide-tip" style="margin-top:.4rem"><strong>IOC status:</strong> Confirmed = actively malicious, high confidence · Suspected = under investigation · Not IOC = benign / false positive. Affects pin color on the Geo Map and graph node ring.</div>
+    </div>
+
+    <div class="dont-show-row">
+      <input type="checkbox" id="guide-dont-show" onchange="if(this.checked)localStorage.setItem('k6_guide_skip','1');else localStorage.removeItem('k6_guide_skip')">
+      <label for="guide-dont-show" style="cursor:pointer">don't show this guide on startup</label>
+      <button class="mb p" onclick="closeModal('guide-modal')" style="margin-left:auto;padding:4px 16px;font-size:.66rem">got it →</button>
+    </div>
   </div>
 </div>
 
@@ -3433,6 +3626,31 @@ function restorePanelState() {
   if (localStorage.getItem('k6_dp') === '1') { dpHidden = false; toggleDetail(); }
 }
 
+// ═══════════════════════════════════════════════════════
+// GUIDE MODAL
+// ═══════════════════════════════════════════════════════
+function switchGuideTab(id, btn) {
+  document.querySelectorAll('.guide-tab').forEach(b => b.classList.remove('on'));
+  document.querySelectorAll('.guide-page').forEach(p => p.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+  const el = document.getElementById('gp-'+id);
+  if(el) el.classList.add('on');
+}
+
+function showGuideOnStartup() {
+  // Show guide on every visit unless user checked "don't show"
+  if(localStorage.getItem('k6_guide_skip') === '1') return;
+  // Small delay so the page renders first
+  setTimeout(() => {
+    openModal('guide-modal');
+    // Reset to first tab
+    switchGuideTab('start', document.querySelector('.guide-tab'));
+    // Sync checkbox
+    const cb = document.getElementById('guide-dont-show');
+    if(cb) cb.checked = false;
+  }, 600);
+}
+
 loadCustomActors();load();loadKeys();renderAll();setMode('select');
 document.getElementById('tl-date').value=new Date().toISOString().split('T')[0];
 window.addEventListener('resize',renderGraph);
@@ -3446,6 +3664,7 @@ if(localStorage.getItem('k6_defang')==='1'){DEFANG_MODE=true;const db=document.g
 (function(){const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js';document.head.appendChild(s);})();
 // Restore panel collapse state
 restorePanelState();
+showGuideOnStartup();
 </script>
 </body>
 </html>
