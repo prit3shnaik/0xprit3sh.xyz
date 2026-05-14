@@ -2950,7 +2950,25 @@ let customActors = []; // loaded from localStorage
 let actorDataFiltered = [];
 
 function loadCustomActors(){
+  // Load from localStorage (user-added via editor)
   try{ customActors=JSON.parse(localStorage.getItem('k6_actors')||'[]'); }catch(e){ customActors=[]; }
+  // Also fetch actors.json from same folder (add actors here without touching index.html)
+  fetch('./actors.json?v='+Date.now())
+    .then(r=>{ if(!r.ok) throw new Error('no actors.json'); return r.json(); })
+    .then(data=>{
+      if(!Array.isArray(data)) return;
+      // Merge: actors.json entries marked as _remote, don't duplicate
+      const existingIds = new Set([...ACTOR_DB.map(a=>a.id), ...customActors.map(a=>a.id)]);
+      const fresh = data.filter(a=>a.id && !existingIds.has(a.id)).map(a=>({...a,_remote:true}));
+      if(fresh.length){
+        customActors=[...customActors,...fresh];
+        // Re-render actors grid if it's currently visible
+        const panel=document.getElementById('panel-actors');
+        if(panel && panel.classList.contains('on')) filterActors();
+        console.log('[Kitsune] Loaded',fresh.length,'actors from actors.json');
+      }
+    })
+    .catch(()=>{}); // actors.json is optional — fail silently
 }
 function saveCustomActors(){
   localStorage.setItem('k6_actors',JSON.stringify(customActors));
