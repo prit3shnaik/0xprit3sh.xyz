@@ -1,0 +1,101 @@
+[
+  {
+    "id": "custom_volt_typhoon",
+    "_custom": true,
+    "name": "Volt Typhoon",
+    "aliases": ["Bronze Silhouette", "Vanguard Panda", "DEV-0391"],
+    "nation": "China",
+    "flag": "🇨🇳",
+    "sponsor": "Chinese MSS/PLA",
+    "motivation": "pre-positioning",
+    "type": ["espionage", "nation-state"],
+    "desc": "Pre-positioning in US critical infrastructure for potential disruption. Known for extreme stealth using only native Windows tools (LOLBins). Targets power, water, comms, and transportation in Guam and continental US.",
+    "tools": ["living-off-the-land (LOLBins)", "Impacket", "Fast Reverse Proxy", "netsh", "wmic", "ntdsutil"],
+    "ttps": ["T1133", "T1078", "T1036", "T1070", "T1090", "T1571", "T1003", "T1059"],
+    "targets": ["US critical infrastructure", "Guam military", "power grid", "water systems", "communications"],
+    "iocs": [],
+    "refs": [
+      "https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-144a",
+      "https://attack.mitre.org/groups/G1017/"
+    ]
+  },
+  {
+    "id": "custom_fin7",
+    "_custom": true,
+    "name": "FIN7",
+    "aliases": ["Carbanak Group", "Navigator Group", "ITG14", "Carbon Spider"],
+    "nation": "Unknown",
+    "flag": "🌐",
+    "sponsor": "Criminal",
+    "motivation": "financial",
+    "type": ["financial", "ransomware"],
+    "desc": "Prolific financially motivated group targeting retail, hospitality, and finance sectors. Pioneered point-of-sale malware. Later shifted to ransomware deployment (BlackBasta, REvil) and SEC filings fraud.",
+    "tools": ["CARBANAK", "BABYMETAL", "BIRDWATCH", "Cobalt Strike", "PowerShell Empire", "BlackBasta"],
+    "ttps": ["T1566", "T1059", "T1078", "T1486", "T1055", "T1027", "T1105", "T1071"],
+    "targets": ["retail POS systems", "hospitality", "finance", "healthcare", "SEC filings (2023)"],
+    "iocs": [],
+    "refs": [
+      "https://attack.mitre.org/groups/G0046/",
+      "https://www.cisa.gov/news-events/cybersecurity-advisories/aa22-206a"
+    ]
+  },
+  {
+    "id": "custom_ta505",
+    "_custom": true,
+    "name": "TA505",
+    "aliases": ["Cl0p", "FIN11", "Lace Tempest", "Graceful Spider"],
+    "nation": "Unknown",
+    "flag": "🌐",
+    "sponsor": "Criminal",
+    "motivation": "financial",
+    "type": ["ransomware", "financial"],
+    "desc": "High-volume threat actor behind mass exploitation campaigns. Responsible for MOVEit zero-day (2023) affecting 2000+ organizations, Accellion FTA exploitation, and widespread Clop ransomware deployments.",
+    "tools": ["Cl0p ransomware", "SDBot", "Get2", "FlawedAmmyy", "FRIENDSPEAK"],
+    "ttps": ["T1190", "T1486", "T1059", "T1071", "T1105", "T1078", "T1489"],
+    "targets": ["MOVEit customers", "Accellion FTA users", "universities", "government agencies", "healthcare"],
+    "iocs": [],
+    "refs": [
+      "https://attack.mitre.org/groups/G0092/",
+      "https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-158a"
+    ]
+  },
+  {
+    "id": "custom_apt35",
+    "_custom": true,
+    "name": "APT35",
+    "aliases": ["Charming Kitten", "Phosphorus", "TA453", "Mint Sandstorm", "NewsBeef"],
+    "nation": "Iran",
+    "flag": "🇮🇷",
+    "sponsor": "IRGC",
+    "motivation": "espionage",
+    "type": ["espionage", "nation-state"],
+    "desc": "Iranian IRGC-linked group conducting sophisticated phishing and social engineering. Known for impersonating journalists, academics, and think tank researchers to target nuclear policy experts, activists, and dissidents.",
+    "tools": ["POWERSTAR", "GorjolEcho", "NokNok", "BASICSTAR", "CharmPower"],
+    "ttps": ["T1566", "T1056", "T1059", "T1027", "T1071", "T1078", "T1539"],
+    "targets": ["nuclear policy researchers", "journalists", "activists", "US government", "Israel", "dissidents"],
+    "iocs": [],
+    "refs": [
+      "https://attack.mitre.org/groups/G0059/",
+      "https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-241a"
+    ]
+  },
+  {
+    "id": "custom_rhysida",
+    "_custom": true,
+    "name": "Rhysida",
+    "aliases": ["Vice Society (linked)"],
+    "nation": "Unknown",
+    "flag": "🌐",
+    "sponsor": "Criminal",
+    "motivation": "financial",
+    "type": ["ransomware"],
+    "desc": "Ransomware-as-a-Service group emerged mid-2023. Hit British Library, Chilean Army, Insomniac Games (Sony). Uses double extortion. CISA advisory issued November 2023. Targets healthcare and education heavily.",
+    "tools": ["Rhysida ransomware (C++)", "Cobalt Strike", "PsExec", "ntdsutil", "PowerShell"],
+    "ttps": ["T1486", "T1489", "T1490", "T1059", "T1078", "T1021", "T1003"],
+    "targets": ["healthcare", "education", "government", "British Library", "Chilean Army", "gaming"],
+    "iocs": ["rhysidaa27rxdyc3.onion"],
+    "refs": [
+      "https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-325a"
+    ]
+  }
+]
