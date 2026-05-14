@@ -1,101 +1,1138 @@
 [
   {
-    "id": "custom_volt_typhoon",
+    "id": "ext_apt28",
     "_custom": true,
-    "name": "Volt Typhoon",
-    "aliases": ["Bronze Silhouette", "Vanguard Panda", "DEV-0391"],
+    "name": "APT28",
+    "aliases": [
+      "Fancy Bear",
+      "Sofacy",
+      "STRONTIUM",
+      "Pawn Storm",
+      "Sednit"
+    ],
+    "nation": "Russia",
+    "flag": "🇷🇺",
+    "sponsor": "GRU Unit 26165",
+    "motivation": "espionage",
+    "since": "2004",
+    "type": [
+      "espionage",
+      "nation-state"
+    ],
+    "desc": "APT28 is a Russian military intelligence (GRU) cyber espionage unit active since at least 2004. The group is renowned for sophisticated spear-phishing campaigns, zero-day exploitation, and highly targeted intrusions against political and defense organizations. APT28 gained international notoriety for its role in the 2016 U.S. Democratic National Committee (DNC) breach and the 2017 French election interference campaign targeting Emmanuel Macron. The group employs custom malware frameworks and con",
+    "tools": [
+      "X-Agent",
+      "Sofacy",
+      "LoJax",
+      "Zebrocy",
+      "CHOPSTICK",
+      "Komplex",
+      "Seduploader"
+    ],
+    "ttps": [
+      "T1566",
+      "T1059",
+      "T1078",
+      "T1003",
+      "T1027",
+      "T1105",
+      "T1071",
+      "T1547"
+    ],
+    "targets": [
+      "NATO member governments",
+      "defense contractors",
+      "media organizations",
+      "political parties",
+      "election infrastructure",
+      "primarily Europe and North America"
+    ],
+    "iocs": [
+      "sofacy.org",
+      "dealerschoices.com",
+      "sednesdv.com",
+      "appspot-preview.com"
+    ],
+    "refs": [
+      "https://attack.mitre.org/groups/G0007/",
+      "https://www.cisa.gov/news-events/cybersecurity-advisories/aa20-296a"
+    ]
+  },
+  {
+    "id": "ext_apt29",
+    "_custom": true,
+    "name": "APT29",
+    "aliases": [
+      "Cozy Bear",
+      "The Dukes",
+      "NOBELIUM",
+      "Midnight Blizzard",
+      "Dark Halo"
+    ],
+    "nation": "Russia",
+    "flag": "🇷🇺",
+    "sponsor": "SVR (Foreign Intelligence Service)",
+    "motivation": "espionage / intelligence collection",
+    "since": "2008",
+    "type": [
+      "espionage",
+      "nation-state"
+    ],
+    "desc": "APT29 is a highly sophisticated Russian cyber espionage group attributed to the SVR. The group is known for stealthy, long-duration intrusions designed to maintain persistent access to high-value targets without detection. They achieved global infamy through the 2020 SolarWinds supply chain attack (SUNBURST), which compromised thousands of organizations including multiple U.S. federal agencies. APT29 employs a disciplined, patient methodology — often remaining dormant inside victim networks for ",
+    "tools": [
+      "SUNBURST",
+      "TEARDROP",
+      "MiniDuke",
+      "CosmicDuke",
+      "WellMess",
+      "BEATDROP",
+      "Cobalt Strike"
+    ],
+    "ttps": [
+      "T1195",
+      "T1078",
+      "T1027",
+      "T1071",
+      "T1562",
+      "T1021",
+      "T1550",
+      "T1087"
+    ],
+    "targets": [
+      "Government agencies",
+      "think tanks",
+      "diplomatic missions",
+      "healthcare and COVID-19 research",
+      "defense industrial base",
+      "U.S",
+      "Europe",
+      "and global allies"
+    ],
+    "iocs": [
+      "avsvmcloud.com",
+      "digitalcollege.org",
+      "freescanonline.com",
+      "seobundlekit.com"
+    ],
+    "refs": [
+      "https://attack.mitre.org/groups/G0016/",
+      "https://www.cisa.gov/news-events/cybersecurity-advisories/aa21-008a"
+    ]
+  },
+  {
+    "id": "ext_apt41",
+    "_custom": true,
+    "name": "APT41",
+    "aliases": [
+      "Double Dragon",
+      "Winnti",
+      "Barium",
+      "Wicked Panda",
+      "Bronze Atlas"
+    ],
     "nation": "China",
     "flag": "🇨🇳",
-    "sponsor": "Chinese MSS/PLA",
-    "motivation": "pre-positioning",
-    "type": ["espionage", "nation-state"],
-    "desc": "Pre-positioning in US critical infrastructure for potential disruption. Known for extreme stealth using only native Windows tools (LOLBins). Targets power, water, comms, and transportation in Guam and continental US.",
-    "tools": ["living-off-the-land (LOLBins)", "Impacket", "Fast Reverse Proxy", "netsh", "wmic", "ntdsutil"],
-    "ttps": ["T1133", "T1078", "T1036", "T1070", "T1090", "T1571", "T1003", "T1059"],
-    "targets": ["US critical infrastructure", "Guam military", "power grid", "water systems", "communications"],
-    "iocs": [],
+    "sponsor": "MSS (Ministry of State Security)",
+    "motivation": "espionage + financial gain",
+    "since": "2012",
+    "type": [
+      "espionage+cybercrime",
+      "nation-state"
+    ],
+    "desc": "APT41 is a uniquely dual-purpose Chinese threat actor that conducts state-sponsored espionage alongside financially motivated cybercrime operations — sometimes simultaneously. Attributed to Chinese nationals indicted by the U.S. DOJ in 2020, the group is distinguished by its ability to operate both on behalf of the Chinese government and for personal profit through supply chain attacks and ransomware. APT41 has compromised video game companies to steal in-game currency, targeted healthcare and p",
+    "tools": [
+      "POISONPLUG",
+      "MESSAGETAP",
+      "Shadowpad",
+      "Crosswalk",
+      "Cobalt Strike",
+      "njRAT",
+      "PlugX"
+    ],
+    "ttps": [
+      "T1195",
+      "T1190",
+      "T1059",
+      "T1036",
+      "T1021",
+      "T1505",
+      "T1027",
+      "T1078"
+    ],
+    "targets": [
+      "Healthcare",
+      "pharmaceuticals",
+      "telecommunications",
+      "technology",
+      "video gaming",
+      "government",
+      "global with focus on U.S",
+      "Asia",
+      "and Europe"
+    ],
+    "iocs": [
+      "highmmed.com",
+      "vpnkerio.com",
+      "microsoftsvc.com",
+      "gogle.co"
+    ],
     "refs": [
-      "https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-144a",
-      "https://attack.mitre.org/groups/G1017/"
+      "https://attack.mitre.org/groups/G0096/",
+      "https://www.justice.gov/opa/pr/seven-international-cyber-defendants-including-apt41-associates-charged"
     ]
   },
   {
-    "id": "custom_fin7",
+    "id": "ext_apt10",
     "_custom": true,
-    "name": "FIN7",
-    "aliases": ["Carbanak Group", "Navigator Group", "ITG14", "Carbon Spider"],
-    "nation": "Unknown",
-    "flag": "🌐",
-    "sponsor": "Criminal",
-    "motivation": "financial",
-    "type": ["financial", "ransomware"],
-    "desc": "Prolific financially motivated group targeting retail, hospitality, and finance sectors. Pioneered point-of-sale malware. Later shifted to ransomware deployment (BlackBasta, REvil) and SEC filings fraud.",
-    "tools": ["CARBANAK", "BABYMETAL", "BIRDWATCH", "Cobalt Strike", "PowerShell Empire", "BlackBasta"],
-    "ttps": ["T1566", "T1059", "T1078", "T1486", "T1055", "T1027", "T1105", "T1071"],
-    "targets": ["retail POS systems", "hospitality", "finance", "healthcare", "SEC filings (2023)"],
-    "iocs": [],
+    "name": "APT10",
+    "aliases": [
+      "Stone Panda",
+      "MenuPass",
+      "POTASSIUM",
+      "Cicada",
+      "Cloud Hopper"
+    ],
+    "nation": "China",
+    "flag": "🇨🇳",
+    "sponsor": "MSS Tianjin Bureau",
+    "motivation": "intellectual property theft",
+    "since": "2009",
+    "type": [
+      "espionage",
+      "nation-state"
+    ],
+    "desc": "APT10 is a Chinese state-sponsored threat actor with a long history of targeting managed service providers (MSPs) to gain access to their downstream clients — a technique called \"island hopping.\" Their Operation Cloud Hopper campaign, uncovered in 2017, compromised MSPs across 12 countries, providing access to hundreds of companies simultaneously. The group focuses heavily on stealing intellectual property from technology, aerospace, defense, and pharmaceutical sectors. Two members were indicted",
+    "tools": [
+      "PlugX",
+      "RedLeaves",
+      "QuasarRAT",
+      "ANEL",
+      "Poison Ivy",
+      "ChChes",
+      "UPPERCUT"
+    ],
+    "ttps": [
+      "T1078",
+      "T1021",
+      "T1059",
+      "T1105",
+      "T1027",
+      "T1003",
+      "T1071",
+      "T1057"
+    ],
+    "targets": [
+      "Managed service providers",
+      "aerospace",
+      "defense",
+      "pharmaceuticals",
+      "government",
+      "U.S",
+      "UK",
+      "Japan",
+      "Australia",
+      "Europe"
+    ],
+    "iocs": [
+      "pandorasong.com",
+      "linkxxxgroup.com",
+      "dnsgogle.com",
+      "microsofts.net"
+    ],
     "refs": [
-      "https://attack.mitre.org/groups/G0046/",
-      "https://www.cisa.gov/news-events/cybersecurity-advisories/aa22-206a"
+      "https://attack.mitre.org/groups/G0045/",
+      "https://www.justice.gov/opa/pr/two-chinese-hackers-associated-ministry-state-security-charged-global-computer-intrusion"
     ]
   },
   {
-    "id": "custom_ta505",
+    "id": "ext_lazarus_group",
     "_custom": true,
-    "name": "TA505",
-    "aliases": ["Cl0p", "FIN11", "Lace Tempest", "Graceful Spider"],
-    "nation": "Unknown",
-    "flag": "🌐",
-    "sponsor": "Criminal",
-    "motivation": "financial",
-    "type": ["ransomware", "financial"],
-    "desc": "High-volume threat actor behind mass exploitation campaigns. Responsible for MOVEit zero-day (2023) affecting 2000+ organizations, Accellion FTA exploitation, and widespread Clop ransomware deployments.",
-    "tools": ["Cl0p ransomware", "SDBot", "Get2", "FlawedAmmyy", "FRIENDSPEAK"],
-    "ttps": ["T1190", "T1486", "T1059", "T1071", "T1105", "T1078", "T1489"],
-    "targets": ["MOVEit customers", "Accellion FTA users", "universities", "government agencies", "healthcare"],
-    "iocs": [],
+    "name": "Lazarus Group",
+    "aliases": [
+      "Hidden Cobra",
+      "ZINC",
+      "Whois Team",
+      "Guardians of Peace",
+      "APT38"
+    ],
+    "nation": "North Korea",
+    "flag": "🇰🇵",
+    "sponsor": "Reconnaissance General Bureau (RGB)",
+    "motivation": "financial gain / espionage / disruption",
+    "since": "2009",
+    "type": [
+      "espionage+financialcrime",
+      "nation-state"
+    ],
+    "desc": "Lazarus Group is North Korea's most prolific and dangerous cyber threat actor, responsible for some of the most devastating cyberattacks in history. The group is believed to be the primary mechanism through which North Korea generates hard currency to fund its weapons programs, stealing over $3 billion in cryptocurrency between 2017 and 2023. Key operations include the 2014 Sony Pictures hack, the 2016 Bangladesh Bank SWIFT heist ($81M stolen), and the 2017 WannaCry ransomware pandemic affecting",
+    "tools": [
+      "WannaCry",
+      "HOPLIGHT",
+      "BLINDINGCAN",
+      "Manuscrypt",
+      "Destover",
+      "FASTCash",
+      "AppleJeus"
+    ],
+    "ttps": [
+      "T1566",
+      "T1059",
+      "T1486",
+      "T1041",
+      "T1005",
+      "T1078",
+      "T1027",
+      "T1204"
+    ],
+    "targets": [
+      "Financial institutions",
+      "cryptocurrency exchanges",
+      "defense contractors",
+      "media",
+      "healthcare",
+      "global",
+      "with emphasis on U.S",
+      "South Korea",
+      "and Japan"
+    ],
+    "iocs": [
+      "myethpay.com",
+      "unioncrypto.vip",
+      "naver-account.com",
+      "aerialops.io"
+    ],
     "refs": [
-      "https://attack.mitre.org/groups/G0092/",
-      "https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-158a"
+      "https://attack.mitre.org/groups/G0032/",
+      "https://www.cisa.gov/news-events/cybersecurity-advisories/aa22-108a"
     ]
   },
   {
-    "id": "custom_apt35",
+    "id": "ext_apt33",
     "_custom": true,
-    "name": "APT35",
-    "aliases": ["Charming Kitten", "Phosphorus", "TA453", "Mint Sandstorm", "NewsBeef"],
+    "name": "APT33",
+    "aliases": [
+      "Elfin",
+      "Refined Kitten",
+      "Magnallium",
+      "HOLMIUM"
+    ],
     "nation": "Iran",
     "flag": "🇮🇷",
-    "sponsor": "IRGC",
-    "motivation": "espionage",
-    "type": ["espionage", "nation-state"],
-    "desc": "Iranian IRGC-linked group conducting sophisticated phishing and social engineering. Known for impersonating journalists, academics, and think tank researchers to target nuclear policy experts, activists, and dissidents.",
-    "tools": ["POWERSTAR", "GorjolEcho", "NokNok", "BASICSTAR", "CharmPower"],
-    "ttps": ["T1566", "T1056", "T1059", "T1027", "T1071", "T1078", "T1539"],
-    "targets": ["nuclear policy researchers", "journalists", "activists", "US government", "Israel", "dissidents"],
-    "iocs": [],
+    "sponsor": "IRGC (Islamic Revolutionary Guard Corps)",
+    "motivation": "espionage / sabotage",
+    "since": "2013",
+    "type": [
+      "espionage+destructive",
+      "nation-state"
+    ],
+    "desc": "APT33 is an Iranian cyber espionage group with a particular focus on the aviation and petrochemical sectors, as well as geopolitical adversaries of Iran in the Middle East. The group is known for conducting password spraying campaigns at massive scale against thousands of organizations, and for deploying destructive wiper malware in strategic operations. APT33 has targeted companies in the U.S., Saudi Arabia, and South Korea, and is believed to have connections to the Shamoon wiper attacks. Thei",
+    "tools": [
+      "DROPSHOT",
+      "SHAPESHIFT",
+      "TURNEDUP",
+      "Stonedrill",
+      "AutoIt backdoor",
+      "NETEAGLE"
+    ],
+    "ttps": [
+      "T1566",
+      "T1110",
+      "T1485",
+      "T1027",
+      "T1059",
+      "T1071",
+      "T1078",
+      "T1036"
+    ],
+    "targets": [
+      "Aviation",
+      "petrochemical",
+      "energy",
+      "defense",
+      "U.S",
+      "Saudi Arabia",
+      "South Korea",
+      "UAE"
+    ],
+    "iocs": [
+      "http://elahmad.com",
+      "alsalam.ae",
+      "taekwondo-ksa.com",
+      "oil-rig.us"
+    ],
     "refs": [
-      "https://attack.mitre.org/groups/G0059/",
-      "https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-241a"
+      "https://attack.mitre.org/groups/G0064/",
+      "https://www.fireeye.com/blog/threat-research/2017/09/apt33-insights-into-iranian-cyber-espionage.html"
     ]
   },
   {
-    "id": "custom_rhysida",
+    "id": "ext_apt34",
     "_custom": true,
-    "name": "Rhysida",
-    "aliases": ["Vice Society (linked)"],
-    "nation": "Unknown",
-    "flag": "🌐",
-    "sponsor": "Criminal",
-    "motivation": "financial",
-    "type": ["ransomware"],
-    "desc": "Ransomware-as-a-Service group emerged mid-2023. Hit British Library, Chilean Army, Insomniac Games (Sony). Uses double extortion. CISA advisory issued November 2023. Targets healthcare and education heavily.",
-    "tools": ["Rhysida ransomware (C++)", "Cobalt Strike", "PsExec", "ntdsutil", "PowerShell"],
-    "ttps": ["T1486", "T1489", "T1490", "T1059", "T1078", "T1021", "T1003"],
-    "targets": ["healthcare", "education", "government", "British Library", "Chilean Army", "gaming"],
-    "iocs": ["rhysidaa27rxdyc3.onion"],
+    "name": "APT34",
+    "aliases": [
+      "OilRig",
+      "Helix Kitten",
+      "Crambus",
+      "IRN2",
+      "COBALT GYPSY"
+    ],
+    "nation": "Iran",
+    "flag": "🇮🇷",
+    "sponsor": "Iranian Ministry of Intelligence (MOIS)",
+    "motivation": "espionage / credential theft",
+    "since": "2014",
+    "type": [
+      "espionage",
+      "nation-state"
+    ],
+    "desc": "APT34 is a highly capable Iranian threat actor focused on long-term cyber espionage operations targeting Middle Eastern governments and regional critical infrastructure. The group is notable for its use of creative social engineering — often impersonating academic and research institutions — to deliver custom malware. In 2019, a mysterious actor calling themselves \"Lab Dookhtegan\" publicly leaked APT34's tools and victim lists, exposing operations across dozens of countries. APT34 frequently use",
+    "tools": [
+      "POWRUNER",
+      "BONDUPDATER",
+      "PICKPOCKET",
+      "Glimpse",
+      "PoisonFrog",
+      "LONGWATCH",
+      "Karkoff"
+    ],
+    "ttps": [
+      "T1566",
+      "T1071",
+      "T1059",
+      "T1041",
+      "T1003",
+      "T1027",
+      "T1078",
+      "T1087"
+    ],
+    "targets": [
+      "Financial",
+      "energy",
+      "telecommunications",
+      "government",
+      "chemical",
+      "Middle East",
+      "particularly Gulf Cooperation Council states"
+    ],
+    "iocs": [
+      "hr-sap.com",
+      "ntpupdater.net",
+      "b1g-game.com",
+      "owa-exg.com"
+    ],
     "refs": [
-      "https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-325a"
+      "https://attack.mitre.org/groups/G0049/",
+      "https://unit42.paloaltonetworks.com/unit42-oilrig-uses-updated-bondupdater-target-middle-eastern-government/"
+    ]
+  },
+  {
+    "id": "ext_apt1",
+    "_custom": true,
+    "name": "APT1",
+    "aliases": [
+      "Comment Crew",
+      "Comment Panda",
+      "Unit 61398",
+      "Shanghai Group"
+    ],
+    "nation": "China",
+    "flag": "🇨🇳",
+    "sponsor": "PLA Unit 61398 (3PLA)",
+    "motivation": "intellectual property theft",
+    "since": "2006",
+    "type": [
+      "espionage",
+      "nation-state"
+    ],
+    "desc": "APT1, also known as Comment Crew, is one of the most extensively documented Chinese cyber espionage groups. Mandiant's landmark 2013 report attributed the group to PLA Unit 61398 in Shanghai, marking one of the first times a nation-state APT was publicly named and physically located. The group conducted sustained, long-term intrusions — some lasting years — against at least 141 organizations across 20 industries. APT1's methodology involved establishing persistent footholds, slowly exfiltrating ",
+    "tools": [
+      "WEBC2",
+      "BISCUIT",
+      "MANITSME",
+      "GlooxMail",
+      "Poison Ivy",
+      "AURIGA",
+      "STARSYPOUND"
+    ],
+    "ttps": [
+      "T1566",
+      "T1059",
+      "T1005",
+      "T1041",
+      "T1078",
+      "T1027",
+      "T1071",
+      "T1021"
+    ],
+    "targets": [
+      "Aerospace",
+      "energy",
+      "telecommunications",
+      "IT",
+      "financial services",
+      "primarily English-speaking countries and the U.S"
+    ],
+    "iocs": [
+      "uglygorilla.com",
+      "moviekino.com",
+      "commentcrew.com",
+      "s1.cheap-nhl-jerseys.com"
+    ],
+    "refs": [
+      "https://attack.mitre.org/groups/G0006/",
+      "https://www.mandiant.com/resources/apt1-exposing-one-of-chinas-cyber-espionage-units"
+    ]
+  },
+  {
+    "id": "ext_equation_group",
+    "_custom": true,
+    "name": "Equation Group",
+    "aliases": [
+      "EQGRP",
+      "Tilded Team",
+      "Lamberts"
+    ],
+    "nation": "USA",
+    "flag": "🇺🇸",
+    "sponsor": "NSA TAO (Tailored Access Operations)",
+    "motivation": "signals intelligence / sabotage",
+    "since": "1996",
+    "type": [
+      "espionage+sabotage",
+      "nation-state"
+    ],
+    "desc": "Equation Group is widely considered the most sophisticated cyber espionage operation ever discovered, attributed to the NSA's Tailored Access Operations unit. Kaspersky Lab first documented the group in 2015, revealing capabilities that left the security community stunned: firmware-level persistence on hard drives from major vendors, air-gap jumping techniques, and encrypted virtual file systems hidden within target networks. The group's tools were stolen and leaked in 2016 by a mysterious entit",
+    "tools": [
+      "EQUATIONLASER",
+      "EQUATIONDRUG",
+      "DOUBLEFANTASY",
+      "FANNY",
+      "GRAYFISH",
+      "TRIPLEFANTASY",
+      "Stuxnet"
+    ],
+    "ttps": [
+      "T1542",
+      "T1027",
+      "T1071",
+      "T1003",
+      "T1078",
+      "T1562",
+      "T1005",
+      "T1195"
+    ],
+    "targets": [
+      "Governments",
+      "military",
+      "telecommunications",
+      "financial",
+      "energy",
+      "global with focus on Iran",
+      "Russia",
+      "China",
+      "and Middle East"
+    ],
+    "iocs": [
+      "imapserver-iphone.com",
+      "youareanidiot.com",
+      "cdnverify.net"
+    ],
+    "refs": [
+      "https://attack.mitre.org/groups/G0020/",
+      "https://securelist.com/equation-the-death-star-of-malware-galaxy/68750/"
+    ]
+  },
+  {
+    "id": "ext_sandworm",
+    "_custom": true,
+    "name": "Sandworm",
+    "aliases": [
+      "Voodoo Bear",
+      "ELECTRUM",
+      "Quedagh",
+      "BlackEnergy Group",
+      "Seashell Blizzard"
+    ],
+    "nation": "Russia",
+    "flag": "🇷🇺",
+    "sponsor": "GRU Unit 74455",
+    "motivation": "disruption / destruction",
+    "since": "2009",
+    "type": [
+      "nation-state"
+    ],
+    "desc": "Sandworm is GRU's most destructive cyber warfare unit, responsible for the most damaging cyberattacks ever recorded. The group executed the 2015 and 2016 Ukrainian power grid attacks — the first confirmed cyberattacks to cause civilian power outages. They deployed NotPetya in 2017, a wiper disguised as ransomware that caused over $10 billion in global damages, making it the costliest cyberattack in history. Sandworm also targeted the 2018 Winter Olympics with Olympic Destroyer and has attacked U",
+    "tools": [
+      "NotPetya",
+      "BlackEnergy",
+      "Industroyer",
+      "Olympic Destroyer",
+      "Cyclops Blink",
+      "CRASHOVERRIDE",
+      "Whispergate"
+    ],
+    "ttps": [
+      "T1485",
+      "T1499",
+      "T1566",
+      "T1059",
+      "T1195",
+      "T1071",
+      "T1543",
+      "T1489"
+    ],
+    "targets": [
+      "Energy/power grids",
+      "transportation",
+      "water",
+      "media",
+      "elections",
+      "Ukraine",
+      "Europe",
+      "U.S"
+    ],
+    "iocs": [
+      "m-e-doc.com",
+      "bankstat.kiev.ua",
+      "acctmanager.net",
+      "ssc-plrb.org"
+    ],
+    "refs": [
+      "https://attack.mitre.org/groups/G0034/",
+      "https://www.cisa.gov/news-events/cybersecurity-advisories/aa20-296b"
+    ]
+  },
+  {
+    "id": "ext_apt38",
+    "_custom": true,
+    "name": "APT38",
+    "aliases": [
+      "Bluenoroff",
+      "Stardust Chollima",
+      "BeagleBoyz"
+    ],
+    "nation": "North Korea",
+    "flag": "🇰🇵",
+    "sponsor": "RGB Lab 110",
+    "motivation": "financial theft",
+    "since": "2014",
+    "type": [
+      "financialcrime",
+      "nation-state"
+    ],
+    "desc": "APT38 is a North Korean sub-group under the Lazarus umbrella, specifically tasked with large-scale financial heists against global banking infrastructure. The group's methodology involves extensive pre-operation reconnaissance lasting months before any action — studying SWIFT messaging systems, ATM networks, and casino payment systems in detail. Their most notorious operation was the $81 million theft from the Bangladesh Bank via fraudulent SWIFT transfers in 2016. APT38 has targeted financial i",
+    "tools": [
+      "WHITEOUT",
+      "QUICKCAFE",
+      "DYEPACK",
+      "HERALDIC",
+      "FASTCash",
+      "CLEANTOAD",
+      "MIGHTYWIND"
+    ],
+    "ttps": [
+      "T1078",
+      "T1059",
+      "T1041",
+      "T1485",
+      "T1027",
+      "T1005",
+      "T1071",
+      "T1036"
+    ],
+    "targets": [
+      "Central banks",
+      "financial institutions",
+      "cryptocurrency exchanges",
+      "casino payment systems",
+      "Asia",
+      "Africa",
+      "Latin America",
+      "Europe"
+    ],
+    "iocs": [
+      "https://transfersrv.bar",
+      "simbacx.com",
+      "kadoa.com",
+      "central-pools.com"
+    ],
+    "refs": [
+      "https://attack.mitre.org/groups/G0082/",
+      "https://www.fbi.gov/wanted/cyber/apt-38"
+    ]
+  },
+  {
+    "id": "ext_apt3",
+    "_custom": true,
+    "name": "APT3",
+    "aliases": [
+      "Gothic Panda",
+      "UPS Team",
+      "Buckeye",
+      "TG-0110",
+      "Pirpi"
+    ],
+    "nation": "China",
+    "flag": "🇨🇳",
+    "sponsor": "MSS Guangdong State Security Department",
+    "motivation": "intellectual property theft",
+    "since": "2010",
+    "type": [
+      "espionage",
+      "nation-state"
+    ],
+    "desc": "APT3 is a sophisticated Chinese cyber espionage group attributed to the MSS with a particular specialty in exploiting zero-day vulnerabilities in browsers and enterprise software. The group was responsible for Operation Clandestine Fox (exploiting IE zero-days), Operation Clandestine Wolf (Flash Player zero-days), and Operation Double Tap (Windows kernel vulnerabilities). APT3 was among the first Chinese groups to be linked to a specific intelligence service when the NSA formally attributed them",
+    "tools": [
+      "SHOTPUT",
+      "Pirpi",
+      "Cookie Cutter",
+      "UPSLogger",
+      "gh0st RAT",
+      "PlugX",
+      "RemCom"
+    ],
+    "ttps": [
+      "T1190",
+      "T1059",
+      "T1078",
+      "T1003",
+      "T1027",
+      "T1071",
+      "T1021",
+      "T1105"
+    ],
+    "targets": [
+      "Defense",
+      "aerospace",
+      "construction",
+      "engineering",
+      "technology",
+      "telecommunications",
+      "U.S",
+      "UK",
+      "Hong Kong"
+    ],
+    "iocs": [
+      "linkedinssl.com",
+      "microsoftbb.com",
+      "hotmailsupport.net",
+      "3322.org"
+    ],
+    "refs": [
+      "https://attack.mitre.org/groups/G0022/",
+      "https://unit42.paloaltonetworks.com/unit42-apt3-docid-report/"
+    ]
+  },
+  {
+    "id": "ext_charming_kitten",
+    "_custom": true,
+    "name": "Charming Kitten",
+    "aliases": [
+      "APT35",
+      "Phosphorus",
+      "Mint Sandstorm",
+      "Ajax Security Team",
+      "ITG18"
+    ],
+    "nation": "Iran",
+    "flag": "🇮🇷",
+    "sponsor": "IRGC Intelligence Organization",
+    "motivation": "espionage / influence operations",
+    "since": "2011",
+    "type": [
+      "espionage",
+      "nation-state"
+    ],
+    "desc": "Charming Kitten is Iran's premier social engineering and cyber espionage group, known for its elaborate and patient impersonation campaigns. The group creates convincing fake personas of journalists, academics, and think tank researchers to build rapport with targets over weeks before deploying credential phishing. They have targeted U.S. presidential campaigns (2016, 2020), nuclear negotiators, journalists critical of the Iranian government, and human rights activists. In 2021, the group expand",
+    "tools": [
+      "POWERSTATS",
+      "CharmPower",
+      "GhostEcho",
+      "HYPERSCRAPE",
+      "Mellona",
+      "LittleLooter",
+      "POWERSTAR"
+    ],
+    "ttps": [
+      "T1566",
+      "T1598",
+      "T1078",
+      "T1041",
+      "T1059",
+      "T1027",
+      "T1071",
+      "T1204"
+    ],
+    "targets": [
+      "Government officials",
+      "academics",
+      "journalists",
+      "dissidents",
+      "nuclear policy researchers",
+      "U.S",
+      "Israel",
+      "Europe",
+      "Iran diaspora"
+    ],
+    "iocs": [
+      "actblues.com",
+      "gmail-security.net",
+      "yahoo-verify.net",
+      "office365secure.net"
+    ],
+    "refs": [
+      "https://attack.mitre.org/groups/G0059/",
+      "https://www.microsoft.com/security/blog/2022/09/14/charming-kitten-campaign-targets-individuals-with-erdogan-lures/"
+    ]
+  },
+  {
+    "id": "ext_turla",
+    "_custom": true,
+    "name": "Turla",
+    "aliases": [
+      "Snake",
+      "Venomous Bear",
+      "WRAITH",
+      "Waterbug",
+      "Uroboros",
+      "KRYPTON"
+    ],
+    "nation": "Russia",
+    "flag": "🇷🇺",
+    "sponsor": "FSB (Federal Security Service)",
+    "motivation": "long-term intelligence collection",
+    "since": "1996",
+    "type": [
+      "espionage",
+      "nation-state"
+    ],
+    "desc": "Turla is one of the longest-running and most technically advanced Russian cyber espionage operations, attributed to the FSB with activity dating back to at least 1996 (Agent.btz incident). The group is distinguished by its extraordinary technical innovation: using satellite internet hijacking for C2 communications, hijacking other APTs' infrastructure (notably taking over Iranian APT34's tools), using social media platforms (Twitter, Instagram) for C2, and embedding malware in music files. Turla",
+    "tools": [
+      "Snake",
+      "Carbon",
+      "Kazuar",
+      "HyperStack",
+      "Crutch",
+      "TinyTurla",
+      "Gazer",
+      "Mosquito"
+    ],
+    "ttps": [
+      "T1071",
+      "T1027",
+      "T1078",
+      "T1003",
+      "T1021",
+      "T1059",
+      "T1105",
+      "T1041"
+    ],
+    "targets": [
+      "Governments",
+      "embassies",
+      "military",
+      "research institutions",
+      "Europe",
+      "Middle East",
+      "Central Asia",
+      "U.S"
+    ],
+    "iocs": [
+      "satellite-uplink.net",
+      "swisswindows.org",
+      "shugalev.com",
+      "mast.net"
+    ],
+    "refs": [
+      "https://attack.mitre.org/groups/G0010/",
+      "https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-129a"
+    ]
+  },
+  {
+    "id": "ext_apt40",
+    "_custom": true,
+    "name": "APT40",
+    "aliases": [
+      "BRONZE MOHAWK",
+      "GADOLINIUM",
+      "Kryptonite Panda",
+      "Leviathan",
+      "TEMP.Periscope"
+    ],
+    "nation": "China",
+    "flag": "🇨🇳",
+    "sponsor": "MSS Hainan State Security Department",
+    "motivation": "maritime / naval intelligence theft",
+    "since": "2013",
+    "type": [
+      "espionage",
+      "nation-state"
+    ],
+    "desc": "APT40 is a Chinese MSS-linked threat actor uniquely focused on maritime, naval, and defense research — aligning with China's strategic ambitions in the South China Sea. Formally indicted by the U.S. DOJ in 2021 alongside four MSS officers, the group targeted universities conducting naval research, satellite technology companies, and Southeast Asian governments involved in maritime disputes. APT40 has shown capability to rapidly weaponize newly disclosed vulnerabilities and has targeted COVID-19 ",
+    "tools": [
+      "BADFLICK",
+      "MURKYTOP",
+      "MESSAGETAP",
+      "China Chopper",
+      "Cobalt Strike",
+      "PlugX",
+      "PHOTO"
+    ],
+    "ttps": [
+      "T1190",
+      "T1078",
+      "T1059",
+      "T1027",
+      "T1071",
+      "T1105",
+      "T1003",
+      "T1021"
+    ],
+    "targets": [
+      "Maritime",
+      "naval",
+      "aviation",
+      "defense",
+      "research universities",
+      "COVID-19 research",
+      "U.S",
+      "UK",
+      "Europe",
+      "Southeast Asia",
+      "Australia"
+    ],
+    "iocs": [
+      "microsoftonlinesupport.net",
+      "fortinetsupport.com",
+      "global-safety.net",
+      "naval-edu.com"
+    ],
+    "refs": [
+      "https://attack.mitre.org/groups/G0065/",
+      "https://www.justice.gov/opa/pr/four-chinese-nationals-working-ministry-state-security-charged-global-computer-intrusion"
+    ]
+  },
+  {
+    "id": "ext_unc1151___ghostwriter",
+    "_custom": true,
+    "name": "UNC1151 / Ghostwriter",
+    "aliases": [
+      "Ghostwriter",
+      "UAC-0051"
+    ],
+    "nation": "influence operations",
+    "flag": "🇧🇾",
+    "sponsor": "Belarusian Military Intelligence (GRU cooperation)",
+    "motivation": "information warfare / disinformation",
+    "since": "2016",
+    "type": [
+      "nation-state"
+    ],
+    "desc": "UNC1151, the threat actor behind the Ghostwriter campaign, is a Belarusian state-sponsored operation that specializes in influence operations and narrative manipulation across Europe. The group compromises legitimate news websites and government portals to plant fabricated content — often targeting NATO cohesion, U.S. military presence in Europe, and Baltic state sovereignty. They create convincing forgeries of official government documents and disseminate them through networks of inauthentic so",
+    "tools": [
+      "Cobalt Strike",
+      "Browser credential stealers",
+      "custom PHP webshells",
+      "Microbackdoor"
+    ],
+    "ttps": [
+      "T1566",
+      "T1078",
+      "T1036",
+      "T1583",
+      "T1059",
+      "T1027",
+      "T1491",
+      "T1598"
+    ],
+    "targets": [
+      "Government officials",
+      "military personnel",
+      "journalists",
+      "civil society",
+      "Poland",
+      "Lithuania",
+      "Latvia",
+      "Germany",
+      "Ukraine"
+    ],
+    "iocs": [
+      "nplg.news",
+      "bild-news.com",
+      "mir24.eu",
+      "meta-ua.net"
+    ],
+    "refs": [
+      "https://attack.mitre.org/groups/G1003/",
+      "https://www.mandiant.com/resources/ghostwriter-influence-campaign"
+    ]
+  },
+  {
+    "id": "ext_kimsuky",
+    "_custom": true,
+    "name": "Kimsuky",
+    "aliases": [
+      "Velvet Chollima",
+      "Thallium",
+      "Black Banshee",
+      "APT43",
+      "ARCHIPELAGO"
+    ],
+    "nation": "North Korea",
+    "flag": "🇰🇵",
+    "sponsor": "RGB (Reconnaissance General Bureau)",
+    "motivation": "intelligence collection / policy research",
+    "since": "2012",
+    "type": [
+      "espionage",
+      "nation-state"
+    ],
+    "desc": "Kimsuky is North Korea's primary intelligence-gathering APT, specifically tasked with collecting geopolitical intelligence to inform the DPRK regime's strategic decisions. Unlike Lazarus (which focuses on financial gain), Kimsuky's mission is pure espionage — understanding enemy policy, military posture, and diplomatic intentions. The group is exceptionally skilled at social engineering, often engaging targets in weeks of authentic-seeming academic or journalistic dialogue before deploying malwa",
+    "tools": [
+      "BabyShark",
+      "AppleSeed",
+      "Konni",
+      "SHARPEXT",
+      "RandomQuery",
+      "GoldDragon",
+      "PebbleDash"
+    ],
+    "ttps": [
+      "T1566",
+      "T1598",
+      "T1059",
+      "T1071",
+      "T1027",
+      "T1003",
+      "T1078",
+      "T1204"
+    ],
+    "targets": [
+      "South Korean government",
+      "U.S. policy researchers",
+      "think tanks",
+      "defectors",
+      "human rights organizations",
+      "nuclear experts"
+    ],
+    "iocs": [
+      "naver-login.com",
+      "daum-mail.net",
+      "kgls.or.kr",
+      "mnd-mil.com"
+    ],
+    "refs": [
+      "https://attack.mitre.org/groups/G0094/",
+      "https://www.cisa.gov/news-events/cybersecurity-advisories/aa20-301a"
+    ]
+  },
+  {
+    "id": "ext_unit_8200",
+    "_custom": true,
+    "name": "Unit 8200",
+    "aliases": [
+      "ISNU",
+      "Israeli SIGINT National Unit"
+    ],
+    "nation": "Israel",
+    "flag": "🇮🇱",
+    "sponsor": "Israeli Defense Forces (IDF)",
+    "motivation": "national security / counter-proliferation",
+    "since": "1952 (cyber since ~2000)",
+    "type": [
+      "espionage+sabotage",
+      "nation-state"
+    ],
+    "desc": "Unit 8200 is the Israeli Defense Forces' signals intelligence and cyber warfare unit, widely regarded as one of the world's most elite cyber organizations. The unit jointly developed Stuxnet with the NSA's Equation Group — the first known cyberweapon designed to cause physical destruction, which sabotaged Iran's uranium enrichment centrifuges at Natanz. Unit 8200 is also believed to be responsible for the 2007 cyberattack that disabled Syrian air defenses ahead of the Orchard airstrike. The unit",
+    "tools": [
+      "Stuxnet",
+      "Duqu",
+      "Flame",
+      "Gauss",
+      "miniFlame",
+      "Duqu 2.0"
+    ],
+    "ttps": [
+      "T1542",
+      "T1195",
+      "T1027",
+      "T1485",
+      "T1071",
+      "T1003",
+      "T1059",
+      "T1562"
+    ],
+    "targets": [
+      "Iranian nuclear program",
+      "Syrian military infrastructure",
+      "Hezbollah",
+      "Hamas",
+      "regional adversaries"
+    ],
+    "iocs": [],
+    "refs": [
+      "https://attack.mitre.org/groups/G0020/",
+      "https://www.wired.com/2014/11/countdown-to-zero-day-stuxnet/"
+    ]
+  },
+  {
+    "id": "ext_apt30",
+    "_custom": true,
+    "name": "APT30",
+    "aliases": [
+      "Override Panda",
+      "Naikon (related)",
+      "BRONZE PRESIDENT"
+    ],
+    "nation": "China",
+    "flag": "🇨🇳",
+    "sponsor": "PLA (People's Liberation Army)",
+    "motivation": "political / military intelligence",
+    "since": "2004",
+    "type": [
+      "espionage",
+      "nation-state"
+    ],
+    "desc": "APT30 is a Chinese military-linked threat actor that has operated one of the longest continuously running espionage campaigns ever documented — over 10 years — primarily focused on Southeast Asia and India. FireEye's 2015 report revealed a disciplined, hierarchical operation with dedicated infrastructure maintained meticulously over a decade. The group targets governments and media related to China's political interests, particularly organizations covering South China Sea disputes, Tibet, Taiwan",
+    "tools": [
+      "BACKSPACE",
+      "NETEAGLE",
+      "FLASHFLOOD",
+      "SPACESHIP",
+      "SHINDIG",
+      "CREAMSICLE"
+    ],
+    "ttps": [
+      "T1052",
+      "T1566",
+      "T1059",
+      "T1027",
+      "T1071",
+      "T1078",
+      "T1041",
+      "T1105"
+    ],
+    "targets": [
+      "Government",
+      "military",
+      "media",
+      "transportation",
+      "India",
+      "South Korea",
+      "Japan",
+      "Vietnam",
+      "Malaysia",
+      "and ASEAN governments"
+    ],
+    "iocs": [
+      "microsoftbb.com",
+      "gobackups.net",
+      "freenewsflash.org",
+      "globalnetservice.net"
+    ],
+    "refs": [
+      "https://attack.mitre.org/groups/G0013/",
+      "https://www.mandiant.com/resources/apt30-and-the-mechanics-of-a-long-running-cyber-espionage-operation"
     ]
   }
 ]
