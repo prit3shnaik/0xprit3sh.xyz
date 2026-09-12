@@ -20,17 +20,19 @@ collections:
       - { label: "Title",       name: "title",    widget: "string" }
       - { label: "Date",        name: "date",     widget: "datetime" }
       - { label: "Tags",        name: "tags",     widget: "list", allow_add: true }
-      - { label: "TL;DR",      name: "tldr",     widget: "string", required: false }
-      - { label: "Cover Image", name: "og_image", widget: "image",  required: false,
+      - { label: "TL;DR",       name: "tldr",     widget: "string", required: false }
+      - { label: "Cover Image", name: "og_image", widget: "image", required: false,
           hint: "1200x630px recommended" }
+
       - label: "Body"
         name: "body"
         widget: "markdown"
-        buttons: [bold, italic, code, link, heading-one, heading-two, heading-three, quote, bulleted-list, numbered-list, code-block]
+        buttons: [bold, italic, code, link, heading-one, heading-two, heading-three, quote, bulleted-list, numbered-list]
         editor_components: [code-block, image]
 
+
   # ─────────────────────────────────────────────
-  # ALERTS — redesigned, clean, Discord-style
+  # ALERTS
   # ─────────────────────────────────────────────
   - name: "alerts"
     label: "🚨 Alerts"
@@ -39,20 +41,20 @@ collections:
     slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
     fields:
 
-      # ── Core (always visible, always needed) ──
+      # ── Core ──
       - { label: "📌 Alert Title", name: "title", widget: "string",
           hint: "e.g. Hacktivist Group DXPLOIT defaced Nirmala College website" }
 
-      - { label: "📅 Date",  name: "date", widget: "datetime" }
+      - { label: "📅 Date", name: "date", widget: "datetime" }
 
       - label: "🔴 Severity"
         name: "severity"
         widget: "select"
         options:
           - { label: "🚨 Critical", value: "critical" }
-          - { label: "⚠️  High",     value: "high" }
+          - { label: "⚠️ High",     value: "high" }
           - { label: "🔔 Medium",   value: "medium" }
-          - { label: "ℹ️  Info",     value: "info" }
+          - { label: "ℹ️ Info",     value: "info" }
         default: "high"
 
       - label: "📂 Alert Type"
@@ -62,7 +64,7 @@ collections:
           - { label: "💻 Defacement",    value: "Defacement" }
           - { label: "🎯 IOC",           value: "IOC" }
           - { label: "⚡ CVE / Exploit", value: "CVE" }
-          - { label: "🕵️  Threat Actor",  value: "ThreatActor" }
+          - { label: "🕵️ Threat Actor", value: "ThreatActor" }
           - { label: "🦠 Malware",       value: "Malware" }
           - { label: "🎣 Phishing",      value: "Phishing" }
           - { label: "🌑 DarkWeb",       value: "DarkWeb" }
@@ -75,43 +77,48 @@ collections:
         name: "tlp"
         widget: "select"
         options:
-          - { label: "🔴 TLP:RED   — do not share",        value: "RED" }
-          - { label: "🟠 TLP:AMBER — limited sharing",     value: "AMBER" }
-          - { label: "🟢 TLP:GREEN — community sharing",   value: "GREEN" }
-          - { label: "⚪ TLP:WHITE — unlimited sharing",   value: "WHITE" }
+          - { label: "🔴 TLP:RED — do not share",        value: "RED" }
+          - { label: "🟠 TLP:AMBER — limited sharing",   value: "AMBER" }
+          - { label: "🟢 TLP:GREEN — community sharing", value: "GREEN" }
+          - { label: "⚪ TLP:WHITE — unlimited sharing", value: "WHITE" }
         default: "WHITE"
 
       - { label: "🔴 Active Threat?", name: "active", widget: "boolean",
           default: false, hint: "Toggle ON if threat is currently active/ongoing" }
 
-      # ── Target Info (matches your Discord format) ──
-      - { label: "🎯 Target",          name: "target",          widget: "string",
+      # ── Target Info ──
+      - { label: "🎯 Target", name: "target", widget: "string",
           required: false, hint: "e.g. Nirmala College, Apache Foundation" }
+
       - { label: "🌍 Target Location", name: "target_location", widget: "string",
           required: false, hint: "e.g. Maharashtra, India" }
-      - { label: "🌐 Target Website",  name: "target_url",      widget: "string",
+
+      - { label: "🌐 Target Website", name: "target_url", widget: "string",
           required: false, hint: "https://target.com" }
 
       # ── Threat Actor ──
-      - { label: "☠️  Threat Actor / Hacktivist", name: "threat_actor", widget: "string",
+      - { label: "☠️ Threat Actor / Hacktivist", name: "threat_actor", widget: "string",
           required: false, hint: "e.g. DXPLOIT, Anonymous, Lazarus Group" }
 
       # ── Technical Indicators ──
-      - { label: "🎯 IOC",              name: "ioc",              widget: "string",
+      - { label: "🎯 IOC", name: "ioc", widget: "string",
           required: false, hint: "IP, domain, hash, wallet address" }
-      - { label: "⚡ CVE ID",           name: "cve",              widget: "string",
+
+      - { label: "⚡ CVE ID", name: "cve", widget: "string",
           required: false, hint: "e.g. CVE-2024-1234" }
-      - { label: "🖥️  Affected Systems", name: "affected_systems", widget: "string",
+
+      - { label: "🖥️ Affected Systems", name: "affected_systems", widget: "string",
           required: false, hint: "e.g. Windows 10/11, Apache 2.4" }
 
       # ── Evidence ──
       - { label: "🔍 POC / Mirror URL", name: "poc_url", widget: "string",
           required: false, hint: "e.g. https://zone-h.org/mirror/id/..." }
-      - { label: "🔗 Source URL",       name: "source",  widget: "string",
+
+      - { label: "🔗 Source URL", name: "source", widget: "string",
           required: false, hint: "Original source / reference" }
 
       # ── Media ──
-      - { label: "🖼️  Screenshot / Cover Image", name: "og_image", widget: "image",
+      - { label: "🖼️ Screenshot / Cover Image", name: "og_image", widget: "image",
           required: false, hint: "Upload screenshot, defacement image, or evidence" }
 
       # ── Summary ──
@@ -119,7 +126,7 @@ collections:
           required: false, hint: "One line summary — shown in alert feed and Discord" }
 
       # ── Tags ──
-      - { label: "🏷️  Tags", name: "tags", widget: "list", allow_add: true,
+      - { label: "🏷️ Tags", name: "tags", widget: "list", allow_add: true,
           hint: "e.g. DDoS, India, Ubuntu, defacement" }
 
       # ── Body ──
@@ -127,8 +134,9 @@ collections:
         name: "body"
         widget: "markdown"
         hint: "Full writeup — supports images, code blocks, links"
-        buttons: [bold, italic, code, link, heading-two, heading-three, quote, bulleted-list, numbered-list, code-block]
+        buttons: [bold, italic, code, link, heading-two, heading-three, quote, bulleted-list, numbered-list]
         editor_components: [code-block, image]
+
 
   # ─────────────────────────────────────────────
   # OSINT INVESTIGATIONS
@@ -139,23 +147,31 @@ collections:
     create: true
     slug: "{{slug}}"
     fields:
-      - { label: "Title",       name: "title",    widget: "string" }
-      - { label: "Date",        name: "date",     widget: "datetime" }
-      - { label: "Tags",        name: "tags",     widget: "list", allow_add: true,
+      - { label: "Title", name: "title", widget: "string" }
+      - { label: "Date", name: "date", widget: "datetime" }
+      - { label: "Tags", name: "tags", widget: "list", allow_add: true,
           hint: "GEOINT, SOCMINT, HUMINT, C2, ACTOR, CTI" }
-      - { label: "Node Color",  name: "color",    widget: "color", default: "#00d4ff" }
-      - { label: "Enable Map",  name: "leaflet",  widget: "boolean", default: false }
-      - { label: "TL;DR",      name: "tldr",     widget: "string", required: false }
-      - { label: "Status",      name: "status",   widget: "select",
-          options: ["active","closed","ongoing"], default: "active" }
-      - { label: "Cover Image", name: "og_image", widget: "image",  required: false }
-      - { label: "Graph Data",  name: "graph_data", widget: "string", required: false,
+
+      - { label: "Node Color", name: "color", widget: "color", default: "#00d4ff" }
+
+      - { label: "Enable Map", name: "leaflet", widget: "boolean", default: false }
+
+      - { label: "TL;DR", name: "tldr", widget: "string", required: false }
+
+      - { label: "Status", name: "status", widget: "select",
+          options: ["active", "closed", "ongoing"], default: "active" }
+
+      - { label: "Cover Image", name: "og_image", widget: "image", required: false }
+
+      - { label: "Graph Data", name: "graph_data", widget: "string", required: false,
           hint: "Paste JSON from graph-builder → add {{< graph >}} in body" }
+
       - label: "Body"
         name: "body"
         widget: "markdown"
-        buttons: [bold, italic, code, link, heading-one, heading-two, heading-three, quote, bulleted-list, numbered-list, code-block]
+        buttons: [bold, italic, code, link, heading-one, heading-two, heading-three, quote, bulleted-list, numbered-list]
         editor_components: [code-block, image]
+
 
   # ─────────────────────────────────────────────
   # WRITEUPS
@@ -166,23 +182,29 @@ collections:
     create: true
     slug: "{{slug}}"
     fields:
-      - { label: "Title",       name: "title",    widget: "string" }
-      - { label: "Date",        name: "date",     widget: "datetime" }
-      - { label: "Tags",        name: "tags",     widget: "list", allow_add: true }
-      - { label: "Severity",    name: "severity", widget: "select",
-          options: ["critical","high","medium","low"], required: false }
-      - { label: "Platform",    name: "platform", widget: "string", required: false,
+      - { label: "Title", name: "title", widget: "string" }
+      - { label: "Date", name: "date", widget: "datetime" }
+      - { label: "Tags", name: "tags", widget: "list", allow_add: true }
+
+      - { label: "Severity", name: "severity", widget: "select",
+          options: ["critical", "high", "medium", "low"], required: false }
+
+      - { label: "Platform", name: "platform", widget: "string", required: false,
           hint: "HackTheBox, Immunefi, Private bug bounty" }
-      - { label: "TL;DR",      name: "tldr",     widget: "string", required: false }
-      - { label: "Cover Image", name: "og_image", widget: "image",  required: false }
+
+      - { label: "TL;DR", name: "tldr", widget: "string", required: false }
+
+      - { label: "Cover Image", name: "og_image", widget: "image", required: false }
+
       - label: "Body"
         name: "body"
         widget: "markdown"
-        buttons: [bold, italic, code, link, heading-one, heading-two, heading-three, quote, bulleted-list, numbered-list, code-block]
+        buttons: [bold, italic, code, link, heading-one, heading-two, heading-three, quote, bulleted-list, numbered-list]
         editor_components: [code-block, image]
 
+
   # ─────────────────────────────────────────────
-  # THREAT ACTOR PROFILES  ←  SVELTIA OPTIMISED
+  # THREAT ACTOR PROFILES
   # ─────────────────────────────────────────────
   - name: "actors"
     label: "☠️ Threat Actor Profiles"
@@ -193,146 +215,160 @@ collections:
     preview_path: "actors/{{slug}}"
     thumbnail_field: og_image
     summary: "{{category}} · {{title}} ({{threat_level}}) — {{status}}"
- 
-    # Sveltia view groups — filter/group in the sidebar
+
+    # Sveltia view groups
     view_groups:
-      - { label: "Category",     field: category }
+      - { label: "Category", field: category }
       - { label: "Threat Level", field: threat_level }
-      - { label: "Status",       field: status }
- 
-    # Sveltia view filters — quick toggles
+      - { label: "Status", field: status }
+
+    # Sveltia view filters
     view_filters:
-      - { label: "🔴 Active",    field: status,       pattern: "active" }
-      - { label: "🌐 Nation-State", field: category,  pattern: "Nation-State" }
+      - { label: "🔴 Active", field: status, pattern: "active" }
+      - { label: "🌐 Nation-State", field: category, pattern: "Nation-State" }
       - { label: "💸 Cybercriminal", field: category, pattern: "Cybercriminal" }
-      - { label: "🔒 Ransomware",  field: category,   pattern: "Ransomware" }
-      - { label: "⚠️ Critical",   field: threat_level, pattern: "critical" }
-      - { label: "🟠 High",       field: threat_level, pattern: "high" }
- 
+      - { label: "🔒 Ransomware", field: category, pattern: "Ransomware" }
+      - { label: "⚠️ Critical", field: threat_level, pattern: "critical" }
+      - { label: "🟠 High", field: threat_level, pattern: "high" }
+
     fields:
- 
+
       # ┌─────────────────────────────────────────
       # │ 🪪 IDENTITY
       # └─────────────────────────────────────────
+
       - { label: "──── 🪪 IDENTITY ────", name: "_div_identity",
           widget: "hidden", required: false }
- 
-      - { label: "Actor Name",       name: "title",   widget: "string",
+
+      - { label: "Actor Name", name: "title", widget: "string",
           hint: "Primary name e.g. Lazarus Group" }
- 
-      - { label: "Primary Alias",    name: "alias",   widget: "string", required: false,
+
+      - { label: "Primary Alias", name: "alias", widget: "string", required: false,
           hint: "Short subtitle e.g. North Korean state sponsored APT group" }
- 
-      - { label: "All Aliases",      name: "aliases", widget: "list",   required: false,
+
+      - { label: "All Aliases", name: "aliases", widget: "list", required: false,
           hint: "APT38, BlueNoroff, Hidden Cobra, Stardust Chollima …" }
- 
+
       - { label: "📍 Origin / Country", name: "origin", widget: "string", required: false,
           hint: "e.g. Democratic People's Republic of Korea (DPRK)" }
- 
+
+
       # ┌─────────────────────────────────────────
       # │ 📊 CLASSIFICATION
       # └─────────────────────────────────────────
+
       - { label: "──── 📊 CLASSIFICATION ────", name: "_div_class",
           widget: "hidden", required: false }
- 
+
       - label: "Category"
         name: "category"
         widget: "select"
         options:
-          - { label: "🌐 Nation-State",  value: "Nation-State" }
+          - { label: "🌐 Nation-State", value: "Nation-State" }
           - { label: "💸 Cybercriminal", value: "Cybercriminal" }
-          - { label: "🔒 Ransomware",    value: "Ransomware" }
-          - { label: "🌑 DarkWeb",       value: "DarkWeb" }
-          - { label: "💎 DeFi / Web3",   value: "DeFi" }
-          - { label: "✊ Hacktivism",    value: "Hacktivism" }
-          - { label: "❓ Unknown",        value: "Unknown" }
- 
+          - { label: "🔒 Ransomware", value: "Ransomware" }
+          - { label: "🌑 DarkWeb", value: "DarkWeb" }
+          - { label: "💎 DeFi / Web3", value: "DeFi" }
+          - { label: "✊ Hacktivism", value: "Hacktivism" }
+          - { label: "❓ Unknown", value: "Unknown" }
+
       - label: "⚠️ Threat Level"
         name: "threat_level"
         widget: "select"
         options:
           - { label: "🔴 Critical", value: "critical" }
-          - { label: "🟠 High",     value: "high" }
-          - { label: "🟡 Medium",   value: "medium" }
-          - { label: "🟢 Low",      value: "low" }
- 
+          - { label: "🟠 High", value: "high" }
+          - { label: "🟡 Medium", value: "medium" }
+          - { label: "🟢 Low", value: "low" }
+
       - label: "Status"
         name: "status"
         widget: "select"
         default: "monitoring"
         options:
-          - { label: "🔴 Active",     value: "active" }
-          - { label: "⚫ Inactive",   value: "inactive" }
+          - { label: "🔴 Active", value: "active" }
+          - { label: "⚫ Inactive", value: "inactive" }
           - { label: "🟡 Monitoring", value: "monitoring" }
-          - { label: "❓ Unknown",     value: "unknown" }
- 
+          - { label: "❓ Unknown", value: "unknown" }
+
       - { label: "💰 Motivation", name: "motivation", widget: "string", required: false,
           hint: "e.g. Financial gain (cryptocurrency theft), political espionage" }
- 
+
+
       # ┌─────────────────────────────────────────
       # │ 📅 TIMELINE
       # └─────────────────────────────────────────
+
       - { label: "──── 📅 TIMELINE ────", name: "_div_timeline",
           widget: "hidden", required: false }
- 
+
       - { label: "First Seen", name: "first_seen", widget: "string", required: false,
           hint: "e.g. 2009 or January 2014" }
- 
+
       - { label: "👁 Last Seen", name: "last_seen", widget: "string", required: false,
           hint: "e.g. May 2026 (Active campaigns targeting crypto exchanges)" }
- 
+
+
       # ┌─────────────────────────────────────────
       # │ 💡 SUMMARY
       # └─────────────────────────────────────────
+
       - { label: "──── 💡 SUMMARY ────", name: "_div_summary",
           widget: "hidden", required: false }
- 
+
       - { label: "💡 TL;DR", name: "tldr", widget: "text", required: false,
           hint: "One paragraph — shown on list cards and in the hero. Keep under 200 chars." }
- 
+
+
       # ┌─────────────────────────────────────────
       # │ ⚔️ INTELLIGENCE
       # └─────────────────────────────────────────
+
       - { label: "──── ⚔️ INTELLIGENCE ────", name: "_div_intel",
           widget: "hidden", required: false }
- 
+
       - { label: "⚔️ TTPs", name: "ttps", widget: "list", required: false,
           hint: "One technique per entry — shown as bullet points on the detail page" }
- 
+
       - { label: "🎯 Targets", name: "targets", widget: "list", required: false,
           hint: "Industries, sectors, or regions — e.g. Financial institutions, Aerospace" }
- 
+
       - { label: "🦠 Tools / Malware", name: "tools_used", widget: "list", required: false,
           hint: "Malware families, RATs, C2 frameworks — e.g. AppleJeus, PondRAT" }
- 
+
       - { label: "🔍 Known IOCs", name: "iocs", widget: "list", required: false,
           hint: "IPs, domains, hashes, wallet addresses — each gets a copy button on the page" }
- 
+
+
       # ┌─────────────────────────────────────────
       # │ 🖼️ MEDIA & META
       # └─────────────────────────────────────────
+
       - { label: "──── 🖼️ MEDIA & META ────", name: "_div_media",
           widget: "hidden", required: false }
- 
+
       - { label: "🖼️ Hero / Cover Image", name: "og_image", widget: "image", required: false,
           hint: "Full-width banner on the actor page. Dark images work best. Recommended: 1200x400px" }
- 
+
       - { label: "🏷️ Tags", name: "tags", widget: "list", required: false,
           hint: "APT, CryptoTheft, DPRK, Espionage, SupplyChain …" }
- 
+
+
       # ┌─────────────────────────────────────────
       # │ 📄 FULL REPORT
       # └─────────────────────────────────────────
+
       - { label: "──── 📄 FULL REPORT ────", name: "_div_body",
           widget: "hidden", required: false }
- 
+
       - label: "📄 Full Intelligence Report"
         name: "body"
         widget: "markdown"
         required: false
         hint: "Full writeup — supports headers, code blocks, images, tables"
-        buttons: [bold, italic, code, link, heading-two, heading-three, quote, bulleted-list, numbered-list, code-block]
+        buttons: [bold, italic, code, link, heading-two, heading-three, quote, bulleted-list, numbered-list]
         editor_components: [code-block, image]
+
 
   # ─────────────────────────────────────────────
   # PAGES
@@ -345,34 +381,38 @@ collections:
         name: "home"
         file: "content/_index.md"
         fields:
-          - { label: "Operator Name",  name: "operator",       widget: "string" }
-          - { label: "Tagline",        name: "tagline",        widget: "string" }
-          - { label: "Location",       name: "location",       widget: "string" }
-          - { label: "Status",         name: "status",         widget: "string" }
+          - { label: "Operator Name", name: "operator", widget: "string" }
+          - { label: "Tagline", name: "tagline", widget: "string" }
+          - { label: "Location", name: "location", widget: "string" }
+          - { label: "Status", name: "status", widget: "string" }
           - { label: "Specialization", name: "specialization", widget: "string" }
-          - { label: "Spec Detail",    name: "spec_detail",    widget: "string" }
-          - { label: "Tools",          name: "tools",          widget: "string" }
-          - { label: "Tools Detail",   name: "tools_detail",   widget: "string" }
+          - { label: "Spec Detail", name: "spec_detail", widget: "string" }
+          - { label: "Tools", name: "tools", widget: "string" }
+          - { label: "Tools Detail", name: "tools_detail", widget: "string" }
+
 
       - label: "About"
         name: "about"
         file: "content/about.md"
         fields:
           - { label: "Title", name: "title", widget: "string" }
+
           - label: "Body"
             name: "body"
             widget: "markdown"
-            buttons: [bold, italic, code, link, heading-one, heading-two, heading-three, quote, bulleted-list, numbered-list, code-block]
+            buttons: [bold, italic, code, link, heading-one, heading-two, heading-three, quote, bulleted-list, numbered-list]
             editor_components: [code-block, image]
+
 
       - label: "Services"
         name: "services"
         file: "content/services.md"
         fields:
-          - { label: "Title",       name: "title",       widget: "string" }
+          - { label: "Title", name: "title", widget: "string" }
           - { label: "Description", name: "description", widget: "string", required: false }
+
           - label: "Body"
             name: "body"
             widget: "markdown"
-            buttons: [bold, italic, code, link, heading-one, heading-two, heading-three, quote, bulleted-list, numbered-list, code-block]
+            buttons: [bold, italic, code, link, heading-one, heading-two, heading-three, quote, bulleted-list, numbered-list]
             editor_components: [code-block, image]
