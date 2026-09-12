@@ -10,9 +10,9 @@ Security Researcher and Penetration Tester based in Goa, India.
 
 Focused on offensive security, vulnerability research, OSINT, and threat intelligence. I enjoy understanding how systems work, how they fail, and how they can be secured.
 
----
+***
 
-\~what i do
+**\~what i do**
 
 offensive security
 
@@ -38,9 +38,9 @@ research
 - Custom security tooling
 - Continuous learning & experimentation
 
----
+***
 
-\~tools i've built
+**\~tools i've built**
 
 Pinaka
 A penetration testing framework for web, API, and network assessments.
@@ -60,9 +60,9 @@ OSINT & GEOINT monitoring system.
 FenrirEye (Open Source)
 Border risk monitoring platform.
 
----
+***
 
-\~experience
+**\~experience**
 
 freelance penetration tester
 
@@ -82,25 +82,25 @@ Aug 2023 — Present
 - Dark web monitoring
 - Threat actor tracking
 
----
+***
 
-\~projects
+**\~projects**
 
 I build tools that simplify security research, automate repetitive tasks, and make investigations more efficient.
 
 Most of my work revolves around offensive security, OSINT, and threat intelligence. Some projects are open source, while others remain private.
 
----
+***
 
-\~need dev work?
+**\~need dev work?**
 
 I primarily work in cybersecurity.
 
 If you're looking for web, mobile, or backend development, I can connect you with developers I trust.
 
----
+***
 
-\~education
+**\~education**
 
 Self-taught in cybersecurity through hands-on research, building tools, and real-world projects.
 
