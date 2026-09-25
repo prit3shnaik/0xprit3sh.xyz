@@ -7,222 +7,121 @@ tldr: No degree, no certs — just curiosity, failures, and a raw journey into c
 og_image: /images/uploads/file_0000000021e471fa89a86429241cd935.png
 ---
 
-### **Hey, it’s Pritesh here — a boy who once dreamed of being in the defence services.**
+# Hey, it's Pritesh.
 
-**Right now? Exploiting, hacking (or whatever you call it), just managing to live a day-to-day life.**
-
-***
+A boy who once dreamed of being in the defence services. Right now? Exploiting, hacking (or whatever you want to call it), just trying to live a day-to-day life.
 
 ## Where It All Started
 
-5 years back, I didn’t even know what cybersecurity, a security researcher, or hackers meant. Just buzzwords.
+Five years back, I didn't even know what cybersecurity meant. Security researcher, hacker — just buzzwords to me.
 
-Somewhere around 2019, I got introduced to something I didn’t even have a name for back then — OSINT.
+Then around 2019, I got introduced to something I didn't even have a name for yet: OSINT.
 
-I joined a random Telegram channel (some Indian OSINT community — don’t even remember the name). That’s where it began.
+I joined some random Telegram channel — an Indian OSINT community, I don't even remember which one. That's where it began.
 
-Understanding intelligence.
-Understanding human psychology.
-Understanding how public information connects.
+Understanding intelligence. Understanding human psychology. Understanding how public information connects.
 
-Not theory — real-world thinking.
-
-***
+Not theory. Real-world thinking.
 
 ## The OSINT Phase
 
-I started connecting with people on Telegram and WhatsApp — people who actually \*knew things\*. They shaped me.
+I started connecting with people on Telegram and WhatsApp — people who actually _knew things_. They shaped me.
 
-Eventually, I joined a group that investigated social media profiles spreading anti-national content, religious hate, or threats.
+Eventually I joined a group investigating social media profiles spreading anti-national content, religious hate, threats. We tracked activity across platforms — mostly Twitter/X — and reported it through proper channels.
 
-We tracked activity across platforms (mainly Twitter/X) and reported it through proper channels.
-
-That’s when I understood something important:
-
-> Geopolitics, intelligence, and security aren’t concepts — they’re constantly happening in the background.
-
-***
+That's when it clicked: geopolitics, intelligence, security — these aren't abstract concepts. They're happening constantly, in the background, all the time.
 
 ## When Things Changed
 
-Then came the shift.
+Then Elon took over Twitter, turned it into X.
 
-Elon Musk took over Twitter and turned it into X.
+Rate limits. Privacy restrictions. Everything got harder.
 
-Rate limits. Privacy restrictions.
-
-Things got harder. Our work slowed down.
-
-And somewhere along the way, I paused OSINT.
-
-***
+Our work slowed down. Somewhere along the way, I paused OSINT.
 
 ## Trying to Fit In
 
-I moved to web development — because that’s what everyone was doing.
+I moved to web dev — because that's what everyone else was doing. Learned webdev, web3, the basics, all of it.
 
-Learned webdev, web3, basics… everything.
-
-But I felt it clearly:
-
-I didn’t want to build.
-I wanted to break.
-
-***
+But I felt it clearly: I didn't want to build. I wanted to break.
 
 ## The Script Kiddie Era
 
-I started watching hacking tutorials.
-Copy-pasting commands into terminal.
+Started watching hacking tutorials. Copy-pasting commands into a terminal. Yeah — full script kiddie phase.
 
-Yeah — script kiddie phase.
-
-But then reality hit:
-
-> If you’re serious about cybersecurity, fundamentals matter.
-
-***
+Then reality hit: if you're serious about this, fundamentals matter. No shortcuts.
 
 ## Curiosity Took Me Further
 
-Around early 2022, hacktivism was everywhere.
+Early 2022, hacktivism was everywhere. I got curious — started exploring how groups actually operate. DDoS, ransomware, SCADA attacks, dark web connections.
 
-I got curious.
+To understand it properly, I went deeper. Joined those spaces. Talked to people. Observed silently.
 
-Started exploring how groups operate — DDoS, ransomware, SCADA attacks, dark web connections.
-
-And to understand it better, I went deeper.
-
-Joined those spaces.
-Talked to people.
-Observed silently.
-
-Not to become one of them — but to understand.
-
-***
+Not to become one of them. To understand.
 
 ## Life Happened
 
-I joined college (BCA)… and dropped out within a year due to financial issues.
+Joined college for BCA. Dropped out within a year. No regrets.
 
-No regrets.
+Do it or don't — you'll regret both either way.
 
-> Do it or don’t do it — you’ll regret both.
+Then joined a cybersecurity course, the usual pitch: "get certified, get a job."
 
-Then I joined a cybersecurity course (you know the pitch — “get certified, get a job”).
-
-That’s where I met Vaishnavu C.V sir — someone who actually made a difference.
-
-***
+That's where I met Vaishnavu C.V sir — someone who actually made a difference.
 
 ## Finding My Place
 
-Through that community, I got a platform.
+Through that community I got a platform. Started posting breach alerts and intel, because I had access to 80+ private groups where attacks were being discussed. Figured — why not use that access for something useful.
 
-I started posting breach alerts and intel — because I had access to 80+ private groups where attacks were discussed.
+Around the same time I got into bug bounty. 35+ reports. Most duplicates. \~7k earned.
 
-Why not use that access for something useful?
-
-At the same time, I started bug bounty.
-
-35+ reports.
-Most duplicates.
-\~7k earned.
-
-Yeah, skill issue. I know.
-
-***
+Skill issue, I know.
 
 ## Stepping Into The Real World
 
-I started attending events — Seasides, BSIDES Mumbai.
+Started attending events — Seasides, BSides Mumbai. Built real connections.
 
-Built real connections.
+Even before that I'd started earning — freelancing, security contributions, web3 work. Clients from all over the world, except India, ironically.
 
-Even before that, I had started earning:
-
-- Freelancing  
-- Security contributions  
-- Web3-related work  
-
-Worked with clients globally (except India, ironically).
-
-Roles I’ve touched:
-
-- Web3 Security  
-- VAPT  
-- CTI  
-- OSINT  
-
-***
+Roles I've touched: Web3 Security, VAPT, CTI, OSINT.
 
 ## OSINT Is Not a Hobby
 
-Many people treat OSINT like a side hobby.
+People treat OSINT like a side hustle. I don't.
 
-I don’t.
+It's core to cybersecurity!
 
-It’s a core part of cybersecurity.
-
-India has strong OSINT communities — Ware&Gore, OsintTV, ElitePredators, and many more. They’ve contributed massively to real intelligence work.
-
-Some contributors today include defence personnel, law enforcement, and independent researchers.
+India has strong OSINT communities — Ware&Gore, OsintTV, ElitePredators, and plenty more — that have contributed real intelligence work. Some of today's contributors are defence personnel, law enforcement, independent researchers.
 
 Respect to that community.
 
-***
-
 ## Rejections & Reality
 
-I’ve given 10+ interviews for security roles!
+10+ interviews for security roles. All rejections. Fair, honestly.
 
-All rejections.
+Poor communication — introvert struggles.
 
-Fair.
+No certifications — CEH is basically an HR filter in India.
 
-Reasons?
+No degree.
 
-- Poor communication (introvert struggles)  
-- No certifications (CEH = HR filter in India)  
-- No degree  
-
-That hits hard.
-
-Motivation drops. \~ Fucks
-
-***
+That hits. Motivation drops.
 
 ## But Still…
 
-WAKE UP. UPSKILL.
+Wake up. Upskill. Repeat.
 
-Right now, I’m working with a team on a web3 project based in Hungary.
+Right now I'm working with a team on a web3 project based in Hungary, handling web3 security.
 
-Handling web3 security.
-
-Am I good at it?
-
-Not really.
-
-But it works.
-
-***
+Am I good at it? Not really. But it works.
 
 ## Where I Stand Today
 
-I’m not great at many things. Maybe never was.
+I'm not great at many things. Maybe never was.
 
-But I know one thing:
+But I know one thing — I'm not done yet.
 
-> I’m not done yet.
-
-Once I’m financially stable, I’ll continue my education.
-
-Until then — hustle continues.
-
-Period.
-
-***
+Once I'm financially stable, I'll go back and finish my education. Until then, the hustle continues. Period.
 
 ## Shoutouts
 
@@ -230,25 +129,10 @@ Sector21 Community — Vaishnavu sir, Deepu, Davy, Alexander, and everyone there
 
 RtxGhost — hacker buddy from Assam who prefers to stay anonymous.
 
-Sanket Sharma, Pratham Naik, Shahid Shaikh, Ivo Pereira, Pushkaraj Dhuri — and everyone I couldn’t mention.
-
-***
+Sanket Sharma, Pratham Naik, Shahid Shaikh, Ivo Pereira, Pushkaraj Dhuri — and everyone else I couldn't fit in here.
 
 ## Ending Note
 
-This isn’t a polished blog.
+This isn't a polished blog. Call it shitposting, call it whatever you want.
 
-Call it shitposting. Call it whatever.
-
-This is just… my story.
-
-And yeah —
-
-Thanks to my parents.
-Never really made them proud.
-
-But I will.
-
-Someday.
-
-{{< chai >}}
+This is just my story.
